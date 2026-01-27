@@ -2,7 +2,7 @@
  * 邀请好友注册 - 功能增强脚本
  * 
  * 1. 自动识别邀请任务项并添加高亮样式
- * 2. 复用原有的"复制链接"和"推广海报"按钮
+ * 2. 纯净复制链接（不附加额外信息）+ 推广海报
  * 3. 添加"热门"标签
  */
 
@@ -39,20 +39,51 @@
         return { url: '', userId: '' };
     }
 
-    // 创建复用原有逻辑的按钮
+    // 纯净复制到剪贴板（不附加额外信息）
+    function cleanCopy(text, $btn) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                showCopiedFeedback($btn);
+            }).catch(function () {
+                fallbackCopy(text, $btn);
+            });
+        } else {
+            fallbackCopy(text, $btn);
+        }
+    }
+
+    // 降级复制方案
+    function fallbackCopy(text, $btn) {
+        var $temp = $('<textarea>');
+        $('body').append($temp);
+        $temp.val(text).select();
+        document.execCommand('copy');
+        $temp.remove();
+        showCopiedFeedback($btn);
+    }
+
+    // 显示复制成功反馈
+    function showCopiedFeedback($btn) {
+        var originalHtml = $btn.html();
+        $btn.html('<i class="fa fa-check"></i> 已复制!');
+        setTimeout(function () {
+            $btn.html(originalHtml);
+        }, 2000);
+    }
+
+    // 创建按钮
     function createButtons(referralData) {
         if (!referralData.url || !referralData.userId) {
             return '';
         }
 
-        // 复制链接按钮 - 使用与原有相同的 class 和 data 属性
-        var copyBtn = '<a data-clipboard-tag="推广链接" data-clipboard-text="' + referralData.url + '" ' +
-            'class="clip-aut but c-yellow xingxy-btn" href="javascript:;">' +
+        // 复制链接按钮 - 使用自定义纯净复制（不附加网站信息）
+        var copyBtn = '<a class="but c-yellow xingxy-copy-btn" href="javascript:;" data-url="' + referralData.url + '">' +
             '<i class="fa fa-link"></i> 复制链接</a>';
 
-        // 推广海报按钮 - 使用与原有相同的 poster-share 属性
+        // 推广海报按钮 - 使用原有的 poster-share 属性
         var posterBtn = '<a poster-share="rebate_' + referralData.userId + '" data-user="' + referralData.userId + '" ' +
-            'href="javascript:;" class="clip-aut but c-cyan xingxy-btn">' +
+            'href="javascript:;" class="but c-cyan xingxy-btn">' +
             '<i class="fa fa-qrcode"></i> 推广海报</a>';
 
         return '<div class="xingxy-referral-btns mt10">' + copyBtn + posterBtn + '</div>';
@@ -103,6 +134,16 @@
                 subtree: true
             });
         }
+
+        // 绑定复制按钮点击事件（使用事件委托）
+        $(document).on('click', '.xingxy-copy-btn', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var url = $(this).data('url');
+            if (url) {
+                cleanCopy(url, $(this));
+            }
+        });
     });
 
     // 监听 Tab 切换
