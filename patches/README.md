@@ -43,4 +43,10 @@ git diff HEAD~1 -- inc/functions/shop/
 
 详见 [tiered-discount-mutual-exclusion.md](./tiered-discount-mutual-exclusion.md)
 
+---
+
+## 邀请注册送积分功能
+
+详见 [referral-points.md](./referral-points.md)
+
 **更新日期**: 2026-01-28
