@@ -2,7 +2,7 @@
  * 邀请好友注册 - 功能增强脚本
  * 
  * 1. 自动识别邀请任务项并添加高亮样式
- * 2. 添加"复制链接"按钮
+ * 2. 复用原有的"复制链接"和"推广海报"按钮
  * 3. 添加"热门"标签
  */
 
@@ -12,74 +12,56 @@
     // 配置
     var config = {
         referralKeyword: '邀请好友注册',
-        tagText: '🔥 热门',
-        copyBtnText: '复制链接',
-        copiedText: '已复制!'
+        tagText: '🔥 热门'
     };
 
-    // 获取当前用户的推荐链接
-    function getReferralLink() {
+    // 获取当前用户的推荐链接和用户ID
+    function getReferralData() {
         // 优先使用 PHP 传递的数据
         if (typeof xingxy_referral !== 'undefined' && xingxy_referral.referral_url) {
-            return xingxy_referral.referral_url;
+            return {
+                url: xingxy_referral.referral_url,
+                userId: xingxy_referral.user_id
+            };
         }
 
-        // 降级：尝试从页面获取用户ID
-        var userId = typeof zib_user_id !== 'undefined' ? zib_user_id : '';
-        if (!userId) {
-            // 尝试从推广链接输入框获取
-            var $refInput = $('input[value*="?ref="]');
-            if ($refInput.length) {
-                return $refInput.val();
-            }
-            // 尝试从页面其他元素获取
-            var $userLink = $('.author-link[href*="user_id="]');
-            if ($userLink.length) {
-                var match = $userLink.attr('href').match(/user_id=(\d+)/);
-                if (match) userId = match[1];
-            }
+        // 降级：尝试从页面推广链接输入框获取
+        var $refInput = $('[data-clipboard-text*="?ref="]');
+        if ($refInput.length) {
+            var url = $refInput.attr('data-clipboard-text');
+            var match = url.match(/ref=(\d+)/);
+            return {
+                url: url,
+                userId: match ? match[1] : ''
+            };
         }
 
-        if (userId) {
-            return window.location.origin + '/?ref=' + userId;
-        }
-        return '';
+        return { url: '', userId: '' };
     }
 
-    // 复制到剪贴板
-    function copyToClipboard(text, $btn) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(function () {
-                showCopiedFeedback($btn);
-            }).catch(function () {
-                fallbackCopy(text, $btn);
-            });
-        } else {
-            fallbackCopy(text, $btn);
+    // 创建复用原有逻辑的按钮
+    function createButtons(referralData) {
+        if (!referralData.url || !referralData.userId) {
+            return '';
         }
-    }
 
-    // 降级复制方案
-    function fallbackCopy(text, $btn) {
-        var $temp = $('<textarea>');
-        $('body').append($temp);
-        $temp.val(text).select();
-        document.execCommand('copy');
-        $temp.remove();
-        showCopiedFeedback($btn);
-    }
+        // 复制链接按钮 - 使用与原有相同的 class 和 data 属性
+        var copyBtn = '<a data-clipboard-tag="推广链接" data-clipboard-text="' + referralData.url + '" ' +
+            'class="clip-aut but c-yellow xingxy-btn" href="javascript:;">' +
+            '<i class="fa fa-link"></i> 复制链接</a>';
 
-    // 显示复制成功反馈
-    function showCopiedFeedback($btn) {
-        var originalText = $btn.html();
-        $btn.addClass('copied').html('<i class="fa fa-check"></i> ' + config.copiedText);
-        setTimeout(function () {
-            $btn.removeClass('copied').html(originalText);
-        }, 2000);
+        // 推广海报按钮 - 使用与原有相同的 poster-share 属性
+        var posterBtn = '<a poster-share="rebate_' + referralData.userId + '" data-user="' + referralData.userId + '" ' +
+            'href="javascript:;" class="clip-aut but c-cyan xingxy-btn">' +
+            '<i class="fa fa-qrcode"></i> 推广海报</a>';
+
+        return '<div class="xingxy-referral-btns mt10">' + copyBtn + posterBtn + '</div>';
     }
 
     // 增强邀请任务项
     function enhanceReferralItem() {
+        var referralData = getReferralData();
+
         // 查找包含"邀请好友注册"的任务项
         $('.border-bottom.padding-h10').each(function () {
             var $item = $(this);
@@ -94,17 +76,12 @@
                     $item.prepend('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
                 }
 
-                // 添加复制链接按钮
-                var $descDiv = $item.find('.muted-2-color.em09');
-                if ($descDiv.length && !$item.find('.xingxy-copy-link-btn').length) {
-                    var $copyBtn = $('<button class="xingxy-copy-link-btn"><i class="fa fa-link"></i> ' + config.copyBtnText + '</button>');
-                    $copyBtn.on('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        var link = getReferralLink();
-                        copyToClipboard(link, $(this));
-                    });
-                    $descDiv.after($copyBtn);
+                // 添加复制链接和推广海报按钮
+                if (!$item.find('.xingxy-referral-btns').length) {
+                    var buttons = createButtons(referralData);
+                    if (buttons) {
+                        $item.append(buttons);
+                    }
                 }
             }
         });
@@ -112,7 +89,8 @@
 
     // 页面加载完成后执行
     $(document).ready(function () {
-        enhanceReferralItem();
+        // 延迟执行，确保页面其他元素加载完成
+        setTimeout(enhanceReferralItem, 300);
 
         // 监听 DOM 变化（用于动态加载的内容）
         if (typeof MutationObserver !== 'undefined') {
