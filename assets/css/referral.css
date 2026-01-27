@@ -1,0 +1,85 @@
+/**
+ * 邀请好友注册 - 视觉增强样式
+ * 
+ * 通过选择器匹配积分任务列表中的邀请项，添加高亮效果
+ */
+
+/* 邀请任务项高亮样式 */
+.xingxy-referral-highlight {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.15) 0%, rgba(255, 107, 107, 0.15) 100%) !important;
+    border: 1px solid rgba(138, 43, 226, 0.3) !important;
+    border-radius: 8px !important;
+    margin: 8px 0 !important;
+    padding: 12px 15px !important;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.xingxy-referral-highlight:hover {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.25) 0%, rgba(255, 107, 107, 0.25) 100%) !important;
+    border-color: rgba(138, 43, 226, 0.5) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
+}
+
+/* 热门标签 */
+.xingxy-referral-tag {
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+    animation: xingxy-pulse 2s infinite;
+}
+
+@keyframes xingxy-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* 复制链接按钮 */
+.xingxy-copy-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff !important;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    margin-left: 10px;
+}
+
+.xingxy-copy-link-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+}
+
+.xingxy-copy-link-btn.copied {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.xingxy-copy-link-btn i {
+    font-size: 14px;
+}
+
+/* 邀请统计 */
+.xingxy-referral-stats {
+    display: inline-block;
+    font-size: 11px;
+    color: #999;
+    margin-left: 10px;
+}
+
+/* 积分数高亮 */
+.xingxy-referral-highlight .focus-color {
+    font-size: 1.2em !important;
+    text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+}

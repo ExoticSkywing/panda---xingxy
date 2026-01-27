@@ -45,3 +45,6 @@ require_once XINGXY_PATH . 'inc/discount.php';
 
 // 加载邀请注册送积分功能
 require_once XINGXY_PATH . 'inc/referral.php';
+
+// 加载资源（CSS/JS）
+require_once XINGXY_PATH . 'inc/assets.php';

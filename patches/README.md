@@ -49,4 +49,10 @@ git diff HEAD~1 -- inc/functions/shop/
 
 详见 [referral-points.md](./referral-points.md)
 
+---
+
+## 邀请任务视觉增强
+
+详见 [referral-visual-enhance.md](./referral-visual-enhance.md)
+
 **更新日期**: 2026-01-28
