@@ -1,0 +1,4 @@
+# 忽略规则
+.DS_Store
+*.log
+node_modules/
