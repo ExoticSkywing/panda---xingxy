@@ -42,3 +42,6 @@ require_once XINGXY_PATH . 'inc/options.php';
 
 // 加载优惠功能扩展
 require_once XINGXY_PATH . 'inc/discount.php';
+
+// 加载邀请注册送积分功能
+require_once XINGXY_PATH . 'inc/referral.php';

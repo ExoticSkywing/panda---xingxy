@@ -67,6 +67,41 @@ add_action('zib_require_end', function () {
         ),
     ));
     
+    // ==================== 推广设置 ====================
+    CSF::createSection('xingxy_options', array(
+        'id'    => 'referral_settings',
+        'title' => '推广设置',
+        'icon'  => 'fas fa-users',
+        'fields' => array(
+            array(
+                'type'    => 'heading',
+                'content' => '邀请注册送积分',
+            ),
+            array(
+                'type'    => 'notice',
+                'style'   => 'info',
+                'content' => '当新用户通过推荐链接（带 <code>?ref=用户ID</code>）注册成功后，推荐人将获得积分奖励。',
+            ),
+            array(
+                'id'      => 'enable_referral_points',
+                'type'    => 'switcher',
+                'title'   => '启用邀请送积分',
+                'desc'    => '开启后，推荐新用户注册成功后给推荐人奖励积分',
+                'default' => true,
+            ),
+            array(
+                'id'         => 'referral_points_amount',
+                'type'       => 'number',
+                'title'      => '奖励积分数量',
+                'desc'       => '每成功推荐一个新用户注册，推荐人获得的积分数量',
+                'default'    => 10,
+                'min'        => 1,
+                'max'        => 1000,
+                'dependency' => array('enable_referral_points', '==', 'true'),
+            ),
+        ),
+    ));
+    
     // ==================== 高级设置 ====================
     CSF::createSection('xingxy_options', array(
         'id'    => 'advanced_settings',
