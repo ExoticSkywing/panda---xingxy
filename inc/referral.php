@@ -56,6 +56,11 @@ function xingxy_reward_referrer_on_registration($new_user_id) {
         'desc'  => '推荐用户 ' . $new_user_name . ' 成功注册',
     );
     zibpay_update_user_points($referrer_id, $data);
+    
+    // 记录到每日明细（使"今日累计"正确显示）
+    if (function_exists('zibpay_add_user_free_points_date_detail')) {
+        zibpay_add_user_free_points_date_detail($referrer_id, $points);
+    }
 }
 // 优先级设为 20，确保在 referrer_id 保存之后执行
 add_action('user_register', 'xingxy_reward_referrer_on_registration', 20);
