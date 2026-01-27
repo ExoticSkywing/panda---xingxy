@@ -2,7 +2,7 @@
  * 邀请好友注册 - 功能增强脚本
  * 
  * 1. 自动识别邀请任务项并添加高亮样式
- * 2. 纯净复制链接（不附加额外信息）+ 推广海报
+ * 2. 复用主题内置的复制链接和推广海报功能
  * 3. 添加"热门"标签
  */
 
@@ -25,7 +25,7 @@
             };
         }
 
-        // 降级：尝试从页面推广链接输入框获取
+        // 降级：尝试从页面推广链接获取
         var $refInput = $('[data-clipboard-text*="?ref="]');
         if ($refInput.length) {
             var url = $refInput.attr('data-clipboard-text');
@@ -39,49 +39,18 @@
         return { url: '', userId: '' };
     }
 
-    // 纯净复制到剪贴板（不附加额外信息）
-    function cleanCopy(text, $btn) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(function () {
-                showCopiedFeedback($btn);
-            }).catch(function () {
-                fallbackCopy(text, $btn);
-            });
-        } else {
-            fallbackCopy(text, $btn);
-        }
-    }
-
-    // 降级复制方案
-    function fallbackCopy(text, $btn) {
-        var $temp = $('<textarea>');
-        $('body').append($temp);
-        $temp.val(text).select();
-        document.execCommand('copy');
-        $temp.remove();
-        showCopiedFeedback($btn);
-    }
-
-    // 显示复制成功反馈
-    function showCopiedFeedback($btn) {
-        var originalHtml = $btn.html();
-        $btn.html('<i class="fa fa-check"></i> 已复制!');
-        setTimeout(function () {
-            $btn.html(originalHtml);
-        }, 2000);
-    }
-
-    // 创建按钮
+    // 创建按钮（复用主题内置功能）
     function createButtons(referralData) {
         if (!referralData.url || !referralData.userId) {
             return '';
         }
 
-        // 复制链接按钮 - 使用自定义纯净复制（不附加网站信息）
-        var copyBtn = '<a class="but c-yellow xingxy-copy-btn" href="javascript:;" data-url="' + referralData.url + '">' +
+        // 复制链接按钮 - 使用 clip-aut 类触发主题内置的 clipboard.js
+        var copyBtn = '<a data-clipboard-text="' + referralData.url + '" data-clipboard-tag="推广链接" ' +
+            'class="clip-aut but c-yellow xingxy-btn" href="javascript:;">' +
             '<i class="fa fa-link"></i> 复制链接</a>';
 
-        // 推广海报按钮 - 使用原有的 poster-share 属性
+        // 推广海报按钮 - 使用 poster-share 属性触发主题内置功能
         var posterBtn = '<a poster-share="rebate_' + referralData.userId + '" data-user="' + referralData.userId + '" ' +
             'href="javascript:;" class="but c-cyan xingxy-btn">' +
             '<i class="fa fa-qrcode"></i> 推广海报</a>';
@@ -134,16 +103,6 @@
                 subtree: true
             });
         }
-
-        // 绑定复制按钮点击事件（使用事件委托）
-        $(document).on('click', '.xingxy-copy-btn', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var url = $(this).data('url');
-            if (url) {
-                cleanCopy(url, $(this));
-            }
-        });
     });
 
     // 监听 Tab 切换
