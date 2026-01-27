@@ -19,10 +19,20 @@
 
     // 获取当前用户的推荐链接
     function getReferralLink() {
-        // 从页面中获取用户ID，或使用 AJAX
+        // 优先使用 PHP 传递的数据
+        if (typeof xingxy_referral !== 'undefined' && xingxy_referral.referral_url) {
+            return xingxy_referral.referral_url;
+        }
+
+        // 降级：尝试从页面获取用户ID
         var userId = typeof zib_user_id !== 'undefined' ? zib_user_id : '';
         if (!userId) {
-            // 尝试从页面获取
+            // 尝试从推广链接输入框获取
+            var $refInput = $('input[value*="?ref="]');
+            if ($refInput.length) {
+                return $refInput.val();
+            }
+            // 尝试从页面其他元素获取
             var $userLink = $('.author-link[href*="user_id="]');
             if ($userLink.length) {
                 var match = $userLink.attr('href').match(/user_id=(\d+)/);
@@ -33,7 +43,7 @@
         if (userId) {
             return window.location.origin + '/?ref=' + userId;
         }
-        return window.location.origin + '/?ref=';
+        return '';
     }
 
     // 复制到剪贴板
