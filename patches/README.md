@@ -36,3 +36,11 @@
 cd /www/wwwroot/xingxy.manyuzo.com/wp-content/themes/zibll
 git diff HEAD~1 -- inc/functions/shop/
 ```
+
+---
+
+## 阶梯优惠互斥功能
+
+详见 [tiered-discount-mutual-exclusion.md](./tiered-discount-mutual-exclusion.md)
+
+**更新日期**: 2026-01-28
