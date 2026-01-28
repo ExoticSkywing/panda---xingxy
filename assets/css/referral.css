@@ -1,28 +1,101 @@
 /**
- * 邀请好友注册 - 视觉增强样式 (Scheme E: Deep Bubbles Original)
- * 核心：完全还原 Bubbles 深色光影质感 + 文字反白
+ * 邀请好友注册 - 视觉增强样式 (Scheme F: Adaptive Bubbles)
+ * 核心：自动适配深浅模式
+ * - 浅色模式：水彩晕染风 (Pastel Watercolor)
+ * - 深色模式：极光光影风 (Deep Aurora)
  */
 
-/* -------------------
-   容器样式
-   ------------------- */
+/* =========================================
+   1. CSS 变量定义 (配色系统)
+   ========================================= */
+
+/* 默认：浅色模式 (Light Mode) */
+:root {
+    /* 容器背景：微灰白 */
+    --xingxy-card-bg: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+    --xingxy-border: rgba(0, 0, 0, 0.06);
+    --xingxy-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+
+    /* 文本颜色 */
+    --xingxy-text-main: #333333;
+    --xingxy-text-sub: #666666;
+    --xingxy-accent: #ff6b6b;
+    /* 积分高亮 */
+
+    /* 按钮样式 */
+    --xingxy-btn-bg: rgba(255, 255, 255, 0.8);
+    --xingxy-btn-border: #e0e0e0;
+    --xingxy-btn-text: #555;
+
+    /* Bubbles 气泡颜色 (浅色水彩风) */
+    /* 颜色更淡，饱和度更低，适合白底 */
+    --b-color1: 18, 113, 255;
+    /* 蓝 */
+    --b-color2: 255, 120, 255;
+    /* 粉 */
+    --b-color3: 100, 220, 255;
+    /* 青 */
+    --b-color4: 255, 100, 100;
+    /* 红 */
+    --b-color5: 255, 200, 100;
+    /* 黄 */
+
+    --b-opacity: 0.15;
+    /* 气泡透明度极低，像水印 */
+    --b-blending: normal;
+    /* 浅色模式下无需混合模式，直接叠加 */
+}
+
+/* 深色模式 (Dark Mode) - 适配 Zibll body.dark-theme */
+body.dark-theme {
+    /* 容器背景：深蓝紫 */
+    --xingxy-card-bg: linear-gradient(40deg, rgb(45, 20, 85), rgb(10, 20, 60));
+    --xingxy-border: rgba(255, 255, 255, 0.1);
+    --xingxy-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+    /* 文本颜色 */
+    --xingxy-text-main: #ffffff;
+    --xingxy-text-sub: rgba(255, 255, 255, 0.7);
+    --xingxy-accent: #ff8e8e;
+
+    /* 按钮样式 */
+    --xingxy-btn-bg: rgba(255, 255, 255, 0.1);
+    --xingxy-btn-border: rgba(255, 255, 255, 0.2);
+    --xingxy-btn-text: #ffffff;
+
+    /* Bubbles 气泡颜色 (深色极光风) */
+    /* 颜色浓郁，高饱和 */
+    --b-color1: 18, 113, 255;
+    --b-color2: 221, 74, 255;
+    --b-color3: 100, 220, 255;
+    --b-color4: 200, 50, 50;
+    --b-color5: 180, 180, 50;
+
+    --b-opacity: 0.8;
+    /* 高不透明度 */
+    --b-blending: hard-light;
+    /* 强光混合，产生光感 */
+}
+
+/* =========================================
+   2. 容器与文本样式
+   ========================================= */
 .xingxy-referral-highlight {
     position: relative;
-    /* 还原深色渐变背景，这是光影生效的关键 */
-    background: linear-gradient(40deg, rgb(108, 0, 162), rgb(0, 17, 82)) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--xingxy-card-bg) !important;
+    border: 1px solid var(--xingxy-border) !important;
     border-radius: 16px !important;
-    padding: 25px 25px 25px 80px !important;
+    padding: 20px 20px 20px 80px !important;
     margin: 20px 0 !important;
     overflow: hidden;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0, 17, 82, 0.3);
+    box-shadow: var(--xingxy-shadow);
     z-index: 1;
-    color: #fff !important;
-    /* 强制文字白色 */
+    /* 应用文本颜色变量 */
+    color: var(--xingxy-text-main) !important;
 }
 
-/* 强制内部所有文本反白 */
+/* 强制覆盖内部元素的颜色 */
 .xingxy-referral-highlight h1,
 .xingxy-referral-highlight h2,
 .xingxy-referral-highlight h3,
@@ -30,71 +103,39 @@
 .xingxy-referral-highlight span,
 .xingxy-referral-highlight p,
 .xingxy-referral-highlight div {
-    color: rgba(255, 255, 255, 0.95) !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    /* 增加文字阴影，防止被高光气泡吞没 */
+    color: var(--xingxy-text-main) !important;
+    text-shadow: none;
+    /* 浅色模式移除阴影，深色模式也不强制加阴影，保持干净 */
 }
 
-/* 描述文字稍微淡一点 */
+/* 描述文字 */
 .xingxy-referral-highlight .muted-2-color,
 .xingxy-referral-highlight .muted-color {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: var(--xingxy-text-sub) !important;
 }
 
-/* 积分数字高亮 */
+/* 积分数字 */
 .xingxy-referral-highlight .focus-color {
-    color: #fff !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    color: var(--xingxy-accent) !important;
     font-weight: bold;
 }
 
-/* -------------------
-   可以交互的层级控制
-   ------------------- */
-/* 确保内容在动画之上 */
+/* Hover 效果 */
+.xingxy-referral-highlight:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    /* 通用阴影增强 */
+}
+
+/* 保证内容层级 */
 .xingxy-referral-highlight>*:not(.xingxy-bg-container):not(.xingxy-gift-icon) {
     position: relative;
     z-index: 5;
 }
 
-/* Hover 浮动 */
-.xingxy-referral-highlight:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 17, 82, 0.5);
-    border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-/* -------------------
-   🎁 大礼包图标
-   ------------------- */
-.xingxy-gift-icon {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 48px;
-    line-height: 1;
-    z-index: 10;
-    /* 最高层级 */
-    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
-    animation: icon-float 3s ease-in-out infinite;
-}
-
-@keyframes icon-float {
-
-    0%,
-    100% {
-        transform: translateY(-50%) rotate(0deg);
-    }
-
-    50% {
-        transform: translateY(-60%) rotate(5deg);
-    }
-}
-
-/* -------------------
-   🌊 Bubbles 背景动画层 (原版复刻)
-   ------------------- */
+/* =========================================
+   3. Bubbles 动画层 (变量化)
+   ========================================= */
 .xingxy-bg-container {
     position: absolute;
     top: 0;
@@ -103,7 +144,6 @@
     height: 100%;
     z-index: 0;
     pointer-events: none;
-    /* 容器本身不需要背景，因为父元素已经有了 */
 }
 
 .xingxy-bg-container .gradients-container {
@@ -112,67 +152,55 @@
     height: 100%;
 }
 
-/* 复用原版颜色 */
-:root {
-    --color1: 18, 113, 255;
-    --color2: 221, 74, 255;
-    --color3: 100, 220, 255;
-    --color4: 200, 50, 50;
-    --color5: 180, 180, 50;
-    --color-interactive: 140, 100, 255;
-    --circle-size: 80%;
-    --blending: hard-light;
-}
-
 .xingxy-bg-bubble {
     position: absolute;
     border-radius: 50%;
-    mix-blend-mode: var(--blending);
-    width: var(--circle-size);
-    height: var(--circle-size);
-    opacity: 1;
-    /* 深色模式下不透明度要高 */
+    background: radial-gradient(circle at center, rgba(var(--bubble-color), 0.8) 0, rgba(var(--bubble-color), 0) 50%) no-repeat;
+    mix-blend-mode: var(--b-blending);
+    width: 80%;
+    height: 80%;
+    opacity: var(--b-opacity);
 }
 
+/* 单独定义每个气泡的颜色 */
 .g1 {
-    background: radial-gradient(circle at center, rgba(18, 113, 255, 0.8) 0, rgba(18, 113, 255, 0) 50%) no-repeat;
-    top: calc(50% - var(--circle-size) / 2);
-    left: calc(50% - var(--circle-size) / 2);
-    transform-origin: center center;
+    --bubble-color: var(--b-color1);
+    top: calc(50% - 40%);
+    left: calc(50% - 40%);
     animation: moveVertical 30s ease infinite;
 }
 
 .g2 {
-    background: radial-gradient(circle at center, rgba(221, 74, 255, 0.8) 0, rgba(221, 74, 255, 0) 50%) no-repeat;
-    top: calc(50% - var(--circle-size) / 2);
-    left: calc(50% - var(--circle-size) / 2);
+    --bubble-color: var(--b-color2);
+    top: calc(50% - 40%);
+    left: calc(50% - 40%);
     transform-origin: calc(50% - 400px);
     animation: moveInCircle 20s reverse infinite;
 }
 
 .g3 {
-    background: radial-gradient(circle at center, rgba(100, 220, 255, 0.8) 0, rgba(100, 220, 255, 0) 50%) no-repeat;
-    top: calc(50% - var(--circle-size) / 2 + 200px);
-    left: calc(50% - var(--circle-size) / 2 - 500px);
+    --bubble-color: var(--b-color3);
+    top: calc(50% - 40% + 200px);
+    left: calc(50% - 40% - 500px);
     transform-origin: calc(50% + 400px);
     animation: moveInCircle 40s linear infinite;
 }
 
 .g4 {
-    background: radial-gradient(circle at center, rgba(200, 50, 50, 0.8) 0, rgba(200, 50, 50, 0) 50%) no-repeat;
-    top: calc(50% - var(--circle-size) / 2);
-    left: calc(50% - var(--circle-size) / 2);
+    --bubble-color: var(--b-color4);
+    top: calc(50% - 40%);
+    left: calc(50% - 40%);
     transform-origin: calc(50% - 200px);
     animation: moveHorizontal 40s ease infinite;
     opacity: 0.7;
 }
 
 .g5 {
-    background: radial-gradient(circle at center, rgba(180, 180, 50, 0.8) 0, rgba(180, 180, 50, 0) 50%) no-repeat;
-    width: calc(var(--circle-size) * 2);
-    height: calc(var(--circle-size) * 2);
-    top: calc(50% - var(--circle-size));
-    left: calc(50% - var(--circle-size));
+    --bubble-color: var(--b-color5);
+    width: 160%;
+    height: 160%;
+    top: -30%;
+    left: -30%;
     transform-origin: calc(50% - 800px) calc(50% + 200px);
     animation: moveInCircle 20s ease infinite;
 }
@@ -220,41 +248,74 @@
     }
 }
 
-/* -------------------
-   标签与按钮适配深色
-   ------------------- */
+/* =========================================
+   4. 按钮与图标 (变量化)
+   ========================================= */
+.xingxy-gift-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 42px;
+    line-height: 1;
+    z-index: 10;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    animation: icon-float 3s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+
+    0%,
+    100% {
+        transform: translateY(-50%) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-60%) rotate(5deg);
+    }
+}
+
 .xingxy-referral-tag {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: var(--xingxy-accent);
+    /* 自动用红色 */
+    color: #fff !important;
     font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
     font-weight: bold;
     z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* 按钮改为半透明磨砂风格，适应深色背景 */
 .xingxy-referral-btns .xingxy-btn {
-    background: rgba(255, 255, 255, 0.15) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    color: #fff !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--xingxy-btn-bg) !important;
+    border: 1px solid var(--xingxy-btn-border) !important;
+    color: var(--xingxy-btn-text) !important;
+    backdrop-filter: blur(5px);
+    transition: all 0.2s;
+    font-size: 12px;
+    border-radius: 20px;
+    padding: 5px 12px;
+    display: inline-flex;
+    align-items: center;
+    margin-right: 10px;
 }
 
 .xingxy-referral-btns .xingxy-btn:hover {
-    background: rgba(255, 255, 255, 0.25) !important;
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.6) !important;
+    opacity: 0.9;
 }
 
-/* 按钮图标颜色统一 */
 .xingxy-referral-btns .xingxy-btn i {
-    color: #fff !important;
+    color: inherit !important;
+    /* 图标跟随文字颜色 */
+    margin-right: 4px;
+}
+
+/* 深色模式下给积分文字加一点发光，才够炫 */
+body.dark-theme .xingxy-referral-highlight .focus-color {
+    text-shadow: 0 0 10px rgba(255, 142, 142, 0.4);
 }
