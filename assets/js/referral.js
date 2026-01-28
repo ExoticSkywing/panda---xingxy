@@ -1,8 +1,8 @@
 /**
- * 邀请好友注册 - 功能增强脚本 (Gift Box Style)
+ * 邀请好友注册 - 功能增强脚本 (Scheme C: Gift Package Style)
  * 
  * 1. 自动识别邀请任务项
- * 2. 插入礼包图标 + HOT 标签
+ * 2. 添加 "🎁" 礼包图标和 "福利" 标签
  * 3. 复用主题内置的复制链接和推广海报功能
  */
 
@@ -12,7 +12,9 @@
     // 配置
     var config = {
         referralKeyword: '邀请好友注册',
-        tagText: 'HOT'
+        // 使用 "福利" 或 "HOT"，配合大礼包感觉 "福利" 更贴切，或者保留 "HOT"
+        tagText: '福利',
+        iconHtml: '<span class="xingxy-gift-icon">🎁</span>'
     };
 
     // 获取当前用户的推荐链接和用户ID
@@ -39,7 +41,7 @@
         return { url: '', userId: '' };
     }
 
-    // 创建按钮（复用主题内置功能）
+    // 创建按钮（复用主题内置功能，但在CSS中重塑样式）
     function createButtons(referralData) {
         if (!referralData.url || !referralData.userId) {
             return '';
@@ -47,7 +49,7 @@
 
         // 复制链接按钮
         var copyBtn = '<a data-clipboard-text="' + referralData.url + '" data-clipboard-tag="推广链接" ' +
-            'class="but c-yellow xingxy-btn" href="javascript:;">' +
+            'class="clip-aut but c-yellow xingxy-btn" href="javascript:;">' +
             '<i class="fa fa-link"></i> 复制链接</a>';
 
         // 推广海报按钮
@@ -68,29 +70,38 @@
             var text = $item.text();
 
             if (text.indexOf(config.referralKeyword) !== -1 && !$item.hasClass('xingxy-referral-highlight')) {
-                // 添加高亮样式
+                // 添加高亮样式类
                 $item.addClass('xingxy-referral-highlight');
 
-                // 1. 插入礼包图标（在最前面）
-                if (!$item.find('.xingxy-gift-icon').length) {
-                    $item.prepend('<i class="fa fa-gift xingxy-gift-icon"></i>');
+                // 1. 处理标题：插入礼包图标
+                // 找到包含文本的节点（通常是直接文本或span）
+                // 这里简单处理：在开头插入图标
+                var $titleContainer = $item.find('.muted-color').first();
+                if ($titleContainer.length) {
+                    // 如果标题在 .muted-color (通常是副标题)，尝试找上一级或同级的标题字体
+                    // Zibll 结构通常是: div > div(标题)
+                    // 也可以直接 prepend 到 $item 内容的最前面，然后通过 CSS 浮动调整
+                    // 为了保险，我们插入到 $item 的第一个文本节点前
+                    if (!$item.find('.xingxy-gift-icon').length) {
+                        // 尝试找到标题元素，通常是字体较大的那个
+                        // 简单策略：prepend 到 div 内部
+                        $item.prepend(config.iconHtml);
+                    }
+                } else {
+                    $item.prepend(config.iconHtml);
                 }
 
-                // 2. 插入HOT标签（在图标后）
-                // 为了布局好看，我们尝试把它插在图标后面，或者直接跟在图标后
+                // 2. 添加标签
                 if (!$item.find('.xingxy-referral-tag').length) {
-                    $item.find('.xingxy-gift-icon').after('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
+                    // 插入到右上角或标题旁
+                    $item.append('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
                 }
 
-                // 3. 添加复制链接和推广海报按钮
+                // 3. 添加按钮
                 if (!$item.find('.xingxy-referral-btns').length) {
                     var buttons = createButtons(referralData);
                     if (buttons) {
                         $item.append(buttons);
-                        // 确保加载 clipboard 模块
-                        if (typeof tbquire !== 'undefined') {
-                            tbquire(['clipboard']);
-                        }
                     }
                 }
             }
