@@ -1,9 +1,6 @@
 /**
- * 邀请好友注册 - 功能增强脚本 (Scheme D: Gift Package + Bubbles Animation)
- * 
- * 1. 自动识别邀请任务项
- * 2. 注入动态气泡背景 (Gooey Effect)
- * 3. 注入 3D 礼包图标
+ * 邀请好友注册 - 功能增强脚本 (Scheme G: Ultimate Glass)
+ * 核心：Bubbles 背景 + Glass 按钮 + 左右布局重构
  */
 
 (function ($) {
@@ -13,9 +10,8 @@
     var config = {
         referralKeyword: '邀请好友注册',
         tagText: '福利',
-        // 3D 礼包图标
         iconHtml: '<span class="xingxy-gift-icon">🎁</span>',
-        // 动态气泡背景结构
+        // 背景层
         bgHtml: `
         <div class="xingxy-bg-container">
             <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;">
@@ -38,7 +34,6 @@
         `
     };
 
-    // 获取 referral 数据
     function getReferralData() {
         if (typeof xingxy_referral !== 'undefined' && xingxy_referral.referral_url) {
             return {
@@ -58,21 +53,33 @@
         return { url: '', userId: '' };
     }
 
-    // 创建按钮
+    // 创建升级版 Glass 按钮
     function createButtons(referralData) {
         if (!referralData.url || !referralData.userId) {
             return '';
         }
-        var copyBtn = '<a data-clipboard-text="' + referralData.url + '" data-clipboard-tag="推广链接" ' +
-            'class="clip-aut but c-yellow xingxy-btn" href="javascript:;">' +
-            '<i class="fa fa-link"></i> 复制链接</a>';
-        var posterBtn = '<a poster-share="rebate_' + referralData.userId + '" data-user="' + referralData.userId + '" ' +
-            'href="javascript:;" class="but c-cyan xingxy-btn">' +
-            '<i class="fa fa-qrcode"></i> 推广海报</a>';
-        return '<div class="xingxy-referral-btns mt10">' + copyBtn + posterBtn + '</div>';
+
+        // 复制链接 (Glass Style)
+        var copyBtn = `
+        <div class="xingxy-glass-btn-wrap">
+            <button class="xingxy-glass-btn clip-aut" data-clipboard-text="${referralData.url}" data-clipboard-tag="推广链接">
+                <span><i class="fa fa-link"></i> 复制链接</span>
+            </button>
+        </div>
+        `;
+
+        // 推广海报 (Glass Style)
+        var posterBtn = `
+        <div class="xingxy-glass-btn-wrap">
+            <button class="xingxy-glass-btn" poster-share="rebate_${referralData.userId}" data-user="${referralData.userId}">
+                <span><i class="fa fa-qrcode"></i> 推广海报</span>
+            </button>
+        </div>
+        `;
+
+        return '<div class="xingxy-referral-btns">' + copyBtn + posterBtn + '</div>';
     }
 
-    // 增强邀请任务项
     function enhanceReferralItem() {
         var referralData = getReferralData();
 
@@ -83,30 +90,32 @@
             if (text.indexOf(config.referralKeyword) !== -1 && !$item.hasClass('xingxy-referral-highlight')) {
                 $item.addClass('xingxy-referral-highlight');
 
-                // 1. 注入背景层 (Prepend 到最前面)
-                if (!$item.find('.xingxy-bg-container').length) {
-                    $item.prepend(config.bgHtml);
-                }
+                // --- 结构重构 START ---
+                // 1. 把原有的内容（除了我们新加的背景等）包裹进 Left Content Wrap
+                // 目的：实现 flex 布局（左边文字，右边按钮）
+                // 现有的内部元素通常是：div.muted-color (标题), div.flex (积分)
 
-                // 2. 注入礼包图标 (在背景之后，内容之前)
-                if (!$item.find('.xingxy-gift-icon').length) {
-                    // 尝试插入到文本内容区之前，或者直接在背景后
-                    $item.append(config.iconHtml);
-                    // 由于 absolute 定位，append 也可以，主要看 z-index
-                }
+                // 将当前所有子元素包裹起来 (作为左侧内容区)
+                $item.wrapInner('<div class="xingxy-content-wrap"></div>');
+                var $contentWrap = $item.find('.xingxy-content-wrap');
 
-                // 3. 添加标签
-                if (!$item.find('.xingxy-referral-tag').length) {
-                    $item.append('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
-                }
+                // 2. 注入背景层 (在 contentWrap 之外，item 内的最前)
+                $item.prepend(config.bgHtml);
 
-                // 4. 添加按钮
+                // 3. 注入图标 (绝对定位，可以放在 item 内)
+                $item.append(config.iconHtml);
+
+                // 4. 添加标签 (绝对定位)
+                $item.append('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
+
+                // 5. 添加按钮 (Flex 布局的右侧元素，追加到 Item 最后)
                 if (!$item.find('.xingxy-referral-btns').length) {
                     var buttons = createButtons(referralData);
                     if (buttons) {
                         $item.append(buttons);
                     }
                 }
+                // --- 结构重构 END ---
             }
         });
     }
