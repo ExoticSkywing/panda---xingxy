@@ -1,5 +1,13 @@
 # 数量限制功能 - 补丁说明
 
+## 未记录的前置修复
+
+### 1. 添加自定义卡密限制
+添加自定义卡密，因数据库字段大小限制，导致卡密内容无法保存，修复方法是修改数据库字段大小限制
+
+### 2. 优惠活动添加仅VIP1
+VIP2享双重优惠，违背运营逻辑，修复方法是添加仅VIP1选项，详见 [vip-discount-fix.md](./vip-discount-fix.md)
+
 ## 概述
 由于 Zibll 商城模块没有提供 WordPress 钩子接口，此功能需要直接修改主题文件。
 
@@ -62,5 +70,13 @@ git diff HEAD~1 -- inc/functions/shop/
 修复管理员新订单邮件无法发送的问题。根因是 `zib_get_wechat_template_id()` 引用传参错误导致致命错误。
 
 详见 [email-fix.md](./email-fix.md)
+
+---
+
+## 虚拟商品发货邮件控制
+
+禁用非物流快递发货（自动发货/手动发货）的订单发货邮件通知。配合 xingxy 后台开关控制。
+
+详见 [shipping-email-control.md](./shipping-email-control.md)
 
 **更新日期**: 2026-01-28

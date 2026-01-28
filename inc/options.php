@@ -110,6 +110,17 @@ add_action('zib_require_end', function () {
         'fields' => array(
             array(
                 'type'    => 'heading',
+                'content' => '邮件通知控制',
+            ),
+            array(
+                'id'      => 'disable_virtual_shipping_email',
+                'type'    => 'switcher',
+                'title'   => '禁用虚拟商品发货邮件',
+                'desc'    => '开启后，非物流快递发货（自动发货/手动发货）的订单将不发送发货邮件给用户',
+                'default' => true,
+            ),
+            array(
+                'type'    => 'heading',
                 'content' => '开发者选项',
             ),
             array(
