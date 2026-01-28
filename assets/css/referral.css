@@ -1,10 +1,10 @@
 /**
- * 邀请好友注册 - 视觉增强样式 (Scheme G: Glass Button + High-End Layout)
- * 核心：灰紫星云背景 + Glass Button + 大气布局
+ * 邀请好友注册 - 视觉增强样式 (Scheme H: Final Polish)
+ * 核心：文字高对比度 + 实心标签 + SVG 图标适配 + 宽敞布局
  */
 
 /* =========================================
-   1. 配色与变量 (Theming)
+   1. 配色与变量
    ========================================= */
 @property --angle-1 {
     syntax: "<angle>";
@@ -24,10 +24,11 @@
     --xingxy-border: rgba(0, 0, 0, 0.06);
     --xingxy-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
     --xingxy-text-main: #333;
-    --xingxy-text-sub: #666;
+    --xingxy-text-sub: #555;
+    /* 加深副标题颜色 */
     --xingxy-accent: #ff6b6b;
 
-    /* Bubbles (Day: Pastel) */
+    /* Bubbles (Day) */
     --b-color1: 18, 113, 255;
     --b-color2: 255, 120, 255;
     --b-color3: 100, 220, 255;
@@ -45,34 +46,26 @@
 
 /* --- 夜间模式 (Night: Grey-Purple Nebula) --- */
 body.dark-theme {
-    /* 背景：灰紫渐变 (Grey-Purple) */
+    /* 灰紫星云背景 */
     --xingxy-card-bg: linear-gradient(120deg, #2a2a2e 0%, #353342 60%, #3e3b4f 100%);
     --xingxy-border: rgba(255, 255, 255, 0.08);
-    /* 极细白边 */
     --xingxy-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 
     --xingxy-text-main: #ffffff;
-    --xingxy-text-sub: rgba(255, 255, 255, 0.7);
+    --xingxy-text-sub: rgba(255, 255, 255, 0.85);
+    /* 提高对比度 */
     --xingxy-accent: #ff9e9e;
-    /* 积分字 */
 
-    /* Bubbles (Night: Deep Aurora) */
-    /* 保持 Hard-Light 混合，但基底变灰紫后，需要调整气泡颜色更通透 */
+    /* Bubbles (Night) */
     --b-color1: 80, 100, 255;
-    /* 亮蓝 */
     --b-color2: 180, 80, 255;
-    /* 紫罗兰 */
     --b-color3: 50, 200, 255;
-    /* 青 */
     --b-color4: 255, 80, 80;
-    /* 亮红 */
     --b-color5: 255, 220, 100;
-    /* 金 */
     --b-opacity: 0.6;
-    /* 稍微降低透明度，让灰紫底色透出来 */
     --b-blending: hard-light;
 
-    /* Glass Button (Night: Black Hole) */
+    /* Glass Button (Night) */
     --gb-bg: rgba(0, 0, 0, 0.3);
     --gb-text: #fff;
     --gb-border-light: rgba(255, 255, 255, 0.3);
@@ -80,7 +73,7 @@ body.dark-theme {
 }
 
 /* =========================================
-   2. 卡片与布局重构
+   2. 卡片与布局
    ========================================= */
 .xingxy-referral-highlight {
     position: relative;
@@ -88,59 +81,80 @@ body.dark-theme {
     border: 1px solid var(--xingxy-border) !important;
     border-radius: 20px !important;
     padding: 30px !important;
-    /* 大气 Padding */
     margin: 25px 0 !important;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     box-shadow: var(--xingxy-shadow);
     z-index: 1;
     display: flex !important;
-    /* 启用 Flex 布局 */
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 25px;
+    /* 增加整体间距 */
 }
 
 /* 左侧：图标区 */
 .xingxy-gift-icon {
     position: relative !important;
-    /* 不再绝对定位 */
-    font-size: 56px;
-    width: 80px;
-    text-align: center;
-    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15));
     animation: icon-float 4s ease-in-out infinite;
     flex-shrink: 0;
-    left: auto;
-    top: auto;
-    transform: none;
-    /* 重置旧样式 */
     z-index: 5;
 }
 
-/* 中间：文案区 (自动填充剩余空间) */
+.xingxy-gift-icon svg {
+    width: 100%;
+    height: 100%;
+    /* SVG 自带颜色，无需 fill */
+}
+
+/* 中间：文案区 */
 .xingxy-referral-highlight>div:not(.xingxy-bg-container):not(.xingxy-right-panel):not(.xingxy-gift-icon) {
     flex-grow: 1;
     z-index: 5;
-    padding-right: 20px;
+    padding-right: 10px;
 }
+
+/* 文案增强：确保可见度 */
+.xingxy-referral-highlight h4,
+.xingxy-referral-highlight p,
+.xingxy-referral-highlight span {
+    color: var(--xingxy-text-main);
+}
+
+/* 副标题增强 */
+.xingxy-referral-highlight .muted-color {
+    color: var(--xingxy-text-sub) !important;
+    font-weight: 500;
+    /* 加粗一点 */
+    /* 在深色模式下增加文字阴影，防止被背景吞没 */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme .xingxy-referral-highlight .muted-color {
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    /* 深色模式加强阴影 */
+}
+
 
 /* 右侧：积分与按钮区 */
 .xingxy-right-panel {
     display: flex;
     flex-direction: column;
-    /* 垂直排列 */
     align-items: flex-end;
-    /* 右对齐 */
     justify-content: center;
     gap: 15px;
-    /* 积分和按钮的间距 */
     z-index: 5;
-    min-width: 140px;
-    /* 防止按钮换行 */
+    min-width: 160px;
+    /* 稍微加宽，防止拥挤 */
 }
 
-/* 积分样式增强 */
+/* 积分样式 */
 .xingxy-referral-highlight .focus-color {
     font-size: 24px !important;
     font-weight: 800;
@@ -149,19 +163,8 @@ body.dark-theme {
     line-height: 1;
 }
 
-/* 强制文字颜色覆盖 */
-.xingxy-referral-highlight h4,
-.xingxy-referral-highlight p,
-.xingxy-referral-highlight span {
-    color: var(--xingxy-text-main);
-}
-
-.xingxy-referral-highlight .muted-color {
-    color: var(--xingxy-text-sub) !important;
-}
-
 /* =========================================
-   3. Glass Button (移植与适配)
+   3. Glass Button
    ========================================= */
 .button-wrap {
     position: relative;
@@ -169,12 +172,9 @@ body.dark-theme {
     border-radius: 999px;
     background: transparent;
     transition: transform 0.3s ease;
-    margin-top: 5px;
-    /* 微调间距 */
     display: inline-block;
 }
 
-/* 按钮尺寸调整 */
 .button-wrap button {
     --border-width: 2px;
     all: unset;
@@ -189,18 +189,19 @@ body.dark-theme {
             rgba(255, 255, 255, 0.05));
     border-radius: 999px;
     backdrop-filter: blur(5px);
-    padding: 8px 20px;
-    /* 按钮大小 */
+    padding: 8px 18px;
     color: var(--gb-text);
     font-size: 13px;
     font-weight: bold;
-    box-shadow:
-        inset 0 1px 1px rgba(255, 255, 255, 0.1),
-        0 4px 10px var(--gb-shadow);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 4px 10px var(--gb-shadow);
     transition: transform 0.2s;
 }
 
-/* Button Text */
+/* 即使在夜间模式，按钮内文字也需要很清晰 */
+body.dark-theme .button-wrap button {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
 .button-wrap button span {
     position: relative;
     z-index: 5;
@@ -212,18 +213,13 @@ body.dark-theme {
     font-size: 14px;
 }
 
-/* Conic Gradient Border Animation */
 .button-wrap button::after {
     content: "";
     position: absolute;
     inset: -2px;
-    /* Border Width */
     border-radius: 999px;
     padding: 2px;
-    background: conic-gradient(from var(--angle-1) at 50% 50%,
-            rgba(255, 255, 255, 0),
-            rgba(255, 255, 255, 0.8) 20%,
-            rgba(255, 255, 255, 0) 40%);
+    background: conic-gradient(from var(--angle-1) at 50% 50%, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8) 20%, rgba(255, 255, 255, 0) 40%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -244,7 +240,6 @@ body.dark-theme {
     }
 }
 
-/* Hover Effects */
 .button-wrap:hover {
     transform: translateY(-2px);
 }
@@ -254,19 +249,17 @@ body.dark-theme {
     box-shadow: 0 8px 15px var(--gb-shadow);
 }
 
-/* Active Click */
 .button-wrap:active {
     transform: scale(0.96);
 }
 
-/* 按钮组排列 */
 .xingxy-referral-btns {
     display: flex;
     gap: 12px;
 }
 
 /* =========================================
-   4. Bubbles 背景 (复用并优化)
+   4. Bubbles 背景
    ========================================= */
 .xingxy-bg-container {
     position: absolute;
@@ -295,7 +288,6 @@ body.dark-theme {
     background: radial-gradient(circle at center, rgba(var(--bubble-color), 0.8) 0, rgba(var(--bubble-color), 0) 50%) no-repeat;
 }
 
-/* 气泡动画 CSS 变量绑定 */
 .g1 {
     --bubble-color: var(--b-color1);
     animation: moveVertical 30s ease infinite;
@@ -337,25 +329,31 @@ body.dark-theme {
 
     0%,
     100% {
-        transform: translateY(0) rotate(0deg);
+        transform: translateY(0);
     }
 
     50% {
-        transform: translateY(-8px) rotate(5deg);
+        transform: translateY(-8px);
     }
 }
 
-/* 标签样式微调 */
+/* =========================================
+   5. 标签升级 (Bold & Visible)
+   ========================================= */
 .xingxy-referral-tag {
     position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 10px;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(4px);
-    padding: 2px 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: var(--xingxy-text-sub);
+    top: 0;
+    right: 0;
+    /* 贴边 */
+    font-size: 11px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+    /* 实心渐变 */
+    color: #fff !important;
+    padding: 4px 12px;
+    border-radius: 0 20px 0 12px;
+    /* 特殊圆角：右上角圆，左下角圆 */
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
     z-index: 8;
+    letter-spacing: 1px;
 }
