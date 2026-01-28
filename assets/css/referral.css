@@ -1,52 +1,11 @@
 /**
- * 邀请好友注册 - 视觉增强样式 (Scheme G: Ultimate Glass)
- * 核心：Bubbles 背景 + 极致 Glass 按钮 + 左右布局
+ * 邀请好友注册 - 视觉增强样式 (Scheme G: Glass Button + High-End Layout)
+ * 核心：灰紫星云背景 + Glass Button + 大气布局
  */
 
 /* =========================================
-   1. CSS 变量定义 (双模适配)
+   1. 配色与变量 (Theming)
    ========================================= */
-:root {
-    --xingxy-card-bg: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
-    --xingxy-border: rgba(0, 0, 0, 0.06);
-    --xingxy-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-    --xingxy-text-main: #333333;
-    --xingxy-text-sub: #666666;
-    --xingxy-accent: #ff6b6b;
-
-    /* Bubbles (浅色) */
-    --b-color1: 18, 113, 255;
-    --b-color2: 255, 120, 255;
-    --b-color3: 100, 220, 255;
-    --b-color4: 255, 100, 100;
-    --b-color5: 255, 200, 100;
-    --b-opacity: 0.15;
-    --b-blending: normal;
-
-    /* Glass Button Animation Vars */
-    --anim--hover-time: 400ms;
-    --anim--hover-ease: cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-body.dark-theme {
-    --xingxy-card-bg: linear-gradient(40deg, rgb(45, 20, 85), rgb(10, 20, 60));
-    --xingxy-border: rgba(255, 255, 255, 0.1);
-    --xingxy-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    --xingxy-text-main: #ffffff;
-    --xingxy-text-sub: rgba(255, 255, 255, 0.7);
-    --xingxy-accent: #ff8e8e;
-
-    /* Bubbles (深色) */
-    --b-color1: 18, 113, 255;
-    --b-color2: 221, 74, 255;
-    --b-color3: 100, 220, 255;
-    --b-color4: 200, 50, 50;
-    --b-color5: 180, 180, 50;
-    --b-opacity: 0.8;
-    --b-blending: hard-light;
-}
-
-/* 注册 Houdini 属性 (如果浏览器支持) */
 @property --angle-1 {
     syntax: "<angle>";
     inherits: false;
@@ -59,61 +18,255 @@ body.dark-theme {
     initial-value: -45deg;
 }
 
+:root {
+    /* --- 日间模式 (Day) --- */
+    --xingxy-card-bg: linear-gradient(135deg, #ffffff 0%, #f6f7f9 100%);
+    --xingxy-border: rgba(0, 0, 0, 0.06);
+    --xingxy-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+    --xingxy-text-main: #333;
+    --xingxy-text-sub: #666;
+    --xingxy-accent: #ff6b6b;
+
+    /* Bubbles (Day: Pastel) */
+    --b-color1: 18, 113, 255;
+    --b-color2: 255, 120, 255;
+    --b-color3: 100, 220, 255;
+    --b-color4: 255, 100, 100;
+    --b-color5: 255, 200, 100;
+    --b-opacity: 0.12;
+    --b-blending: normal;
+
+    /* Glass Button (Day) */
+    --gb-bg: rgba(255, 255, 255, 0.7);
+    --gb-text: #444;
+    --gb-border-light: rgba(255, 255, 255, 0.8);
+    --gb-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* --- 夜间模式 (Night: Grey-Purple Nebula) --- */
+body.dark-theme {
+    /* 背景：灰紫渐变 (Grey-Purple) */
+    --xingxy-card-bg: linear-gradient(120deg, #2a2a2e 0%, #353342 60%, #3e3b4f 100%);
+    --xingxy-border: rgba(255, 255, 255, 0.08);
+    /* 极细白边 */
+    --xingxy-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+
+    --xingxy-text-main: #ffffff;
+    --xingxy-text-sub: rgba(255, 255, 255, 0.7);
+    --xingxy-accent: #ff9e9e;
+    /* 积分字 */
+
+    /* Bubbles (Night: Deep Aurora) */
+    /* 保持 Hard-Light 混合，但基底变灰紫后，需要调整气泡颜色更通透 */
+    --b-color1: 80, 100, 255;
+    /* 亮蓝 */
+    --b-color2: 180, 80, 255;
+    /* 紫罗兰 */
+    --b-color3: 50, 200, 255;
+    /* 青 */
+    --b-color4: 255, 80, 80;
+    /* 亮红 */
+    --b-color5: 255, 220, 100;
+    /* 金 */
+    --b-opacity: 0.6;
+    /* 稍微降低透明度，让灰紫底色透出来 */
+    --b-blending: hard-light;
+
+    /* Glass Button (Night: Black Hole) */
+    --gb-bg: rgba(0, 0, 0, 0.3);
+    --gb-text: #fff;
+    --gb-border-light: rgba(255, 255, 255, 0.3);
+    --gb-shadow: rgba(0, 0, 0, 0.5);
+}
+
 /* =========================================
-   2. 容器布局重构 (Flexbox 左右布局)
+   2. 卡片与布局重构
    ========================================= */
 .xingxy-referral-highlight {
     position: relative;
     background: var(--xingxy-card-bg) !important;
     border: 1px solid var(--xingxy-border) !important;
     border-radius: 20px !important;
-    margin: 20px 0 !important;
+    padding: 30px !important;
+    /* 大气 Padding */
+    margin: 25px 0 !important;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     box-shadow: var(--xingxy-shadow);
     z-index: 1;
-    color: var(--xingxy-text-main) !important;
-
-    /* 启用 Flex 布局 */
     display: flex !important;
-    flex-wrap: wrap;
-    /* 移动端自动换行 */
+    /* 启用 Flex 布局 */
     align-items: center;
     justify-content: space-between;
-    /* 左右推开 */
-    padding: 20px 20px 20px 85px !important;
-    /* 左侧留给图标 */
+    gap: 20px;
 }
 
-/* 强制内部文本颜色 */
-.xingxy-referral-highlight * {
+/* 左侧：图标区 */
+.xingxy-gift-icon {
+    position: relative !important;
+    /* 不再绝对定位 */
+    font-size: 56px;
+    width: 80px;
+    text-align: center;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+    animation: icon-float 4s ease-in-out infinite;
+    flex-shrink: 0;
+    left: auto;
+    top: auto;
+    transform: none;
+    /* 重置旧样式 */
+    z-index: 5;
+}
+
+/* 中间：文案区 (自动填充剩余空间) */
+.xingxy-referral-highlight>div:not(.xingxy-bg-container):not(.xingxy-right-panel):not(.xingxy-gift-icon) {
+    flex-grow: 1;
+    z-index: 5;
+    padding-right: 20px;
+}
+
+/* 右侧：积分与按钮区 */
+.xingxy-right-panel {
+    display: flex;
+    flex-direction: column;
+    /* 垂直排列 */
+    align-items: flex-end;
+    /* 右对齐 */
+    justify-content: center;
+    gap: 15px;
+    /* 积分和按钮的间距 */
+    z-index: 5;
+    min-width: 140px;
+    /* 防止按钮换行 */
+}
+
+/* 积分样式增强 */
+.xingxy-referral-highlight .focus-color {
+    font-size: 24px !important;
+    font-weight: 800;
+    color: var(--xingxy-accent) !important;
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+    line-height: 1;
+}
+
+/* 强制文字颜色覆盖 */
+.xingxy-referral-highlight h4,
+.xingxy-referral-highlight p,
+.xingxy-referral-highlight span {
     color: var(--xingxy-text-main);
 }
 
-.xingxy-referral-highlight .muted-2-color,
 .xingxy-referral-highlight .muted-color {
     color: var(--xingxy-text-sub) !important;
 }
 
-.xingxy-referral-highlight .focus-color {
-    color: var(--xingxy-accent) !important;
+/* =========================================
+   3. Glass Button (移植与适配)
+   ========================================= */
+.button-wrap {
+    position: relative;
+    z-index: 10;
+    border-radius: 999px;
+    background: transparent;
+    transition: transform 0.3s ease;
+    margin-top: 5px;
+    /* 微调间距 */
+    display: inline-block;
+}
+
+/* 按钮尺寸调整 */
+.button-wrap button {
+    --border-width: 2px;
+    all: unset;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(-75deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.05));
+    border-radius: 999px;
+    backdrop-filter: blur(5px);
+    padding: 8px 20px;
+    /* 按钮大小 */
+    color: var(--gb-text);
+    font-size: 13px;
     font-weight: bold;
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.1),
+        0 4px 10px var(--gb-shadow);
+    transition: transform 0.2s;
 }
 
-/* Hover */
-.xingxy-referral-highlight:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-
-/* 内容层级 */
-.xingxy-referral-highlight>*:not(.xingxy-bg-container):not(.xingxy-gift-icon) {
+/* Button Text */
+.button-wrap button span {
     position: relative;
     z-index: 5;
+    white-space: nowrap;
+}
+
+.button-wrap button i {
+    margin-right: 6px;
+    font-size: 14px;
+}
+
+/* Conic Gradient Border Animation */
+.button-wrap button::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    /* Border Width */
+    border-radius: 999px;
+    padding: 2px;
+    background: conic-gradient(from var(--angle-1) at 50% 50%,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.8) 20%,
+            rgba(255, 255, 255, 0) 40%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: border-rotate 4s linear infinite;
+}
+
+@property --angle-1 {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+
+@keyframes border-rotate {
+    to {
+        --angle-1: 360deg;
+    }
+}
+
+/* Hover Effects */
+.button-wrap:hover {
+    transform: translateY(-2px);
+}
+
+.button-wrap:hover button {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 15px var(--gb-shadow);
+}
+
+/* Active Click */
+.button-wrap:active {
+    transform: scale(0.96);
+}
+
+/* 按钮组排列 */
+.xingxy-referral-btns {
+    display: flex;
+    gap: 12px;
 }
 
 /* =========================================
-   3. Bubbles & Icon
+   4. Bubbles 背景 (复用并优化)
    ========================================= */
 .xingxy-bg-container {
     position: absolute;
@@ -123,10 +276,11 @@ body.dark-theme {
     height: 100%;
     z-index: 0;
     pointer-events: none;
+    border-radius: 20px;
 }
 
 .xingxy-bg-container .gradients-container {
-    filter: url(#goo) blur(40px);
+    filter: url(#goo) blur(30px);
     width: 100%;
     height: 100%;
 }
@@ -134,231 +288,74 @@ body.dark-theme {
 .xingxy-bg-bubble {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(circle at center, rgba(var(--bubble-color), 0.8) 0, rgba(var(--bubble-color), 0) 50%) no-repeat;
     mix-blend-mode: var(--b-blending);
+    opacity: var(--b-opacity);
     width: 80%;
     height: 80%;
-    opacity: var(--b-opacity);
+    background: radial-gradient(circle at center, rgba(var(--bubble-color), 0.8) 0, rgba(var(--bubble-color), 0) 50%) no-repeat;
 }
 
-/* 气泡定义略，保持原样 */
+/* 气泡动画 CSS 变量绑定 */
 .g1 {
     --bubble-color: var(--b-color1);
-    top: calc(50% - 40%);
-    left: calc(50% - 40%);
     animation: moveVertical 30s ease infinite;
+    top: 10%;
+    left: 10%;
 }
 
 .g2 {
     --bubble-color: var(--b-color2);
-    top: calc(50% - 40%);
-    left: calc(50% - 40%);
-    transform-origin: calc(50% - 400px);
     animation: moveInCircle 20s reverse infinite;
+    top: 20%;
+    left: 60%;
 }
 
 .g3 {
     --bubble-color: var(--b-color3);
-    top: calc(50% - 40% + 200px);
-    left: calc(50% - 40% - 500px);
-    transform-origin: calc(50% + 400px);
     animation: moveInCircle 40s linear infinite;
+    top: 60%;
+    left: 30%;
 }
 
 .g4 {
     --bubble-color: var(--b-color4);
-    top: calc(50% - 40%);
-    left: calc(50% - 40%);
-    transform-origin: calc(50% - 200px);
     animation: moveHorizontal 40s ease infinite;
-    opacity: 0.7;
+    top: 40%;
+    left: 10%;
 }
 
 .g5 {
     --bubble-color: var(--b-color5);
-    width: 160%;
-    height: 160%;
-    top: -30%;
-    left: -30%;
-    transform-origin: calc(50% - 800px) calc(50% + 200px);
     animation: moveInCircle 20s ease infinite;
-}
-
-/* 图标 */
-.xingxy-gift-icon {
-    position: absolute;
-    left: 20px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    font-size: 48px;
-    z-index: 10;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-    animation: icon-float 3s ease-in-out infinite;
+    top: -20%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
 }
 
 @keyframes icon-float {
 
     0%,
     100% {
-        transform: translateY(-50%) rotate(0deg);
+        transform: translateY(0) rotate(0deg);
     }
 
     50% {
-        transform: translateY(-60%) rotate(5deg);
+        transform: translateY(-8px) rotate(5deg);
     }
 }
 
+/* 标签样式微调 */
 .xingxy-referral-tag {
     position: absolute;
     top: 15px;
-    left: 70px;
-    /* 移到左侧标题附近 */
-    background: var(--xingxy-accent);
-    color: #fff !important;
+    right: 20px;
     font-size: 10px;
-    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    padding: 2px 8px;
     border-radius: 4px;
-    font-weight: bold;
-    z-index: 10;
-}
-
-/* =========================================
-   4. Glass Button (核心移植)
-   ========================================= */
-.xingxy-referral-btns {
-    display: flex;
-    gap: 15px;
-    /* 按钮间距 */
-    margin: 10px 0 !important;
-    /* Reset margin */
-    position: relative;
-    z-index: 20;
-}
-
-/* 按钮包裹层 */
-.xingxy-glass-btn-wrap {
-    position: relative;
-    z-index: 2;
-    border-radius: 30px;
-    background: transparent;
-    transition: all var(--anim--hover-time) var(--anim--hover-ease);
-}
-
-/* 核心按钮样式 */
-.xingxy-glass-btn {
-    --border-width: 1.5px;
-    all: unset;
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    /* 改为 flex 居中 */
-    align-items: center;
-    justify-content: center;
-    width: auto;
-    z-index: 3;
-    /* 玻璃背景 */
-    background: linear-gradient(-75deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-    border-radius: 30px;
-    /* 复杂的内发光/阴影 */
-    box-shadow:
-        inset 0 1px 1px rgba(0, 0, 0, 0.05),
-        inset 0 -1px 1px rgba(255, 255, 255, 0.5),
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 0 1px 2px inset rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    transition: all var(--anim--hover-time) var(--anim--hover-ease);
-    padding: 0;
-    /* padding 交给 span */
-}
-
-/* Hover 状态 */
-.xingxy-glass-btn:hover {
-    transform: scale(0.98);
-    backdrop-filter: blur(12px);
-    box-shadow:
-        inset 0 1px 1px rgba(0, 0, 0, 0.05),
-        inset 0 -1px 1px rgba(255, 255, 255, 0.6),
-        0 6px 15px -2px rgba(0, 0, 0, 0.2),
-        0 0 1px 2px inset rgba(255, 255, 255, 0.3);
-}
-
-/* 按钮文字 Span */
-.xingxy-glass-btn span {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--xingxy-text-main);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    transition: all var(--anim--hover-time);
-}
-
-.xingxy-glass-btn i {
-    margin-right: 6px;
-}
-
-/* 内部流光文字背景 */
-.xingxy-glass-btn span::after {
-    content: "";
-    display: block;
-    position: absolute;
-    inset: 2px;
-    /* 稍微内缩 */
-    border-radius: 30px;
-    background: linear-gradient(var(--angle-2), rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 45% 55%, rgba(255, 255, 255, 0) 100%);
-    mix-blend-mode: overlay;
-    pointer-events: none;
-    background-size: 200% 200%;
-    transition: all 0.5s ease;
-    z-index: -1;
-}
-
-.xingxy-glass-btn:hover span::after {
-    background-position: 50% 50%;
-}
-
-/* 外部流光边框 Outline */
-.xingxy-glass-btn::after {
-    content: "";
-    position: absolute;
-    inset: -1.5px;
-    /* 外扩边框宽度 */
-    border-radius: 30px;
-    padding: 1.5px;
-    background: conic-gradient(from var(--angle-1) at 50% 50%, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0) 40%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    transition: all 0.5s ease;
-    opacity: 0.5;
-    pointer-events: none;
-    z-index: -1;
-}
-
-.xingxy-glass-btn:hover::after {
-    --angle-1: -125deg;
-    opacity: 1;
-}
-
-/* 移动端适配：缩小边距，按钮换行 */
-@media (max-width: 768px) {
-    .xingxy-referral-highlight {
-        padding: 20px 20px 20px 70px !important;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .xingxy-referral-btns {
-        width: 100%;
-        margin-top: 15px !important;
-        justify-content: space-between;
-    }
-
-    .xingxy-glass-btn {
-        flex: 1;
-    }
-
-    /* 按钮均分宽度 */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--xingxy-text-sub);
+    z-index: 8;
 }
