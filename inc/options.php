@@ -121,6 +121,17 @@ add_action('zib_require_end', function () {
             ),
             array(
                 'type'    => 'heading',
+                'content' => '推广链接保护',
+            ),
+            array(
+                'id'      => 'hide_referral_param',
+                'type'    => 'switcher',
+                'title'   => '隐藏推广链接参数',
+                'desc'    => '开启后，访问推广链接时地址栏将自动隐藏 ?ref=xxx 参数，防止用户删除参数绕过推荐关系',
+                'default' => true,
+            ),
+            array(
+                'type'    => 'heading',
                 'content' => '开发者选项',
             ),
             array(

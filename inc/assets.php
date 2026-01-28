@@ -20,7 +20,18 @@ function xingxy_enqueue_assets() {
         return;
     }
     
-    // 邀请功能增强样式
+    // 推广链接参数隐藏功能（对所有访客生效）
+    if (xingxy_pz('hide_referral_param', true)) {
+        wp_enqueue_script(
+            'xingxy-referral-hide',
+            XINGXY_URL . 'assets/js/referral-hide.js',
+            array(),
+            XINGXY_VERSION,
+            false // 在 head 中加载，尽早执行
+        );
+    }
+    
+    // 邀请功能增强样式（仅登录用户）
     if (xingxy_pz('enable_referral_points', true)) {
         wp_enqueue_style(
             'xingxy-referral',
