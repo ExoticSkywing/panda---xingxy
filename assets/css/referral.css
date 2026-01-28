@@ -1,6 +1,6 @@
 /**
- * 邀请好友注册 - 视觉增强样式 (Scheme I: Final Rebuild)
- * 核心：文字高对比度 + 实心标签 + SVG 图标适配 + 宽敞布局 + Glass Button Pro
+ * 邀请好友注册 - 视觉增强样式 (Scheme J: High Visibility & JS Override)
+ * 核心：JS 强制接管文案样式，确保深色模式下绝对高亮
  */
 
 /* =========================================
@@ -24,6 +24,7 @@
     --xingxy-border: rgba(0, 0, 0, 0.06);
     --xingxy-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
     --xingxy-text-main: #333;
+    /* text-sub 在这里只给普通元素用，核心文案单独定义 */
     --xingxy-text-sub: #555;
     --xingxy-accent: #ff6b6b;
 
@@ -51,7 +52,6 @@ body.dark-theme {
     --xingxy-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 
     --xingxy-text-main: #ffffff;
-    /* 核心修改：大幅提高副标题亮度 */
     --xingxy-text-sub: rgba(255, 255, 255, 0.9);
     --xingxy-accent: #ff9e9e;
 
@@ -119,40 +119,38 @@ body.dark-theme {
 
 /* 标题样式增强 */
 .xingxy-referral-highlight h4,
-/* 兼容 h4 */
 .xingxy-referral-highlight .item-heading {
-    /* 兼容可能的 class */
     color: var(--xingxy-text-main) !important;
     font-size: 18px !important;
     font-weight: bold !important;
     margin-bottom: 8px !important;
-    /* 增加行距 */
 }
 
-/* 副标题 (描述文案) 增强 */
-.xingxy-referral-highlight .muted-color {
-    color: var(--xingxy-text-sub) !important;
-    /* 应用高亮变量 */
-    font-size: 13px !important;
-    /* 稍微调大一点 */
+/* --- [CRITICAL CSS FIX] 副标题新样式 --- */
+/* JS 已移除 muted-color 类，改为 xingxy-referral-desc */
+.xingxy-referral-desc {
+    font-size: 14px !important;
     font-weight: 500 !important;
-    /* 增加字重 */
     line-height: 1.5 !important;
-    opacity: 1 !important;
-    /* 强制不透明 */
-    /* 关键：增加文字阴影，保证在任何彩色背景上都清晰 */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: color 0.3s;
+    display: block;
+    margin-top: 5px;
 }
 
-/* 夜间模式额外增强 */
-body.dark-theme .xingxy-referral-highlight .muted-color {
+/* 日间模式：深灰 */
+body:not(.dark-theme) .xingxy-referral-desc {
+    color: #666 !important;
+}
+
+/* 夜间模式：强制高亮纯白 */
+body.dark-theme .xingxy-referral-desc {
     color: #ffffff !important;
     /* 纯白 */
-    opacity: 0.95 !important;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-    /* 更深的阴影 */
+    opacity: 1 !important;
+    /* 不透明 */
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+    /* 黑色投影，把字抠出来 */
     letter-spacing: 0.5px;
-    /* 增加字间距，更有呼吸感 */
 }
 
 

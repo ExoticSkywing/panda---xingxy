@@ -129,6 +129,16 @@
                     $pointsContainer.addClass('xingxy-right-panel');
                     $pointsContainer.append(buttonsHtml);
                 }
+
+                // [CRITICAL FIX] 强制修复文案颜色
+                // 找到原本灰色的描述文字，直接移除 muted-color 类，彻底切断主题样式干扰
+                var $desc = $item.find('.muted-color, .muted-2-color, [class*="muted"]').not('.xingxy-referral-btns *');
+                if ($desc.length) {
+                    $desc.removeClass('muted-color muted-2-color'); // 移除灰色类
+                    $desc.addClass('xingxy-referral-desc'); // 添加高亮类
+                    // 可选：如果用户想改文案内容，可以在这里 text(...)
+                    // $desc.text('邀请好友立即得现金奖励，上不封顶！'); 
+                }
             }
         });
     }
