@@ -1,11 +1,9 @@
 /**
- * 邀请好友注册 - 功能增强脚本 (Scheme O: Dynamic Toggle + Fix)
+ * 邀请好友注册 - 功能增强脚本 (Scheme P: Class Driven Toggle)
  * 
  * 包含：
- * 1. 布局重构：左(图标) - 中(文案) - 右(积分+Toggle)
- * 2. 交互升级：Dynamic Toggle 动态切换组件
- * 3. 核心修复：SVG 换行符支持 & 强制去除 muted-color
- * 4. BugFix: 强制同步 Radio 状态，防止主题 preventDefault 导致滑块卡住
+ * 1. 交互升级：基于 Class 的 Dynamic Toggle，解决 Radio 冲突问题
+ * 2. 结构简化：使用 Div 替代 Radio+Label，纯 JS 控制
  */
 
 (function ($) {
@@ -39,7 +37,6 @@
         `
     };
 
-    // 获取 referral 数据
     function getReferralData() {
         if (typeof xingxy_referral !== 'undefined' && xingxy_referral.referral_url) {
             return {
@@ -49,39 +46,41 @@
         }
         var $refInput = $('[data-clipboard-text*="?ref="]');
         if ($refInput.length) {
-            var url = $refInput.attr('data-clipboard-text');
-            var match = url.match(/ref=(\d+)/);
+            var match = $refInput.attr('data-clipboard-text').match(/ref=(\d+)/);
             return {
-                url: url,
+                url: $refInput.attr('data-clipboard-text'),
                 userId: match ? match[1] : ''
             };
         }
         return { url: '', userId: '' };
     }
 
-    // 创建 Dynamic Toggle 组件
+    // [NEW] 创建 Dynamic Toggle 组件 (Pure DIV Structure)
     function createDynamicToggle(referralData) {
         if (!referralData.url || !referralData.userId) return '';
 
         return `
         <div class="xingxy-toggle-control">
-            <div class="xingxy-toggle-track">
-                <input type="radio" class="sr-only" name="xingxy-action" id="xingxy-toggle-copy" value="copy" checked>
-                <input type="radio" class="sr-only" name="xingxy-action" id="xingxy-toggle-poster" value="poster">
-                
+            <div class="xingxy-toggle-track state-copy"> <!-- 默认状态: Copay -->
+                <!-- 滑块 Indicator -->
                 <div class="xingxy-toggle-indicator"></div>
                 
-                <label for="xingxy-toggle-copy" class="xingxy-toggle-label clip-aut" 
+                <!-- Toggle Item 1: 复制链接 -->
+                <!-- 使用 div 替代 label，完全脱离 Form 上下文 -->
+                <div class="xingxy-toggle-label clip-aut" 
+                       data-toggle="copy"
                        data-clipboard-text="${referralData.url}" 
                        data-clipboard-tag="推广链接">
                     <i class="fa fa-link"></i> 复制链接
-                </label>
+                </div>
                 
-                <label for="xingxy-toggle-poster" class="xingxy-toggle-label btn-poster" 
+                <!-- Toggle Item 2: 推广海报 -->
+                <div class="xingxy-toggle-label btn-poster" 
+                       data-toggle="poster"
                        poster-share="rebate_${referralData.userId}" 
                        data-user="${referralData.userId}">
                     <i class="fa fa-qrcode"></i> 推广海报
-                </label>
+                </div>
             </div>
         </div>
         `;
@@ -98,14 +97,8 @@
             if (text.indexOf(config.referralKeyword) !== -1 && !$item.hasClass('xingxy-referral-highlight')) {
                 $item.addClass('xingxy-referral-highlight');
 
-                if (!$item.find('.xingxy-bg-container').length) {
-                    $item.prepend(config.bgHtml);
-                }
-
-                if (!$item.find('.xingxy-gift-icon').length) {
-                    $item.prepend(config.iconHtml);
-                }
-
+                if (!$item.find('.xingxy-bg-container').length) $item.prepend(config.bgHtml);
+                if (!$item.find('.xingxy-gift-icon').length) $item.prepend(config.iconHtml);
                 if (!$item.find('.xingxy-referral-tag').length) {
                     $item.find('.xingxy-gift-icon').after('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
                 }
@@ -129,12 +122,16 @@
         });
     }
 
-    // [FIX] 强制同步 Radio 状态
-    // 解决主题 .btn-poster 可能阻止默认行为导致 Input 未被选中的问题
+    // [NEW] Toggle 交互逻辑 (Class Driven)
     $(document).on('click', '.xingxy-toggle-label', function () {
-        var inputId = $(this).attr('for');
-        if (inputId) {
-            $('#' + inputId).prop('checked', true);
+        var $track = $(this).closest('.xingxy-toggle-track');
+        var type = $(this).attr('data-toggle');
+
+        // 简单直接：切换 Class
+        if (type === 'poster') {
+            $track.removeClass('state-copy').addClass('state-poster');
+        } else {
+            $track.removeClass('state-poster').addClass('state-copy');
         }
     });
 

@@ -1,6 +1,6 @@
 /**
- * 邀请好友注册 - 视觉增强样式 (Scheme O: Dynamic Toggle)
- * 核心：移植 Dynamic Toggle 交互组件，替代原有的按钮
+ * 邀请好友注册 - 视觉增强样式 (Scheme P: Class Driven Toggle)
+ * 核心：使用 CSS Class (.state-poster) 驱动滑块，解决 JS 冲突问题
  */
 
 /* =========================================
@@ -27,13 +27,9 @@
 
     /* Toggle Colors (Day) */
     --tg-bg: rgba(255, 255, 255, 0.5);
-    /* 容器背景 */
     --tg-indicator: #fff;
-    /* 滑块背景 */
     --tg-text: #666;
-    /* 未选中文字 */
     --tg-text-active: #333;
-    /* 选中文字 */
     --tg-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 
     /* Bubbles (Day) */
@@ -59,7 +55,6 @@ body.dark-theme {
     /* Toggle Colors (Night) */
     --tg-bg: rgba(0, 0, 0, 0.3);
     --tg-indicator: rgba(255, 255, 255, 0.15);
-    /* 半透明流光滑块 */
     --tg-text: rgba(255, 255, 255, 0.5);
     --tg-text-active: #fff;
     --tg-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -176,7 +171,6 @@ body.dark-theme .xingxy-referral-desc {
     gap: 15px;
     z-index: 5;
     min-width: 200px;
-    /* 加宽以容纳 Toggle */
 }
 
 .xingxy-referral-highlight .focus-color {
@@ -189,7 +183,7 @@ body.dark-theme .xingxy-referral-desc {
 }
 
 /* =========================================
-   3. [NEW] Dynamic Toggle Component
+   3. [UPDATED] Dynamic Toggle (Class Driven)
    ========================================= */
 .xingxy-toggle-control {
     position: relative;
@@ -225,12 +219,11 @@ body.dark-theme .xingxy-referral-desc {
     z-index: 1;
 }
 
-/* 深色模式下给滑块加点光描边 */
 body.dark-theme .xingxy-toggle-indicator {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* 标签 Label */
+/* Label */
 .xingxy-toggle-label {
     display: flex;
     align-items: center;
@@ -246,14 +239,12 @@ body.dark-theme .xingxy-toggle-indicator {
     user-select: none;
     margin: 0;
     gap: 6px;
-    /* 图标间距 */
 }
 
 .xingxy-toggle-label i {
     font-size: 14px;
 }
 
-/* 隐藏 Radio Input */
 .xingxy-toggle-control input.sr-only {
     position: absolute;
     width: 0;
@@ -262,34 +253,31 @@ body.dark-theme .xingxy-toggle-indicator {
     pointer-events: none;
 }
 
-/* 交互逻辑：Checked 状态 */
+/* --- 交互逻辑 (Class Driven) --- */
 
-/* 当第2个 Input (Poster) 被选中时，滑块移动到右边 */
-.xingxy-toggle-track:has(#xingxy-toggle-poster:checked) .xingxy-toggle-indicator {
+/* 状态：海报 (Poster) -> 滑块右移 */
+.xingxy-toggle-track.state-poster .xingxy-toggle-indicator {
     transform: translateX(100%);
 }
 
-/* 能够兼容旧浏览器的写法 (兄弟选择器) */
-#xingxy-toggle-poster:checked~.xingxy-toggle-indicator {
-    transform: translateX(100%);
+/* 状态：复制 (Copy) -> 滑块归位 (Left) */
+.xingxy-toggle-track.state-copy .xingxy-toggle-indicator {
+    transform: translateX(0);
 }
 
 /* 文字颜色激活 */
-/* 选中第1项 -> Label 1 激活 */
-.xingxy-toggle-track:has(#xingxy-toggle-copy:checked) label[for="xingxy-toggle-copy"] {
+.xingxy-toggle-track.state-copy label.clip-aut,
+.xingxy-toggle-track:not(.state-poster) label.clip-aut {
+    /* 默认 active */
     color: var(--tg-text-active);
 }
 
-#xingxy-toggle-copy:checked~label[for="xingxy-toggle-copy"] {
-    color: var(--tg-text-active);
+.xingxy-toggle-track.state-poster label.clip-aut {
+    color: var(--tg-text);
+    /* 失去焦点 */
 }
 
-/* 选中第2项 -> Label 2 激活 */
-.xingxy-toggle-track:has(#xingxy-toggle-poster:checked) label[for="xingxy-toggle-poster"] {
-    color: var(--tg-text-active);
-}
-
-#xingxy-toggle-poster:checked~label[for="xingxy-toggle-poster"] {
+.xingxy-toggle-track.state-poster label.btn-poster {
     color: var(--tg-text-active);
 }
 
@@ -324,7 +312,6 @@ body.dark-theme .xingxy-toggle-indicator {
     background: radial-gradient(circle at center, rgba(var(--bubble-color), 0.8) 0, rgba(var(--bubble-color), 0) 50%) no-repeat;
 }
 
-/* 动画加速 */
 .g1 {
     --bubble-color: var(--b-color1);
     animation: moveVertical 15s ease infinite;
