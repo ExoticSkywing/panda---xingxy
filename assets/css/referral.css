@@ -1,6 +1,6 @@
 /**
- * 邀请好友注册 - 视觉增强样式 (Scheme M: Fix Animation)
- * 核心：补全缺失的 Bubbles 动画关键帧
+ * 邀请好友注册 - 视觉增强样式 (Scheme N: Turbo Speed)
+ * 核心：加速流光与气泡动画，提升视觉活跃度
  */
 
 /* =========================================
@@ -124,8 +124,7 @@ body.dark-theme .xingxy-referral-highlight {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
 
-/* --- 文案流光特效 --- */
-/* JS 已移除 muted-color 类，改为 xingxy-referral-desc */
+/* --- 文案流光特效 (Speed Up) --- */
 .xingxy-referral-desc {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     font-size: 13px !important;
@@ -136,12 +135,12 @@ body.dark-theme .xingxy-referral-highlight {
     letter-spacing: 0.5px;
 }
 
-/* 日间模式：深灰 */
+/* 日间模式 */
 body:not(.dark-theme) .xingxy-referral-desc {
     color: #666 !important;
 }
 
-/* 夜间模式：流光极光特效 (Aurora Streaming) */
+/* 夜间模式：加速流光 (3s) */
 body.dark-theme .xingxy-referral-desc {
     background: linear-gradient(120deg, #ffffff 0%, #f0f0f0 40%, #ffe4b5 50%, #f0f0f0 60%, #e6e6fa 100%);
     background-size: 200% auto;
@@ -149,7 +148,8 @@ body.dark-theme .xingxy-referral-desc {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent !important;
-    animation: text-shine 5s linear infinite;
+    /* Speed Up: 5s -> 3s */
+    animation: text-shine 3s linear infinite;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
@@ -272,7 +272,7 @@ body.dark-theme .button-wrap button {
 }
 
 /* =========================================
-   4. Bubbles 背景
+   4. Bubbles 背景 (Speed Up)
    ========================================= */
 .xingxy-bg-container {
     position: absolute;
@@ -301,45 +301,44 @@ body.dark-theme .button-wrap button {
     background: radial-gradient(circle at center, rgba(var(--bubble-color), 0.8) 0, rgba(var(--bubble-color), 0) 50%) no-repeat;
 }
 
-/* 动画应用 (Binding Animations) */
+/* [MODIFIED] 动画加速 (30s->15s, 20s->10s) */
 .g1 {
     --bubble-color: var(--b-color1);
-    animation: moveVertical 30s ease infinite;
+    animation: moveVertical 15s ease infinite;
     top: 10%;
     left: 10%;
 }
 
 .g2 {
     --bubble-color: var(--b-color2);
-    animation: moveInCircle 20s reverse infinite;
+    animation: moveInCircle 10s reverse infinite;
     top: 20%;
     left: 60%;
 }
 
 .g3 {
     --bubble-color: var(--b-color3);
-    animation: moveInCircle 40s linear infinite;
+    animation: moveInCircle 20s linear infinite;
     top: 60%;
     left: 30%;
 }
 
 .g4 {
     --bubble-color: var(--b-color4);
-    animation: moveHorizontal 40s ease infinite;
+    animation: moveHorizontal 20s ease infinite;
     top: 40%;
     left: 10%;
 }
 
 .g5 {
     --bubble-color: var(--b-color5);
-    animation: moveInCircle 20s ease infinite;
+    animation: moveInCircle 10s ease infinite;
     top: -20%;
     left: -20%;
     width: 140%;
     height: 140%;
 }
 
-/* [MISSING FIX] 补全关键帧动画 (Keyframes) */
 @keyframes moveInCircle {
     0% {
         transform: rotate(0deg);
