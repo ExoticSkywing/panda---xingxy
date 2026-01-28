@@ -1,9 +1,9 @@
 /**
- * 邀请好友注册 - 功能增强脚本
+ * 邀请好友注册 - 功能增强脚本 (Gift Box Style)
  * 
- * 1. 自动识别邀请任务项并添加高亮样式
- * 2. 复用主题内置的复制链接和推广海报功能
- * 3. 添加"热门"标签
+ * 1. 自动识别邀请任务项
+ * 2. 插入礼包图标 + HOT 标签
+ * 3. 复用主题内置的复制链接和推广海报功能
  */
 
 (function ($) {
@@ -12,7 +12,7 @@
     // 配置
     var config = {
         referralKeyword: '邀请好友注册',
-        tagText: '🔥 热门'
+        tagText: 'HOT'
     };
 
     // 获取当前用户的推荐链接和用户ID
@@ -45,12 +45,12 @@
             return '';
         }
 
-        // 复制链接按钮 - 使用 clip-aut 类触发主题内置的 clipboard.js
+        // 复制链接按钮
         var copyBtn = '<a data-clipboard-text="' + referralData.url + '" data-clipboard-tag="推广链接" ' +
-            'class="clip-aut but c-yellow xingxy-btn" href="javascript:;">' +
+            'class="but c-yellow xingxy-btn" href="javascript:;">' +
             '<i class="fa fa-link"></i> 复制链接</a>';
 
-        // 推广海报按钮 - 使用 poster-share 属性触发主题内置功能
+        // 推广海报按钮
         var posterBtn = '<a poster-share="rebate_' + referralData.userId + '" data-user="' + referralData.userId + '" ' +
             'href="javascript:;" class="but c-cyan xingxy-btn">' +
             '<i class="fa fa-qrcode"></i> 推广海报</a>';
@@ -71,16 +71,26 @@
                 // 添加高亮样式
                 $item.addClass('xingxy-referral-highlight');
 
-                // 添加热门标签
-                if (!$item.find('.xingxy-referral-tag').length) {
-                    $item.prepend('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
+                // 1. 插入礼包图标（在最前面）
+                if (!$item.find('.xingxy-gift-icon').length) {
+                    $item.prepend('<i class="fa fa-gift xingxy-gift-icon"></i>');
                 }
 
-                // 添加复制链接和推广海报按钮
+                // 2. 插入HOT标签（在图标后）
+                // 为了布局好看，我们尝试把它插在图标后面，或者直接跟在图标后
+                if (!$item.find('.xingxy-referral-tag').length) {
+                    $item.find('.xingxy-gift-icon').after('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
+                }
+
+                // 3. 添加复制链接和推广海报按钮
                 if (!$item.find('.xingxy-referral-btns').length) {
                     var buttons = createButtons(referralData);
                     if (buttons) {
                         $item.append(buttons);
+                        // 确保加载 clipboard 模块
+                        if (typeof tbquire !== 'undefined') {
+                            tbquire(['clipboard']);
+                        }
                     }
                 }
             }
@@ -89,10 +99,10 @@
 
     // 页面加载完成后执行
     $(document).ready(function () {
-        // 延迟执行，确保页面其他元素加载完成
+        // 延迟执行
         setTimeout(enhanceReferralItem, 300);
 
-        // 监听 DOM 变化（用于动态加载的内容）
+        // 监听 DOM 变化
         if (typeof MutationObserver !== 'undefined') {
             var observer = new MutationObserver(function (mutations) {
                 enhanceReferralItem();

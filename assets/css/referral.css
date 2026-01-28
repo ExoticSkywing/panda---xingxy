@@ -1,76 +1,155 @@
 /**
- * 邀请好友注册 - 视觉增强样式
+ * 邀请好友注册 - 视觉增强样式 (Gift Box Style)
  * 
- * 通过选择器匹配积分任务列表中的邀请项，添加高亮效果
+ * 设计理念：惊喜感、礼包、微灰背景
  */
 
-/* 邀请任务项高亮样式 */
+/* -------------------
+   容器样式：微灰背景，圆角卡片
+   ------------------- */
 .xingxy-referral-highlight {
-    background: linear-gradient(135deg, rgba(138, 43, 226, 0.15) 0%, rgba(255, 107, 107, 0.15) 100%) !important;
-    border: 1px solid rgba(138, 43, 226, 0.3) !important;
-    border-radius: 8px !important;
-    margin: 8px 0 !important;
-    padding: 12px 15px !important;
     position: relative;
+    background: #f9f9fa !important;
+    /* 极淡的微灰，不刺眼 */
+    border: 1px solid #edf0f2 !important;
+    border-radius: 12px !important;
+    padding: 16px 20px !important;
+    margin: 10px 0 !important;
     transition: all 0.3s ease;
 }
 
+/* Hover 时轻微上浮，增加阴影 */
 .xingxy-referral-highlight:hover {
-    background: linear-gradient(135deg, rgba(138, 43, 226, 0.25) 0%, rgba(255, 107, 107, 0.25) 100%) !important;
-    border-color: rgba(138, 43, 226, 0.5) !important;
+    background: #fff !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    border-color: #e0e0e0 !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
 }
 
-/* 热门标签 */
-.xingxy-referral-tag {
-    position: absolute;
-    top: -8px;
-    right: 10px;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-    color: #fff;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: bold;
-    animation: xingxy-pulse 2s infinite;
+/* -------------------
+   标题与礼包图标
+   ------------------- */
+/* 礼包图标样式 */
+.xingxy-gift-icon {
+    display: inline-block;
+    font-size: 18px;
+    margin-right: 8px;
+    color: #ff6b6b;
+    vertical-align: text-bottom;
+    animation: xingxy-shake 3s infinite;
+    transform-origin: center bottom;
 }
 
-@keyframes xingxy-pulse {
+/* 摇晃动效：每3秒轻轻晃一下 */
+@keyframes xingxy-shake {
 
     0%,
-    100% {
-        opacity: 1;
+    80% {
+        transform: rotate(0deg);
     }
 
-    50% {
-        opacity: 0.7;
+    82% {
+        transform: rotate(-10deg);
+    }
+
+    84% {
+        transform: rotate(10deg);
+    }
+
+    86% {
+        transform: rotate(-5deg);
+    }
+
+    88% {
+        transform: rotate(5deg);
+    }
+
+    90% {
+        transform: rotate(0deg);
     }
 }
 
-/* 按钮容器 */
+/* 热门标签调整 */
+.xingxy-referral-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #fff0f0;
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.15);
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: normal;
+    transform: translateY(-1px);
+}
+
+
+/* -------------------
+   按钮优化
+   ------------------- */
 .xingxy-referral-btns {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
+    margin-top: 12px;
 }
 
 .xingxy-referral-btns .xingxy-btn {
     font-size: 12px !important;
-    padding: 5px 12px !important;
-    border-radius: 15px !important;
+    padding: 5px 15px !important;
+    border-radius: 50px !important;
+    /* 全圆角胶囊 */
+    transition: all 0.3s ease;
+    border: none !important;
 }
 
-/* 邀请统计 */
-.xingxy-referral-stats {
-    display: inline-block;
-    font-size: 11px;
-    color: #999;
-    margin-left: 10px;
+/* 黄色按钮微调 */
+.xingxy-referral-btns .xingxy-btn.c-yellow {
+    background: #fff8e1 !important;
+    color: #ff9800 !important;
 }
 
-/* 积分数高亮 */
+.xingxy-referral-btns .xingxy-btn.c-yellow:hover {
+    background: #ffecb3 !important;
+    transform: translateY(-1px);
+}
+
+/* 青色按钮微调 */
+.xingxy-referral-btns .xingxy-btn.c-cyan {
+    background: #e0f7fa !important;
+    color: #00bcd4 !important;
+}
+
+.xingxy-referral-btns .xingxy-btn.c-cyan:hover {
+    background: #b2ebf2 !important;
+    transform: translateY(-1px);
+}
+
+/* -------------------
+   其他细节
+   ------------------- */
+/* 积分数 */
 .xingxy-referral-highlight .focus-color {
-    font-size: 1.2em !important;
-    text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+    font-weight: bold;
+    color: #ff6b6b !important;
+    /* 积分改用暖红色，呼应礼包 */
+}
+
+/* Dark Mode 适配 */
+body.dark-theme .xingxy-referral-highlight {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+body.dark-theme .xingxy-referral-highlight:hover {
+    background: #252525 !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .xingxy-referral-btns .xingxy-btn.c-yellow {
+    background: rgba(255, 152, 0, 0.15) !important;
+}
+
+body.dark-theme .xingxy-referral-btns .xingxy-btn.c-cyan {
+    background: rgba(0, 188, 212, 0.15) !important;
 }
