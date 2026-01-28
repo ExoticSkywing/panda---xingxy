@@ -1,6 +1,6 @@
 /**
- * 邀请好友注册 - 视觉增强样式 (Scheme J: High Visibility & JS Override)
- * 核心：JS 强制接管文案样式，确保深色模式下绝对高亮
+ * 邀请好友注册 - 视觉增强样式 (Scheme K: Typography Polish)
+ * 核心：文字美学优化 (字间距、呼吸感、现代字体)
  */
 
 /* =========================================
@@ -24,7 +24,6 @@
     --xingxy-border: rgba(0, 0, 0, 0.06);
     --xingxy-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
     --xingxy-text-main: #333;
-    /* text-sub 在这里只给普通元素用，核心文案单独定义 */
     --xingxy-text-sub: #555;
     --xingxy-accent: #ff6b6b;
 
@@ -46,9 +45,10 @@
 
 /* --- 夜间模式 (Night: Grey-Purple Nebula) --- */
 body.dark-theme {
-    /* 灰紫星云背景 */
+    /* 背景：灰紫星云 */
     --xingxy-card-bg: linear-gradient(120deg, #2a2a2e 0%, #353342 60%, #3e3b4f 100%);
     --xingxy-border: rgba(255, 255, 255, 0.08);
+    /* 极细白边 */
     --xingxy-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 
     --xingxy-text-main: #ffffff;
@@ -123,18 +123,26 @@ body.dark-theme {
     color: var(--xingxy-text-main) !important;
     font-size: 18px !important;
     font-weight: bold !important;
+    letter-spacing: 0.5px;
     margin-bottom: 8px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
 
-/* --- [CRITICAL CSS FIX] 副标题新样式 --- */
+/* --- [CRITICAL CSS FIX] 副标题美学优化 --- */
 /* JS 已移除 muted-color 类，改为 xingxy-referral-desc */
 .xingxy-referral-desc {
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    line-height: 1.5 !important;
-    transition: color 0.3s;
+    /* 字体优化：使用系统无衬线字体，现代感强 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 13px !important;
+    /* 稍微缩小显得精致 */
+    font-weight: 400 !important;
+    /* 不宜太粗 */
+    line-height: 1.6 !important;
+    /* 增加行高 */
     display: block;
-    margin-top: 5px;
+    margin-top: 6px;
+    /* 增加与标题的间距 */
+    transition: color 0.3s;
 }
 
 /* 日间模式：深灰 */
@@ -142,15 +150,14 @@ body:not(.dark-theme) .xingxy-referral-desc {
     color: #666 !important;
 }
 
-/* 夜间模式：强制高亮纯白 */
+/* 夜间模式：柔和高亮 */
 body.dark-theme .xingxy-referral-desc {
-    color: #ffffff !important;
-    /* 纯白 */
-    opacity: 1 !important;
-    /* 不透明 */
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
-    /* 黑色投影，把字抠出来 */
-    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.85) !important;
+    /* 85% 白，比死白更透气 */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+    /* 阴影柔化 */
+    letter-spacing: 1px;
+    /* 关键：增加字间距，大幅提升高级感 */
 }
 
 
@@ -171,6 +178,7 @@ body.dark-theme .xingxy-referral-desc {
     color: var(--xingxy-accent) !important;
     text-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
     line-height: 1;
+    font-family: inherit;
 }
 
 /* =========================================
