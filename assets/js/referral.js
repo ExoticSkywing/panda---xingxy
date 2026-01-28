@@ -1,10 +1,11 @@
 /**
- * 邀请好友注册 - 功能增强脚本 (Scheme O: Dynamic Toggle)
+ * 邀请好友注册 - 功能增强脚本 (Scheme O: Dynamic Toggle + Fix)
  * 
  * 包含：
  * 1. 布局重构：左(图标) - 中(文案) - 右(积分+Toggle)
  * 2. 交互升级：Dynamic Toggle 动态切换组件
  * 3. 核心修复：SVG 换行符支持 & 强制去除 muted-color
+ * 4. BugFix: 强制同步 Radio 状态，防止主题 preventDefault 导致滑块卡住
  */
 
 (function ($) {
@@ -58,29 +59,24 @@
         return { url: '', userId: '' };
     }
 
-    // [NEW] 创建 Dynamic Toggle 组件
-    // 使用 Label 伪装成按钮，配合 Radio 控制滑块位置
+    // 创建 Dynamic Toggle 组件
     function createDynamicToggle(referralData) {
         if (!referralData.url || !referralData.userId) return '';
 
         return `
         <div class="xingxy-toggle-control">
             <div class="xingxy-toggle-track">
-                <!-- Inputs 必须放在前面以支持 CSS 兄弟选择器 -->
                 <input type="radio" class="sr-only" name="xingxy-action" id="xingxy-toggle-copy" value="copy" checked>
                 <input type="radio" class="sr-only" name="xingxy-action" id="xingxy-toggle-poster" value="poster">
                 
-                <!-- 滑块 Indicator -->
                 <div class="xingxy-toggle-indicator"></div>
                 
-                <!-- Label 1: 复制链接 (绑定 clipboard 类名) -->
                 <label for="xingxy-toggle-copy" class="xingxy-toggle-label clip-aut" 
                        data-clipboard-text="${referralData.url}" 
                        data-clipboard-tag="推广链接">
                     <i class="fa fa-link"></i> 复制链接
                 </label>
                 
-                <!-- Label 2: 推广海报 (绑定 btn-poster 类名) -->
                 <label for="xingxy-toggle-poster" class="xingxy-toggle-label btn-poster" 
                        poster-share="rebate_${referralData.userId}" 
                        data-user="${referralData.userId}">
@@ -102,26 +98,21 @@
             if (text.indexOf(config.referralKeyword) !== -1 && !$item.hasClass('xingxy-referral-highlight')) {
                 $item.addClass('xingxy-referral-highlight');
 
-                // 1. 注入背景
                 if (!$item.find('.xingxy-bg-container').length) {
                     $item.prepend(config.bgHtml);
                 }
 
-                // 2. 注入图标
                 if (!$item.find('.xingxy-gift-icon').length) {
                     $item.prepend(config.iconHtml);
                 }
 
-                // 3. 注入标签
                 if (!$item.find('.xingxy-referral-tag').length) {
                     $item.find('.xingxy-gift-icon').after('<span class="xingxy-referral-tag">' + config.tagText + '</span>');
                 }
 
-                // 4.布局重构：使用 Dynamic Toggle
                 var $points = $item.find('.focus-color');
                 var $pointsContainer = $points.parent();
 
-                // 强制修正容器样式，确保其包含 Toggle
                 $pointsContainer.addClass('xingxy-right-panel');
 
                 if (!$item.find('.xingxy-toggle-control').length) {
@@ -129,7 +120,6 @@
                     $pointsContainer.append(toggleHtml);
                 }
 
-                // [CRITICAL FIX] 强制修复文案颜色
                 var $desc = $item.find('.muted-color, .muted-2-color, [class*="muted"]').not('.xingxy-referral-btns *');
                 if ($desc.length) {
                     $desc.removeClass('muted-color muted-2-color');
@@ -138,6 +128,15 @@
             }
         });
     }
+
+    // [FIX] 强制同步 Radio 状态
+    // 解决主题 .btn-poster 可能阻止默认行为导致 Input 未被选中的问题
+    $(document).on('click', '.xingxy-toggle-label', function () {
+        var inputId = $(this).attr('for');
+        if (inputId) {
+            $('#' + inputId).prop('checked', true);
+        }
+    });
 
     // 初始化
     $(document).ready(function () {
