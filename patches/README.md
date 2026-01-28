@@ -55,4 +55,12 @@ git diff HEAD~1 -- inc/functions/shop/
 
 详见 [referral-visual-enhance.md](./referral-visual-enhance.md)
 
+---
+
+## 邮件通知修复
+
+修复管理员新订单邮件无法发送的问题。根因是 `zib_get_wechat_template_id()` 引用传参错误导致致命错误。
+
+详见 [email-fix.md](./email-fix.md)
+
 **更新日期**: 2026-01-28

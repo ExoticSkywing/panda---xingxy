@@ -1,9 +1,9 @@
 /**
- * 邀请好友注册 - 功能增强脚本 (Scheme P: Class Driven Toggle)
+ * 邀请好友注册 - 功能增强脚本 (Scheme Q: Direct Event Binding)
  * 
  * 包含：
- * 1. 交互升级：基于 Class 的 Dynamic Toggle，解决 Radio 冲突问题
- * 2. 结构简化：使用 Div 替代 Radio+Label，纯 JS 控制
+ * 1. 交互升级：基于 Class 的 Dynamic Toggle
+ * 2. 核心修复：直接绑定 Click 事件，防止 stopPropagation 导致失效
  */
 
 (function ($) {
@@ -55,38 +55,52 @@
         return { url: '', userId: '' };
     }
 
-    // [NEW] 创建 Dynamic Toggle 组件 (Pure DIV Structure)
-    function createDynamicToggle(referralData) {
-        if (!referralData.url || !referralData.userId) return '';
+    // Toggle 交互处理函数 (Direct Handler)
+    function handleToggleClick(e) {
+        // 不阻止冒泡，让业务逻辑通过
+        var $btn = $(this);
+        var $track = $btn.closest('.xingxy-toggle-track');
+        var type = $btn.attr('data-toggle');
 
-        return `
-        <div class="xingxy-toggle-control">
-            <div class="xingxy-toggle-track state-copy"> <!-- 默认状态: Copay -->
-                <!-- 滑块 Indicator -->
-                <div class="xingxy-toggle-indicator"></div>
-                
-                <!-- Toggle Item 1: 复制链接 -->
-                <!-- 使用 div 替代 label，完全脱离 Form 上下文 -->
-                <div class="xingxy-toggle-label clip-aut" 
-                       data-toggle="copy"
-                       data-clipboard-text="${referralData.url}" 
-                       data-clipboard-tag="推广链接">
-                    <i class="fa fa-link"></i> 复制链接
-                </div>
-                
-                <!-- Toggle Item 2: 推广海报 -->
-                <div class="xingxy-toggle-label btn-poster" 
-                       data-toggle="poster"
-                       poster-share="rebate_${referralData.userId}" 
-                       data-user="${referralData.userId}">
-                    <i class="fa fa-qrcode"></i> 推广海报
-                </div>
-            </div>
-        </div>
-        `;
+        if (type === 'poster') {
+            $track.removeClass('state-copy').addClass('state-poster');
+        } else {
+            $track.removeClass('state-poster').addClass('state-copy');
+        }
     }
 
-    // 增强邀请任务项
+    function createDynamicToggle(referralData) {
+        if (!referralData.url || !referralData.userId) return null;
+
+        // 创建 DOM 对象而不是字符串，以便直接绑定事件
+        var $container = $('<div class="xingxy-toggle-control"></div>');
+        var $track = $('<div class="xingxy-toggle-track state-copy"></div>'); // 默认 copy 状态
+
+        $track.append('<div class="xingxy-toggle-indicator"></div>');
+
+        var $btnCopy = $('<div class="xingxy-toggle-label clip-aut"></div>')
+            .attr('data-toggle', 'copy')
+            .attr('data-clipboard-text', referralData.url)
+            .attr('data-clipboard-tag', '推广链接')
+            .html('<i class="fa fa-link"></i> 复制链接');
+
+        var $btnPoster = $('<div class="xingxy-toggle-label btn-poster"></div>')
+            .attr('data-toggle', 'poster')
+            .attr('poster-share', 'rebate_' + referralData.userId)
+            .attr('data-user', referralData.userId)
+            .html('<i class="fa fa-qrcode"></i> 推广海报');
+
+        // [CRITICAL FIX] 直接绑定 click 事件，避开 document 冒泡被拦截的问题
+        $btnCopy.on('click', handleToggleClick);
+        $btnPoster.on('click', handleToggleClick);
+
+        $track.append($btnCopy);
+        $track.append($btnPoster);
+        $container.append($track);
+
+        return $container;
+    }
+
     function enhanceReferralItem() {
         var referralData = getReferralData();
 
@@ -109,8 +123,10 @@
                 $pointsContainer.addClass('xingxy-right-panel');
 
                 if (!$item.find('.xingxy-toggle-control').length) {
-                    var toggleHtml = createDynamicToggle(referralData);
-                    $pointsContainer.append(toggleHtml);
+                    var $toggle = createDynamicToggle(referralData);
+                    if ($toggle) {
+                        $pointsContainer.append($toggle);
+                    }
                 }
 
                 var $desc = $item.find('.muted-color, .muted-2-color, [class*="muted"]').not('.xingxy-referral-btns *');
@@ -121,19 +137,6 @@
             }
         });
     }
-
-    // [NEW] Toggle 交互逻辑 (Class Driven)
-    $(document).on('click', '.xingxy-toggle-label', function () {
-        var $track = $(this).closest('.xingxy-toggle-track');
-        var type = $(this).attr('data-toggle');
-
-        // 简单直接：切换 Class
-        if (type === 'poster') {
-            $track.removeClass('state-copy').addClass('state-poster');
-        } else {
-            $track.removeClass('state-poster').addClass('state-copy');
-        }
-    });
 
     // 初始化
     $(document).ready(function () {

@@ -48,3 +48,6 @@ require_once XINGXY_PATH . 'inc/referral.php';
 
 // 加载资源（CSS/JS）
 require_once XINGXY_PATH . 'inc/assets.php';
+
+// 加载邮件通知修复模块
+require_once XINGXY_PATH . 'inc/email-fix.php';
