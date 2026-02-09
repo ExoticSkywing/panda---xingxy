@@ -179,29 +179,31 @@ function xingxy_card_edit_scripts() {
         
         // 在备注列添加编辑按钮
         function addEditButtons() {
-            $('#the-list tr, .wp-list-table tbody tr').each(function() {
+            $('table.widefat tbody tr, .wp-list-table tbody tr').each(function() {
                 var $row = $(this);
                 var $checkbox = $row.find('input[type="checkbox"][name="action_id[]"]');
                 if (!$checkbox.length) return;
                 
                 var id = $checkbox.val();
-                var $cells = $row.find('td');
+                var $tds = $row.find('td');
                 
-                // 获取卡号、密码、备注
-                var card = $cells.eq(0).find('[data-clipboard-text]').attr('data-clipboard-text') || $cells.eq(0).text().trim();
-                var password = $cells.eq(1).find('[data-clipboard-text]').attr('data-clipboard-text') || $cells.eq(1).text().trim();
-                var other = $cells.eq(6).find('a').first().text().trim() || '';
+                // 表格结构：th(checkbox) + 7个td (卡号、密码、类型、创建时间、更新时间、状态、备注)
+                // td索引：0=卡号, 1=密码, 2=类型, 3=创建时间, 4=更新时间, 5=状态, 6=备注
+                var card = $tds.eq(0).find('[data-clipboard-text]').attr('data-clipboard-text') || '';
+                var password = $tds.eq(1).find('[data-clipboard-text]').attr('data-clipboard-text') || '';
+                var $otherCell = $tds.eq(6);
+                var other = $otherCell.find('a').first().text().trim() || $otherCell.text().trim() || '';
                 
                 // 添加编辑按钮
                 if (!$row.find('.xingxy-card-edit-btn').length) {
-                    var $editBtn = $('<a class="xingxy-card-edit-btn">编辑</a>');
+                    var $editBtn = $('<a class="xingxy-card-edit-btn">[编辑]</a>');
                     $editBtn.data({
                         id: id,
                         card: card,
                         password: password,
                         other: other
                     });
-                    $cells.eq(6).append($editBtn);
+                    $otherCell.append(' ').append($editBtn);
                 }
             });
         }
@@ -259,8 +261,9 @@ function xingxy_card_edit_scripts() {
         });
         
         // 批量操作拦截
-        $(document).on('click', '#doaction, #doaction2', function(e) {
-            var action = $(this).prev('select').val();
+        $(document).on('click', '.bulkactions input.button.action', function(e) {
+            var $select = $(this).siblings('select[name="action"]');
+            var action = $select.val();
             if (action === 'batch_edit') {
                 e.preventDefault();
                 var ids = [];
