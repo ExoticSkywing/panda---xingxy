@@ -79,4 +79,12 @@ git diff HEAD~1 -- inc/functions/shop/
 
 详见 [shipping-email-control.md](./shipping-email-control.md)
 
-**更新日期**: 2026-01-28
+---
+
+## 卡密编辑功能
+
+为卡密管理添加编辑功能，支持单条编辑（卡号、密码、备注）和批量修改（备注）。
+
+详见 [card-edit.md](./card-edit.md)
+
+**更新日期**: 2026-02-10
