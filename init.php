@@ -51,3 +51,6 @@ require_once XINGXY_PATH . 'inc/assets.php';
 
 // 加载邮件通知修复模块
 require_once XINGXY_PATH . 'inc/email-fix.php';
+
+// 加载卡密编辑功能
+require_once XINGXY_PATH . 'inc/card-edit.php';
