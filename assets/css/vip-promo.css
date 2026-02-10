@@ -96,6 +96,37 @@ body.dark-theme .xingxy-vip-group-btn {
 /* Mobile Optimizations */
 @media (max-width: 768px) {
     .shop-paybtn-group {
-        flex-wrap: wrap;
+        flex-wrap: nowrap !important;
+        /* Force single line */
+        padding: 0 2px;
+    }
+
+    /* Cart Button: Compact */
+    .shop-paybtn-group .shop-add-cart-btn {
+        padding: 0 10px !important;
+        margin-right: 6px !important;
+        min-width: auto !important;
+        flex: 0 0 auto !important;
+        font-size: 12px !important;
+    }
+
+    /* VIP Button: Hide icon to save space, adjust flex */
+    .xingxy-vip-group-btn {
+        flex: 1.5 !important;
+        font-size: 12px !important;
+        padding-left: 8px !important;
+        padding-right: 2px !important;
+    }
+
+    .xingxy-vip-group-btn i {
+        display: none !important;
+        /* Hide diamond icon on mobile */
+    }
+
+    /* Buy Button: Compact */
+    .xingxy-vip-secondary-btn {
+        flex: 1 !important;
+        font-size: 12px !important;
+        padding: 0 4px !important;
     }
 }
