@@ -1,4 +1,4 @@
-/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + V9 Mobile Custom Icon) */
+/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + V9 Mobile Custom Icon + V10 Perf Fix) */
 
 /* Flex Container Constraint */
 .shop-paybtn-group {
@@ -120,6 +120,22 @@ body.dark-theme .xingxy-vip-group-btn {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        visibility: visible !important;
+        /* Force visible */
+        opacity: 1 !important;
+        z-index: 10 !important;
+        cursor: pointer !important;
+    }
+
+    /* V10 Fix: Pointer Events None for SVG to prevent lag */
+    .shop-paybtn-group .shop-add-cart-btn svg {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        display: block !important;
+        opacity: 1 !important;
+        pointer-events: none !important;
+        /* <--- CRITICAL FIX */
     }
 
     /* Remove default FontAwesome if exists */
