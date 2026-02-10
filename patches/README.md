@@ -95,5 +95,14 @@ git diff HEAD~1 -- inc/functions/shop/
 
 详见 [shop-vip-promo.md](./shop-vip-promo.md)
 
-**更新日期**: 2026-02-10
+**更新日期**: 2026-02-11
+
+---
+
+## 控制台净化
+
+移除 Zibll/Panda 主题在浏览器控制台的版权日志（如 "Zibll Theme" 等推广信息），保持控制台清爽。
+
+**相关文件**: `inc/console-cleaner.php`
+
 

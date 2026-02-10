@@ -57,3 +57,7 @@ require_once XINGXY_PATH . 'inc/card-edit.php';
 
 // 加载 VIP 引导双按钮功能
 require_once XINGXY_PATH . 'inc/vip-promo.php';
+
+// 加载控制台日志净化功能
+require_once XINGXY_PATH . 'inc/console-cleaner.php';
+
