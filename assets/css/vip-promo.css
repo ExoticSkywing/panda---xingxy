@@ -1,4 +1,4 @@
-/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + Custom SVG + Pink Cart + Recursion Fix + Clipping Fix v2) */
+/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + V9 Mobile Custom Icon) */
 
 /* Flex Container Constraint */
 .shop-paybtn-group {
@@ -6,8 +6,6 @@
     white-space: nowrap;
     align-items: center;
     /* Ensure vertical alignment */
-    flex-shrink: 0 !important;
-    /* Prevent container compression */
 }
 
 /* Common Styles */
@@ -24,7 +22,7 @@
     justify-content: center !important;
 }
 
-/* Cart Button (Independent Capsule) - Desktop */
+/* Cart Button (Independent Capsule) */
 .shop-paybtn-group .shop-add-cart-btn {
     flex: 0 0 auto !important;
     /* Don't grow/shrink weirdly */
@@ -95,59 +93,47 @@ body.dark-theme .xingxy-vip-group-btn {
     color: #3e2400 !important;
 }
 
-/* Mobile Optimizations (V8 Colors + SVG Icon) */
+/* Mobile Optimizations (V9: Custom SVG Icon Cart) */
 @media (max-width: 768px) {
     .shop-paybtn-group {
         flex-wrap: nowrap !important;
         /* Force single line */
         padding: 0 2px;
-        /* Reset Container Styles handled by removing .but-group class in HTML */
-        /* But keep these just in case */
-        background: transparent !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        overflow: visible !important;
     }
 
-    /* Cart Button: Micro-Pink Style + Custom SVG (Renamed Class for Mobile) */
-    .shop-paybtn-group .xingxy-mobile-cart-btn {
+    /* Cart Button: Pure Icon Mode */
+    .shop-paybtn-group .shop-add-cart-btn {
         padding: 0 !important;
-        margin-right: 6px !important;
-        width: 38px !important;
-        /* Fixed Circle */
-        min-width: 38px !important;
+        margin-right: 4px !important;
+        /* Closer to pill */
+        min-width: auto !important;
+        width: 40px !important;
+        /* Fixed icon touch area */
+        height: 40px !important;
         flex: 0 0 auto !important;
-        background: #fff2f2 !important;
-        /* Micro-Pink background */
-        box-shadow: 0 2px 6px rgba(255, 0, 0, 0.05) !important;
-        border: 1px solid #ffecec !important;
-        /* Soft Pink Border */
-        color: #333 !important;
+        font-size: 0 !important;
+        /* Hide text fallback */
+        background: transparent !important;
+        /* Remove yellow/white bg */
+        border: none !important;
+        box-shadow: none !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
 
-    /* Remove FontAwesome Icon */
-    .shop-paybtn-group .xingxy-mobile-cart-btn::before {
+    /* Remove default FontAwesome if exists */
+    .shop-paybtn-group .shop-add-cart-btn::before {
         content: none !important;
         display: none !important;
     }
 
-    /* Style Custom SVG */
-    .shop-paybtn-group .xingxy-mobile-cart-btn svg {
-        width: 24px !important;
-        height: 24px !important;
-        display: block !important;
-        fill: #333;
-        /* Override internal fill if needed, or keep original */
-    }
-
     /* VIP Button: Keep Gold */
     .xingxy-vip-group-btn {
-        flex: 1.5 !important;
+        flex: 1.4 !important;
+        /* Adjust flex slightly */
         font-size: 12px !important;
-        padding-left: 8px !important;
+        padding-left: 10px !important;
         padding-right: 2px !important;
     }
 
@@ -157,7 +143,8 @@ body.dark-theme .xingxy-vip-group-btn {
 
     /* Buy Button: Pale Red (Active but Secondary) */
     .xingxy-vip-secondary-btn {
-        flex: 1 !important;
+        flex: 0.8 !important;
+        /* Adjust flex */
         font-size: 12px !important;
         padding: 0 4px !important;
         background: #fff5f5 !important;
@@ -171,12 +158,6 @@ body.dark-theme .xingxy-vip-group-btn {
     }
 
     /* Dark Mode Adjustments */
-    body.dark-theme .shop-paybtn-group .xingxy-mobile-cart-btn {
-        background: #333 !important;
-        border-color: #444 !important;
-        box-shadow: none !important;
-    }
-
     body.dark-theme .xingxy-vip-secondary-btn {
         background: rgba(255, 77, 79, 0.1) !important;
         color: #ff7875 !important;
