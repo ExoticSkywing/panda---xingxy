@@ -1,48 +1,99 @@
-/* Xingxy VIP Promo Buttons (V5 Layout - Optimized) */
+/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split) */
 
-/* Force layout constraints on the button group */
+/* Flex Container Constraint */
 .shop-paybtn-group {
     display: flex;
     white-space: nowrap;
+    align-items: center;
+    /* Ensure vertical alignment */
 }
 
-/* Adjust all buttons in the group when VIP promo is active */
+/* Common Styles */
 .shop-paybtn-group .but {
-    padding: 6px 4px !important;
-    /* Minimal padding */
+    padding: 6px 8px !important;
     font-size: 13px !important;
     letter-spacing: -0.2px;
+    transition: all 0.3s ease;
+    height: 38px !important;
+    /* Force same height */
+    line-height: inherit !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-/* Specific Width Adjustments */
+/* Cart Button (Independent Capsule) */
 .shop-paybtn-group .shop-add-cart-btn {
-    flex: 1 !important;
-    min-width: fit-content;
+    flex: 0 0 auto !important;
+    /* Don't grow/shrink weirdly */
+    width: auto !important;
+    min-width: 90px;
+    /* Minimum width for text */
+    border-radius: 50px !important;
+    /* Full capsule */
+    margin-right: 12px !important;
+    /* Physical separation */
+    box-shadow: 0 2px 5px rgba(255, 166, 0, 0.2);
 }
 
-/* VIP Button: Needs most space */
+/* VIP Button (Left Half of Unified Pill) */
 .xingxy-vip-group-btn {
-    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%) !important;
-    color: #7c4a00 !important;
-    font-weight: bold;
+    /* Premium Gradient */
+    background: linear-gradient(120deg, #f6d365 0%, #fda085 100%) !important;
+    color: #5d3500 !important;
+    font-weight: 500 !important;
+    /* Reduced from 600 to 500 */
     border: none !important;
-    flex: 1.8 !important;
-    /* Give priority space */
-    white-space: nowrap;
-    overflow: visible;
-    /* Try to show full text */
+    flex: 1.6 !important;
+    /* Take more space */
+    border-radius: 50px 0 0 50px !important;
+    /* Left rounded, right flat */
+    margin-right: 0 !important;
+    /* Touch the next button */
+    padding-right: 4px !important;
+    /* Visual balance */
+    position: relative;
+    z-index: 2;
+    /* Sit above secondary to avoid border glitches */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Animation removed per user "too bold" feedback, keep it clean */
 }
 
-/* Secondary Button: Least space */
+/* Secondary Button (Right Half of Unified Pill) */
 .xingxy-vip-secondary-btn {
-    background: #f7f7f7 !important;
-    color: #999 !important;
+    background: #f8f9fa !important;
+    color: #888 !important;
     border: 1px solid #eee !important;
+    border-left: none !important;
     font-size: 12px !important;
-    flex: 0.8 !important;
+    flex: 0.9 !important;
+    border-radius: 0 50px 50px 0 !important;
+    /* Left flat, right rounded */
+    margin-left: 0 !important;
+    /* Touch the previous button */
+    position: relative;
+    left: -1px;
+    /* Overlap border slighty */
 }
 
-/* Mobile Optimizations if needed */
+.xingxy-vip-secondary-btn:hover {
+    color: #555 !important;
+    background: #f0f0f0 !important;
+}
+
+/* Dark Mode Support */
+body.dark-theme .xingxy-vip-secondary-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #aaa !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-theme .xingxy-vip-group-btn {
+    color: #3e2400 !important;
+}
+
+/* Mobile Optimizations */
 @media (max-width: 768px) {
     .shop-paybtn-group {
         flex-wrap: wrap;
