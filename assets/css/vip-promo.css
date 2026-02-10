@@ -1,4 +1,4 @@
-/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + Custom SVG + Pink Cart) */
+/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + Custom SVG + Pink Cart + Recursion Fix) */
 
 /* Flex Container Constraint */
 .shop-paybtn-group {
@@ -22,7 +22,7 @@
     justify-content: center !important;
 }
 
-/* Cart Button (Independent Capsule) */
+/* Cart Button (Independent Capsule) - Desktop */
 .shop-paybtn-group .shop-add-cart-btn {
     flex: 0 0 auto !important;
     /* Don't grow/shrink weirdly */
@@ -101,8 +101,8 @@ body.dark-theme .xingxy-vip-group-btn {
         padding: 0 2px;
     }
 
-    /* Cart Button: Micro-Pink Style + Custom SVG */
-    .shop-paybtn-group .shop-add-cart-btn {
+    /* Cart Button: Micro-Pink Style + Custom SVG (Renamed Class for Mobile) */
+    .shop-paybtn-group .xingxy-mobile-cart-btn {
         padding: 0 !important;
         margin-right: 6px !important;
         width: 38px !important;
@@ -121,22 +121,19 @@ body.dark-theme .xingxy-vip-group-btn {
     }
 
     /* Remove FontAwesome Icon */
-    .shop-paybtn-group .shop-add-cart-btn::before {
+    .shop-paybtn-group .xingxy-mobile-cart-btn::before {
         content: none !important;
         display: none !important;
     }
 
     /* Style Custom SVG */
-    .shop-paybtn-group .shop-add-cart-btn svg {
+    .shop-paybtn-group .xingxy-mobile-cart-btn svg {
         width: 24px !important;
         height: 24px !important;
         display: block !important;
         fill: #333;
         /* Override internal fill if needed, or keep original */
     }
-
-    /* Note: internal SVG has hardcoded fills (#FC6564, #F8DEDE). Use css filter or fill override if needed. 
-       User provided specific SVG, assume colors are intended. */
 
     /* VIP Button: Keep Gold */
     .xingxy-vip-group-btn {
@@ -166,15 +163,10 @@ body.dark-theme .xingxy-vip-group-btn {
     }
 
     /* Dark Mode Adjustments */
-    body.dark-theme .shop-paybtn-group .shop-add-cart-btn {
+    body.dark-theme .shop-paybtn-group .xingxy-mobile-cart-btn {
         background: #333 !important;
         border-color: #444 !important;
         box-shadow: none !important;
-    }
-
-    body.dark-theme .shop-paybtn-group .shop-add-cart-btn svg {
-        /* In dark mode, maybe invert icon colors if they are too dark? 
-           The SVG uses pink/red. It should look OK on dark. */
     }
 
     body.dark-theme .xingxy-vip-secondary-btn {
