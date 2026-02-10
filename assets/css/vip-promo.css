@@ -1,4 +1,4 @@
-/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + V9 Mobile Custom Icon + V10 Perf Fix) */
+/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + V9 Mobile Custom Icon - Safe Class) */
 
 /* Flex Container Constraint */
 .shop-paybtn-group {
@@ -22,17 +22,13 @@
     justify-content: center !important;
 }
 
-/* Cart Button (Independent Capsule) */
+/* Cart Button (Independent Capsule) - DESKTOP ONLY styles for .shop-add-cart-btn */
 .shop-paybtn-group .shop-add-cart-btn {
     flex: 0 0 auto !important;
-    /* Don't grow/shrink weirdly */
     width: auto !important;
     min-width: 90px;
-    /* Minimum width for text */
     border-radius: 50px !important;
-    /* Full capsule */
     margin-right: 12px !important;
-    /* Physical separation */
     box-shadow: 0 2px 5px rgba(255, 166, 0, 0.2);
 }
 
@@ -102,7 +98,8 @@ body.dark-theme .xingxy-vip-group-btn {
     }
 
     /* Cart Button: Pure Icon Mode */
-    .shop-paybtn-group .shop-add-cart-btn {
+    /* UPDATED: Target new class .xingxy-mobile-cart-btn */
+    .shop-paybtn-group .xingxy-mobile-cart-btn {
         padding: 0 !important;
         margin-right: 4px !important;
         /* Closer to pill */
@@ -124,22 +121,19 @@ body.dark-theme .xingxy-vip-group-btn {
         /* Force visible */
         opacity: 1 !important;
         z-index: 10 !important;
-        cursor: pointer !important;
     }
 
-    /* V10 Fix: Pointer Events None for SVG to prevent lag */
-    .shop-paybtn-group .shop-add-cart-btn svg {
+    /* Ensure SVG is visible and sized */
+    .shop-paybtn-group .xingxy-mobile-cart-btn svg {
         width: 32px !important;
         height: 32px !important;
         min-width: 32px !important;
         display: block !important;
         opacity: 1 !important;
-        pointer-events: none !important;
-        /* <--- CRITICAL FIX */
     }
 
-    /* Remove default FontAwesome if exists */
-    .shop-paybtn-group .shop-add-cart-btn::before {
+    /* Remove default FontAwesome if exists (Just safety) */
+    .shop-paybtn-group .xingxy-mobile-cart-btn::before {
         content: none !important;
         display: none !important;
     }
