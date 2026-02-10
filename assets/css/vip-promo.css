@@ -1,4 +1,4 @@
-/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + Custom SVG + Pink Cart + Recursion Fix + Clipping Fix) */
+/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + Custom SVG + Pink Cart + Recursion Fix + Clipping Fix v2) */
 
 /* Flex Container Constraint */
 .shop-paybtn-group {
@@ -6,6 +6,8 @@
     white-space: nowrap;
     align-items: center;
     /* Ensure vertical alignment */
+    flex-shrink: 0 !important;
+    /* Prevent container compression */
 }
 
 /* Common Styles */
@@ -99,7 +101,8 @@ body.dark-theme .xingxy-vip-group-btn {
         flex-wrap: nowrap !important;
         /* Force single line */
         padding: 0 2px;
-        /* Reset Container Styles to prevent clipping from parent .but-group style */
+        /* Reset Container Styles handled by removing .but-group class in HTML */
+        /* But keep these just in case */
         background: transparent !important;
         border-radius: 0 !important;
         box-shadow: none !important;
