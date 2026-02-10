@@ -1,4 +1,4 @@
-/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + V9 Mobile Custom Icon - Safe Class) */
+/* Xingxy VIP Promo Buttons (V6 Layout - Unified Split + V8 Mobile Colors + V9 Mobile Custom Icon - Safe Class + V10 Liquid Gold Animation) */
 
 /* Flex Container Constraint */
 .shop-paybtn-group {
@@ -22,6 +22,12 @@
     justify-content: center !important;
 }
 
+/* Tactile Feedback (V10) - Scale on click/touch */
+.shop-paybtn-group .but:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+}
+
 /* Cart Button (Independent Capsule) - DESKTOP ONLY styles for .shop-add-cart-btn */
 .shop-paybtn-group .shop-add-cart-btn {
     flex: 0 0 auto !important;
@@ -34,8 +40,13 @@
 
 /* VIP Button (Left Half of Unified Pill) */
 .xingxy-vip-group-btn {
-    /* Premium Gradient */
-    background: linear-gradient(120deg, #f6d365 0%, #fda085 100%) !important;
+    /* Premium Gradient - V10 Liquid Gold Base */
+    background: linear-gradient(120deg, #f6d365, #fda085, #f6d365) !important;
+    background-size: 200% auto !important;
+    /* Enable movement */
+    animation: liquidGold 5s ease-in-out infinite;
+    /* Slow, premium flow */
+
     color: #5d3500 !important;
     font-weight: 500 !important;
     /* Reduced from 600 to 500 */
@@ -53,7 +64,21 @@
     /* Sit above secondary to avoid border glitches */
     overflow: hidden;
     text-overflow: ellipsis;
-    /* Animation removed per user "too bold" feedback, keep it clean */
+}
+
+/* V10 Animation Keyframes: Liquid Gold */
+@keyframes liquidGold {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 /* Secondary Button (Right Half of Unified Pill) */
@@ -121,6 +146,14 @@ body.dark-theme .xingxy-vip-group-btn {
         /* Force visible */
         opacity: 1 !important;
         z-index: 10 !important;
+        /* Mobile Tactile for Icon */
+        transition: transform 0.1s !important;
+    }
+
+    .shop-paybtn-group .xingxy-mobile-cart-btn:active {
+        transform: scale(0.85) !important;
+        /* More pronounced shrink for icon */
+        opacity: 0.8 !important;
     }
 
     /* Ensure SVG is visible and sized */
