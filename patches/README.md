@@ -87,4 +87,13 @@ git diff HEAD~1 -- inc/functions/shop/
 
 详见 [card-edit.md](./card-edit.md)
 
+---
+
+## Shop 模块 VIP 引导功能 (V5)
+
+在 Shop 商品详情页实现“加购+VIP引导+原价购”三按钮布局，智能计算 VIP 优惠并引导升级。
+
+详见 [shop-vip-promo.md](./shop-vip-promo.md)
+
 **更新日期**: 2026-02-10
+

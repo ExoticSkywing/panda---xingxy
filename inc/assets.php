@@ -58,5 +58,13 @@ function xingxy_enqueue_assets() {
             ));
         }
     }
+    
+    // VIP Promo 样式
+    wp_enqueue_style(
+        'xingxy-vip-promo',
+        XINGXY_URL . 'assets/css/vip-promo.css',
+        array(),
+        XINGXY_VERSION
+    );
 }
 add_action('wp_enqueue_scripts', 'xingxy_enqueue_assets');

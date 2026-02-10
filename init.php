@@ -54,3 +54,6 @@ require_once XINGXY_PATH . 'inc/email-fix.php';
 
 // 加载卡密编辑功能
 require_once XINGXY_PATH . 'inc/card-edit.php';
+
+// 加载 VIP 引导双按钮功能
+require_once XINGXY_PATH . 'inc/vip-promo.php';
