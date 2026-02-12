@@ -105,4 +105,12 @@ git diff HEAD~1 -- inc/functions/shop/
 
 **相关文件**: `inc/console-cleaner.php`
 
+---
 
+## 商城优惠码集成
+
+将 zibpay 优惠码系统集成到商城购买流程。在订单确认弹窗中注入优惠码输入框，支持验证、折扣计算、次数扣减。通过 hooks 拦截实现，不修改主题原始文件。
+
+详见 [shop-coupon.md](./shop-coupon.md)
+
+**更新日期**: 2026-02-12
