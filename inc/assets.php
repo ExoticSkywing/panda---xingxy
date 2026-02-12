@@ -66,5 +66,34 @@ function xingxy_enqueue_assets() {
         array(),
         XINGXY_VERSION
     );
+    
+    // 商城优惠码（在商品详情页和购物车页加载）
+    if (is_singular('shop_product') || xingxy_is_shop_page()) {
+        wp_enqueue_style(
+            'xingxy-shop-coupon',
+            XINGXY_URL . 'assets/css/shop-coupon.css',
+            array(),
+            XINGXY_VERSION
+        );
+        
+        wp_enqueue_script(
+            'xingxy-shop-coupon',
+            XINGXY_URL . 'assets/js/shop-coupon.js',
+            array('jquery'),
+            XINGXY_VERSION,
+            true
+        );
+    }
 }
 add_action('wp_enqueue_scripts', 'xingxy_enqueue_assets');
+
+/**
+ * 判断是否在商城相关页面
+ */
+function xingxy_is_shop_page() {
+    // 购物车页面或商城页面
+    if (function_exists('zib_shop_is_page')) {
+        return zib_shop_is_page();
+    }
+    return false;
+}

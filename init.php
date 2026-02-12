@@ -61,3 +61,6 @@ require_once XINGXY_PATH . 'inc/vip-promo.php';
 // 加载控制台日志净化功能
 require_once XINGXY_PATH . 'inc/console-cleaner.php';
 
+// 加载商城优惠码集成功能
+require_once XINGXY_PATH . 'inc/shop-coupon.php';
+

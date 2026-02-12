@@ -1,0 +1,122 @@
+/**
+ * Xingxy 商城优惠码样式
+ * 
+ * 复用主题风格，优惠码区域位于订单确认弹窗中
+ */
+
+/* 优惠码容器 */
+.xingxy-coupon-box {
+    padding: 12px 15px;
+}
+
+/* 头部：图标 + 标题 + 状态 */
+.xingxy-coupon-header {
+    font-size: 14px;
+}
+
+.xingxy-coupon-icon {
+    color: var(--muted-2-color, #999);
+    font-size: 16px;
+}
+
+/* 输入行 */
+.xingxy-coupon-input-row {
+    gap: 0;
+}
+
+.xingxy-coupon-input {
+    font-size: 13px !important;
+    height: 36px !important;
+    border-radius: 6px !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.xingxy-coupon-input:focus {
+    border-color: var(--focus-color, #2196f3) !important;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1) !important;
+}
+
+/* 已验证状态的输入框 */
+.xingxy-coupon-input.xingxy-coupon-verified {
+    background-color: var(--main-bg-color, #f7f8fa) !important;
+    color: var(--muted-color, #666);
+}
+
+/* 检查/取消按钮 */
+.xingxy-coupon-check-btn {
+    height: 36px;
+    padding: 0 16px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 60px;
+    transition: all 0.2s;
+}
+
+.xingxy-coupon-check-btn:hover {
+    opacity: 0.85;
+}
+
+.xingxy-coupon-check-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 结果区域 */
+.xingxy-coupon-result {
+    animation: xingxyCouponFadeIn 0.3s ease;
+}
+
+.xingxy-coupon-desc {
+    font-size: 12px;
+}
+
+.xingxy-coupon-discount {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* 错误提示 */
+.xingxy-coupon-error {
+    animation: xingxyCouponFadeIn 0.2s ease;
+}
+
+/* 淡入动画 */
+@keyframes xingxyCouponFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] .xingxy-coupon-input {
+    background-color: var(--main-bg-color, #1e1e2e);
+    border-color: var(--main-border-color, #333);
+    color: var(--body-color, #eee);
+}
+
+[data-theme="dark"] .xingxy-coupon-input.xingxy-coupon-verified {
+    background-color: var(--main-bg-color, #262636) !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 640px) {
+    .xingxy-coupon-box {
+        padding: 10px 12px;
+    }
+    
+    .xingxy-coupon-input {
+        font-size: 14px !important;
+    }
+    
+    .xingxy-coupon-check-btn {
+        padding: 0 12px !important;
+        min-width: 52px;
+    }
+}
