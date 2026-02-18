@@ -114,3 +114,14 @@ git diff HEAD~1 -- inc/functions/shop/
 详见 [shop-coupon.md](./shop-coupon.md)
 
 **更新日期**: 2026-02-12
+
+---
+
+## 星盟阶段一：创作分成支持商城商品
+
+修复创作分成"我的商品" tab 不显示 `shop_product` 的问题。修改 `panda/zibpay/functions/zibpay-income.php`，`post_type` 加入 `shop_product`，移除不兼容的 `zibpay_type` meta 条件。
+
+详见 [staralliance-income.md](./staralliance-income.md)
+
+**更新日期**: 2026-02-18
+
