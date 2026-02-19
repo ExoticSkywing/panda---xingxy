@@ -44,12 +44,12 @@
                 userId: xingxy_referral.user_id
             };
         }
-        var $refInput = $('[data-clipboard-text*="?ref="]');
+        // 兼容旧式 fallback：尝试从 data-clipboard-text 读取推广链接
+        var $refInput = $('[data-clipboard-text*="_s="]');
         if ($refInput.length) {
-            var match = $refInput.attr('data-clipboard-text').match(/ref=(\d+)/);
             return {
                 url: $refInput.attr('data-clipboard-text'),
-                userId: match ? match[1] : ''
+                userId: xingxy_referral ? xingxy_referral.user_id : ''
             };
         }
         return { url: '', userId: '' };
@@ -138,40 +138,8 @@
         });
     }
 
-    /**
-     * 隐藏推广链接参数
-     * 防止用户删除参数后绕过推荐关系
-     * 使用 history.replaceState 在不刷新页面的情况下移除 URL 参数
-     */
-    function hideReferralParam() {
-        // 检查是否存在 ref 参数
-        var urlParams = new URLSearchParams(window.location.search);
-        var refParam = urlParams.get('ref');
-
-        if (refParam) {
-            // 移除 ref 参数
-            urlParams.delete('ref');
-
-            // 构建新的 URL
-            var newUrl = window.location.pathname;
-            var remainingParams = urlParams.toString();
-            if (remainingParams) {
-                newUrl += '?' + remainingParams;
-            }
-            newUrl += window.location.hash;
-
-            // 使用 replaceState 替换 URL，不产生历史记录
-            if (window.history && window.history.replaceState) {
-                window.history.replaceState({}, document.title, newUrl);
-            }
-        }
-    }
-
     // 初始化
     $(document).ready(function () {
-        // 立即隐藏推广链接参数（在页面渲染之前）
-        hideReferralParam();
-
         setTimeout(enhanceReferralItem, 300);
         if (typeof MutationObserver !== 'undefined') {
             var observer = new MutationObserver(function (mutations) {

@@ -20,18 +20,7 @@ function xingxy_enqueue_assets() {
         return;
     }
     
-    // 推广链接参数隐藏功能（对所有访客生效）
-    if (xingxy_pz('hide_referral_param', true)) {
-        wp_enqueue_script(
-            'xingxy-referral-hide',
-            XINGXY_URL . 'assets/js/referral-hide.js',
-            array(),
-            XINGXY_VERSION,
-            false // 在 head 中加载，尽早执行
-        );
-    }
-    
-    // 邀请功能增强样式（仅登录用户）
+
     if (xingxy_pz('enable_referral_points', true)) {
         wp_enqueue_style(
             'xingxy-referral',
@@ -48,13 +37,13 @@ function xingxy_enqueue_assets() {
             true
         );
         
-        // 传递用户ID到前端
+        // 传递用户ID和伪装推广链接到前端
         $user_id = get_current_user_id();
         if ($user_id) {
             wp_localize_script('xingxy-referral', 'xingxy_referral', array(
-                'user_id' => $user_id,
-                'referral_url' => add_query_arg('ref', $user_id, home_url('/')),
-                'points' => xingxy_pz('referral_points_amount', 10),
+                'user_id'      => $user_id,
+                'referral_url' => xingxy_generate_referral_url($user_id),
+                'points'       => xingxy_pz('referral_points_amount', 10),
             ));
         }
     }
@@ -83,6 +72,18 @@ function xingxy_enqueue_assets() {
             XINGXY_VERSION,
             true
         );
+    }
+    
+    // 星盟：商品发布页面专用资源
+    if (is_page_template('xingxy/pages/newproduct.php')) {
+        wp_enqueue_style(
+            'xingxy-newproduct',
+            XINGXY_URL . 'assets/css/newproduct.css',
+            array(),
+            XINGXY_VERSION
+        );
+        // 加载 WordPress Media Library（gallery 上传需要）
+        wp_enqueue_media();
     }
 }
 add_action('wp_enqueue_scripts', 'xingxy_enqueue_assets');

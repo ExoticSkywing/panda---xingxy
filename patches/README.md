@@ -125,3 +125,23 @@ git diff HEAD~1 -- inc/functions/shop/
 
 **更新日期**: 2026-02-18
 
+---
+
+## 星盟阶段二：前台商品发布系统
+
+实现合作方在前台直接发布和管理商城商品的能力。包含页面模板、AJAX 处理、权限控制、用户中心入口、样式文件，以及 Zibll 主题 sidebar 布局兼容修复。
+
+详见 [staralliance-frontend-product.md](./staralliance-frontend-product.md)
+
+**更新日期**: 2026-02-19
+
+---
+
+## 推广链接伪装 & 商城返佣修复
+
+重构推广链接系统为数据库映射方案（推广码伪装、HttpOnly Cookie 持久追踪），并修复 Zibll 商城返佣参数继承 Bug（商品设"默认"时 `rebate.type` 存为空字符串导致不 fallback 到全局配置，佣金始终为 0）。
+
+详见 [referral-tracker-rebate-fix.md](./referral-tracker-rebate-fix.md)
+
+**更新日期**: 2026-02-19
+

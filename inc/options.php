@@ -80,7 +80,7 @@ add_action('zib_require_end', function () {
             array(
                 'type'    => 'notice',
                 'style'   => 'info',
-                'content' => '当新用户通过推荐链接（带 <code>?ref=用户ID</code>）注册成功后，推荐人将获得积分奖励。',
+                'content' => '推广链接已启用伪装模式，链接形如 <code>?utm_source=share&v=2&_s=xxx&_t=xxx</code>，访客无法判断推广参数位置。用户打开链接后，系统会静默写入追踪 Cookie，即使删除 URL 参数也不影响追踪。',
             ),
             array(
                 'id'      => 'enable_referral_points',
@@ -97,6 +97,16 @@ add_action('zib_require_end', function () {
                 'default'    => 10,
                 'min'        => 1,
                 'max'        => 1000,
+                'dependency' => array('enable_referral_points', '==', 'true'),
+            ),
+            array(
+                'id'         => 'referral_cookie_hours',
+                'type'       => 'number',
+                'title'      => '推广追踪窗口（小时）',
+                'desc'       => '用户打开推广链接后，在此时间内完成注册才算有效推荐。设为 0 表示仅当次浏览有效（与 Session 等同）。',
+                'default'    => 24,
+                'min'        => 0,
+                'max'        => 720,
                 'dependency' => array('enable_referral_points', '==', 'true'),
             ),
         ),
@@ -120,15 +130,9 @@ add_action('zib_require_end', function () {
                 'default' => true,
             ),
             array(
-                'type'    => 'heading',
-                'content' => '推广链接保护',
-            ),
-            array(
-                'id'      => 'hide_referral_param',
-                'type'    => 'switcher',
-                'title'   => '隐藏推广链接参数',
-                'desc'    => '开启后，访问推广链接时地址栏将自动隐藏 ?ref=xxx 参数，防止用户删除参数绕过推荐关系',
-                'default' => true,
+                'type'    => 'notice',
+                'style'   => 'success',
+                'content' => '推广链接已内置伪装保护，无需额外配置。系统自动将推广码混入 UTM 等正常参数中，且写入持久化 Cookie，用户无法通过删除 URL 参数来绕过。',
             ),
             array(
                 'type'    => 'heading',

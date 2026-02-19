@@ -43,6 +43,9 @@ require_once XINGXY_PATH . 'inc/options.php';
 // 加载优惠功能扩展
 require_once XINGXY_PATH . 'inc/discount.php';
 
+// 加载推广链接伪装追踪模块（必须在 referral.php 之前）
+require_once XINGXY_PATH . 'inc/referral-tracker.php';
+
 // 加载邀请注册送积分功能
 require_once XINGXY_PATH . 'inc/referral.php';
 
@@ -63,4 +66,12 @@ require_once XINGXY_PATH . 'inc/console-cleaner.php';
 
 // 加载商城优惠码集成功能
 require_once XINGXY_PATH . 'inc/shop-coupon.php';
+
+// === 星盟：前台商品发布系统 ===
+// 加载商品发布权限检查
+require_once XINGXY_PATH . 'inc/product-capability.php';
+// 加载商品发布 AJAX 处理
+require_once XINGXY_PATH . 'inc/action-newproduct.php';
+// 加载用户中心商品管理入口
+require_once XINGXY_PATH . 'inc/user-products.php';
 

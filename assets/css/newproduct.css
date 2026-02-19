@@ -1,0 +1,95 @@
+/* 星盟 - 前台商品发布页面样式 */
+
+/* Gallery 上传组件 */
+.xingxy-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.xingxy-gallery-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--main-border, rgba(128, 128, 128, 0.15));
+}
+
+.xingxy-gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.xingxy-gallery-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 22px;
+    height: 22px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+
+.xingxy-gallery-item:hover .xingxy-gallery-remove {
+    opacity: 1;
+}
+
+/* 价格输入高亮 */
+input[name="product_price"] {
+    font-weight: 700;
+    color: var(--focus-color, #ff6b6b) !important;
+}
+
+/* 发货方式选项 */
+.dependency-box label.badg {
+    transition: all 0.2s;
+}
+
+.dependency-box label.badg:has(input:checked) {
+    background: var(--focus-color, #3b82f6);
+    color: #fff;
+}
+
+/* 提交按钮加载状态 */
+.xingxy-product-submit.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.xingxy-product-submit.loading::after {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: xingxy-spin 0.6s linear infinite;
+}
+
+@keyframes xingxy-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .xingxy-gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+}
