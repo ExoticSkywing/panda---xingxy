@@ -54,6 +54,11 @@
 ### 5. `xingxy/init.php` (修改)
 - 在 `referral.php` 之前加载 `referral-tracker.php`
 
+### 6. `panda/zibpay/functions/zibpay-rebate.php` (修改)
+- `zibpay_get_rebate_link()` 改为优先调用 `xingxy_generate_referral_url()`
+- 全站分享按钮（商品页、文章页、分类页等）自动使用伪装链接格式
+- 未加载 xingxy 模块时回退为旧格式 `?ref=用户ID`
+
 ## 后台配置
 **路径**: WordPress 后台 → 星小雅高级定制 → 推广设置
 
