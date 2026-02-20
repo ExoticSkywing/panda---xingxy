@@ -158,6 +158,9 @@ get_header();
                             'order'          => 'DESC',
                         ));
                         
+                        // 保存发布页 URL（循环中 $post 会被覆盖）
+                        $page_url = get_permalink();
+                        
                         if ($my_products->have_posts()):
                     ?>
                     <div class="mb20" id="xingxy-my-products">
@@ -167,7 +170,7 @@ get_header();
                         <?php while ($my_products->have_posts()): $my_products->the_post();
                             $p_id = get_the_ID();
                             $p_status = get_post_status();
-                            $p_edit_url = add_query_arg('edit', $p_id, get_permalink($post));
+                            $p_edit_url = add_query_arg('edit', $p_id, $page_url);
                             
                             // 状态标签
                             $s_text = '';
@@ -199,7 +202,9 @@ get_header();
                         <?php endwhile; wp_reset_postdata(); ?>
                     </div>
                     
-                    <div class="separator muted-3-color theme-box mb20">发布新商品</div>
+                    <div class="text-center mt10 mb20" style="padding:12px 0;border-top:2px dashed var(--muted-3-color,#555);">
+                        <span class="em12" style="color:var(--color-blue,#2193f7);"><i class="fa fa-plus-circle mr6"></i>发布新商品</span>
+                    </div>
                     <?php
                         endif; // have_posts
                     endif; // !$is_edit
