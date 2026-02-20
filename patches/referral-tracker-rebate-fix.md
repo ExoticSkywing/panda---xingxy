@@ -97,9 +97,42 @@ git revert <commit>   # 回滚对应提交
 
 **影响范围**：仅影响 `rebate.type` 为空的商品，不影响已设为"不参与"、"按比例"或"固定金额"的商品。
 
-### 验证结果
+### 验证结果（返佣修复）
 | 项目 | 修复前 | 修复后 |
 |---|---|---|
 | `rebate_config.type` | `""` (空) | `"ratio"` |
 | `rebate_price`（¥13.90商品） | 0 | **¥2.09** (15%) |
 | 累计佣金显示 | ¥0 | **¥2.09** ✅ |
+
+---
+
+## 问题三：商城订单创作分成始终为 0
+
+### 问题描述
+商城订单（`order_type=10`）的 `income_price` 字段始终为 0，导致"**用户中心 → 创作分成 → 我的商品**"中合计销售和合计收入永远显示为 0。
+
+**根因**：zibpay 普通订单在 `zibpay_insert_order` 中计算 `income_price`，但商城订单走 `zibpay::add_order` 绕过了该逻辑。商城模块完全没有创作分成的代码。
+
+### 修复方式
+在 `referral-tracker.php` 中新增 `xingxy_shop_order_calc_income` 函数，挂载 `order_created` hook（优先级 20）。
+
+| 函数 | 说明 |
+|------|------|
+| `xingxy_shop_order_calc_income()` | `order_created` hook，为商城订单补充计算 `income_price` |
+
+**计算公式**（与 zibpay 原生完全一致）：
+```
+effective_amount = pay_price - rebate_price（扣除推广佣金）
+income_price = effective_amount × income_ratio / 100
+```
+
+复用原生函数 `zibpay_get_user_income_ratio()` 获取作者的分成比例。
+
+### 验证结果（创作分成）
+| 项目 | 修复前 | 修复后 |
+|---|---|---|
+| 数据库 `income_price` | `0.00` | **正确计算** ✅ |
+| 我的商品 → 合计销售 | 0 笔 | **正确显示** ✅ |
+| 我的商品 → 合计收入 | ¥0 | **正确显示** ✅ |
+
+**更新日期**: 2026-02-21
