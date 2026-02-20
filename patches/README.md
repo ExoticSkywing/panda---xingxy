@@ -145,3 +145,12 @@ git diff HEAD~1 -- inc/functions/shop/
 
 **更新日期**: 2026-02-19
 
+---
+
+## 星盟：商品管理体验优化
+
+优化商品管理列表（支持查看全部）、编辑器工具栏（复用文章发布页按钮）、暗色模式文字颜色修复。
+
+详见 [staralliance-product-improvements.md](./staralliance-product-improvements.md)
+
+**更新日期**: 2026-02-21
