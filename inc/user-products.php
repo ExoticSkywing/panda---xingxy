@@ -85,6 +85,14 @@ function xingxy_user_center_product_sidebar($con) {
             $html .= '</div>';
         }
         wp_reset_postdata();
+        
+        // 超过5个时显示"查看全部"链接
+        if ($products->found_posts > 5) {
+            $html .= '<div class="text-center mt10">';
+            $html .= '<a href="' . esc_url($newproduct_url) . '" class="muted-2-color em09">';
+            $html .= '查看全部 ' . $products->found_posts . ' 个商品 →';
+            $html .= '</a></div>';
+        }
     } else {
         $html .= '<p class="muted-3-color em09 text-center">还没有商品，快去发布吧</p>';
     }

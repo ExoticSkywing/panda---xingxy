@@ -146,6 +146,65 @@ get_header();
             <div class="content-layout">
                 <div class="zib-widget full-widget-sm editor-main-box" style="min-height:60vh;">
                     
+                    <?php
+                    // 非编辑模式时展示"我的商品"完整管理列表
+                    if (!$is_edit):
+                        $my_products = new WP_Query(array(
+                            'post_type'      => 'shop_product',
+                            'post_status'    => array('publish', 'pending', 'draft'),
+                            'author'         => $cuid,
+                            'posts_per_page' => -1,
+                            'orderby'        => 'modified',
+                            'order'          => 'DESC',
+                        ));
+                        
+                        if ($my_products->have_posts()):
+                    ?>
+                    <div class="mb20" id="xingxy-my-products">
+                        <div class="flex ac jsb mb10">
+                            <span class="title-theme">我的商品 <span class="muted-3-color em09">(<?php echo $my_products->found_posts; ?>个)</span></span>
+                        </div>
+                        <?php while ($my_products->have_posts()): $my_products->the_post();
+                            $p_id = get_the_ID();
+                            $p_status = get_post_status();
+                            $p_edit_url = add_query_arg('edit', $p_id, get_permalink($post));
+                            
+                            // 状态标签
+                            $s_text = '';
+                            $s_class = '';
+                            switch ($p_status) {
+                                case 'pending':  $s_text = '待审核'; $s_class = 'c-yellow'; break;
+                                case 'draft':    $s_text = '草稿';   $s_class = 'muted-2-color'; break;
+                                case 'publish':  $s_text = '已上架'; $s_class = 'c-green'; break;
+                            }
+                            
+                            // 销量
+                            $sales = (int) get_post_meta($p_id, 'sales_volume', true);
+                        ?>
+                        <div class="flex ac jsb padding-h8 border-bottom">
+                            <div class="flex1 text-ellipsis mr10">
+                                <a href="<?php echo esc_url($p_edit_url); ?>" class="muted-color"><?php the_title(); ?></a>
+                            </div>
+                            <div class="flex ac flex0">
+                                <?php if ($sales > 0): ?>
+                                <span class="muted-3-color em09 mr10"><?php echo $sales; ?>售</span>
+                                <?php endif; ?>
+                                <span class="badg badg-sm mr6 <?php echo $s_class; ?>"><?php echo $s_text; ?></span>
+                                <a href="<?php echo esc_url($p_edit_url); ?>" class="em09 c-blue" title="编辑"><i class="fa fa-pencil"></i></a>
+                                <?php if ($p_status === 'publish'): ?>
+                                <a href="<?php echo get_permalink($p_id); ?>" class="em09 ml6 muted-2-color" target="_blank" title="查看"><i class="fa fa-external-link"></i></a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endwhile; wp_reset_postdata(); ?>
+                    </div>
+                    
+                    <div class="separator muted-3-color theme-box mb20">发布新商品</div>
+                    <?php
+                        endif; // have_posts
+                    endif; // !$is_edit
+                    ?>
+                    
                     <!-- 商品名称 -->
                     <div class="relative newposts-title">
                         <textarea type="text" class="line-form-input input-lg new-title" name="product_title" tabindex="1" rows="1" autoHeight="true" maxHeight="78" placeholder="请输入商品名称"><?php echo esc_attr($in['post_title']); ?></textarea>
