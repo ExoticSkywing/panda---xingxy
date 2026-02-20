@@ -100,6 +100,28 @@ if ($in['cover_ids']) {
     }
 }
 
+// 编辑器按钮 —— 复用文章发布页的 TinyMCE 自定义工具栏
+// 图片上传
+if (zib_current_user_can('new_post_upload_img')) {
+    add_filter('tinymce_upload_img', '__return_true');
+}
+// 视频上传
+if (zib_current_user_can('new_post_upload_video')) {
+    add_filter('tinymce_upload_video', '__return_true');
+}
+// 文件上传
+if (zib_current_user_can('new_post_upload_file')) {
+    add_filter('tinymce_upload_file', '__return_true');
+}
+// 嵌入视频
+if (zib_current_user_can('new_post_iframe_video')) {
+    add_filter('tinymce_iframe_video', '__return_true');
+}
+// 隐藏内容
+if (zib_current_user_can('new_post_hide')) {
+    add_filter('tinymce_hide', '__return_true');
+}
+
 // 不显示悬浮按钮
 remove_action('wp_footer', 'zib_float_right');
 remove_action('wp_footer', 'zib_footer_tabbar');
@@ -112,6 +134,7 @@ add_filter('zib_is_show_sidebar', '__return_true');
 
 // 加载编辑文章的 CSS
 add_filter('featured_image_edit', '__return_true');
+
 
 /**
  * 递归渲染分类复选框
