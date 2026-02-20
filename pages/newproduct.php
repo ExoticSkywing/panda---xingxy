@@ -135,6 +135,16 @@ add_filter('zib_is_show_sidebar', '__return_true');
 // 加载编辑文章的 CSS
 add_filter('featured_image_edit', '__return_true');
 
+// 修复暗色模式编辑器文字颜色
+// Zibll 原生只对 editor_id='post_content' 注入暗色 body_class，
+// 商品编辑器用的是 'product_content'，需要扩展支持
+add_filter('tiny_mce_before_init', function($mceInit, $editor_id) {
+    if ('product_content' === $editor_id) {
+        $mceInit['body_class'] .= ' ' . zib_get_theme_mode();
+    }
+    return $mceInit;
+}, 10, 2);
+
 
 /**
  * 递归渲染分类复选框
