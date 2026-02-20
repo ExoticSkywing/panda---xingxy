@@ -271,3 +271,67 @@ add_filter('get_post_metadata', function ($value, $object_id, $meta_key, $single
     return $single ? array($raw) : array(array($raw));
 }, 10, 4);
 
+// ===================================================================
+// 修复：商城订单创作分成（income_price）
+// ===================================================================
+
+/**
+ * 商城订单创建时补充计算创作分成
+ *
+ * 问题：商城订单走 zibpay::add_order 绕过了 zibpay_insert_order
+ * 中的 income_price 计算逻辑，导致创作分成始终为 0。
+ *
+ * 修复：在 order_created hook 中为商城订单补充计算 income_price，
+ * 复用 zibpay 原生的 zibpay_get_user_income_ratio() 获取分成比例。
+ *
+ * 计算公式（与 zibpay 原生一致）：
+ * effective_amount = pay_price - rebate_price（扣除推广佣金）
+ * income_price = effective_amount × income_ratio / 100
+ */
+add_action('order_created', 'xingxy_shop_order_calc_income', 20);
+function xingxy_shop_order_calc_income($order) {
+    // 仅处理商城订单
+    if (!function_exists('zib_shop_get_order_type') || $order['order_type'] != zib_shop_get_order_type()) {
+        return;
+    }
+
+    // 检查创作分成总开关
+    if (!_pz('pay_income_s')) {
+        return;
+    }
+
+    // 必须有商品作者
+    $post_author = $order['post_author'] ?? 0;
+    if (!$post_author) {
+        return;
+    }
+
+    // 获取作者的分成比例
+    $income_ratio = zibpay_get_user_income_ratio($post_author);
+    if (!$income_ratio) {
+        return;
+    }
+
+    // 计算有效金额（扣除推广佣金，与 zibpay 原生逻辑一致）
+    $pay_price    = floatval($order['pay_price'] ?? 0);
+    $rebate_price = floatval($order['rebate_price'] ?? 0);
+    $effective_amount = $rebate_price > 0 ? $pay_price - $rebate_price : $pay_price;
+
+    if ($effective_amount <= 0) {
+        return;
+    }
+
+    // 计算创作分成
+    $income_price = round($effective_amount * $income_ratio / 100, 2);
+    if ($income_price <= 0) {
+        return;
+    }
+
+    // 更新订单的 income_price 字段
+    $order_id = $order['id'] ?? 0;
+    if ($order_id) {
+        ZibDb::name('zibpay_order')->where('id', $order_id)->update([
+            'income_price' => (string) $income_price,
+        ]);
+    }
+}
