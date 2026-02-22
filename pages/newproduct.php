@@ -460,10 +460,10 @@ get_header();
                 <!-- 库存 + 导入：优化比例 4:6 -->
                 <div class="flex" style="gap:20px;flex-wrap:wrap;">
                     <!-- 左侧导入区 -->
-                    <div style="flex:2;min-width:300px;">
-                        <p class="muted-color em09 mb6"><i class="fa fa-info-circle mr3"></i>支持自由拼接形式（如：<code class="c-blue">长串账号信息作为卡号</code>，<code class="c-blue">兑换/登录说明作为卡密</code>），两者间用<code class="c-red">单个空格</code>分隔即可</p>
-                        <textarea id="xingxy-cardpass-data" class="form-control" rows="12" placeholder="粘贴卡密数据，一行一条。支持长信息自由组合配对，中间用空格隔开。&#10;&#10;示例 1（常规）：&#10;account01@mail.com P@ssw0rd123&#10;&#10;示例 2（超级组合：极长字符整体作卡号，网址作卡密）：&#10;AnastasiaParmar@gmail.com----ek8ondgru9----AnastasiaParmar657689@neiar.xyz----jyhjhtumwudslm6fz4uxoigtalmn 2fa.cn" style="background:var(--main-bg-color);resize:vertical;font-size:13px;border:1px solid var(--muted-border-color);"></textarea>
-                        <div class="flex ac mt6">
+                    <div style="flex:2;min-width:300px; border: 1px solid var(--muted-border-color); border-radius: 8px; padding: 15px; background: rgba(0,0,0,0.01);">
+                        <p class="muted-color em09 mb10"><i class="fa fa-info-circle mr3"></i>支持自由拼接形式（如：<code class="c-blue">长串账号信息作为卡号</code>，<code class="c-blue">兑换/登录说明作为卡密</code>），两者间用<code class="c-red">单个空格</code>分隔即可</p>
+                        <textarea id="xingxy-cardpass-data" class="form-control" rows="12" placeholder="粘贴卡密数据，一行一条。支持长信息自由组合配对，中间用空格隔开。&#10;&#10;示例 1（常规）：&#10;account01@mail.com P@ssw0rd123&#10;&#10;示例 2（超级组合：极长字符整体作卡号，网址作卡密）：&#10;AnastasiaParmar@gmail.com----ek8ondgru9----AnastasiaParmar657689@neiar.xyz----jyhjhtumwudslm6fz4uxoigtalmn 2fa.cn" style="background:var(--main-bg-color);resize:vertical;font-size:13px;border:none; border-bottom: 2px solid var(--muted-border-color); border-radius: 4px 4px 0 0; box-shadow: none;"></textarea>
+                        <div class="flex ac mt10">
                             <span class="flex1"></span>
                             <button type="button" id="xingxy-import-cardpass-btn" class="but jb-blue padding-lg">
                                 <i class="fa fa-cloud-upload mr6"></i>确认导入
