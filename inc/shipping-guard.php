@@ -202,13 +202,67 @@ function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $avai
  */
 function xingxy_build_partial_notice($total, $delivered, $remaining)
 {
-    $html  = '<div style="background:linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border:1px solid #ffc107; border-radius:10px; padding:14px 18px; margin-bottom:16px; color:#856404; font-size:14px; line-height:1.6;">';
-    $html .= '<div style="font-size:15px; font-weight:bold; margin-bottom:8px;">⚠️ 部分发货通知</div>';
-    $html .= '<div>您购买了 <b style="color:#d63384;">' . $total . '</b> 张卡密，';
-    $html .= '目前库存仅有 <b style="color:#d63384;">' . $delivered . '</b> 张，已优先为您发出。</div>';
-    $html .= '<div style="margin-top:6px;">剩余 <b style="color:#d63384;">' . $remaining . '</b> 张将在商家补货后为您补发，请耐心等待。</div>';
-    $html .= '<div style="margin-top:8px; font-size:12px; color:#a07800;">如有疑问请联系客服。</div>';
-    $html .= '</div>';
+    // 计算发货进度百分比
+    $percent = round(($delivered / $total) * 100);
+
+    $html = '
+    <div style="
+        background: var(--main-bg-color, #1a1d23);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        border-left: 4px solid #ffc107;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        position: relative;
+        overflow: hidden;
+    ">
+        <!-- 标题行 -->
+        <div style="display:flex; align-items:center; margin-bottom:12px;">
+            <span style="
+                display:inline-flex; align-items:center; justify-content:center;
+                width:28px; height:28px; border-radius:50%;
+                background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+                margin-right:10px; font-size:14px; flex-shrink:0;
+            ">📦</span>
+            <span style="font-size:15px; font-weight:700; color:var(--color-text, #e0e0e0);">部分发货通知</span>
+        </div>
+
+        <!-- 说明文本 -->
+        <div style="font-size:13px; line-height:1.7; color:var(--muted-2-color, #b0b0b0); margin-bottom:14px;">
+            您购买了 <b style="color:#ffc107;">' . $total . '</b> 张，
+            当前已发出 <b style="color:#52c41a;">' . $delivered . '</b> 张，
+            剩余 <b style="color:#ff6b6b;">' . $remaining . '</b> 张将在商家补货后补发。
+        </div>
+
+        <!-- 进度条 -->
+        <div style="margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted-3-color, #888); margin-bottom:5px;">
+                <span>发货进度</span>
+                <span>' . $delivered . '/' . $total . ' (' . $percent . '%)</span>
+            </div>
+            <div style="
+                width:100%; height:6px; border-radius:3px;
+                background: var(--muted-border-color, rgba(255,255,255,0.08));
+                overflow:hidden;
+            ">
+                <div style="
+                    width:' . $percent . '%; height:100%; border-radius:3px;
+                    background: linear-gradient(90deg, #52c41a 0%, #95de64 100%);
+                    transition: width 0.6s ease;
+                "></div>
+            </div>
+        </div>
+
+        <!-- 底部提示 -->
+        <div style="
+            font-size:11px;
+            color: var(--muted-3-color, #999);
+            padding-top:8px;
+            border-top: 1px dashed var(--muted-border-color, rgba(255,255,255,0.1));
+        ">
+            💬 商家已收到补货通知，补发后您将收到邮件提醒。如有疑问请联系客服。
+        </div>
+    </div>';
 
     return $html;
 }
