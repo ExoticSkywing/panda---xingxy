@@ -188,6 +188,9 @@ function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $avai
     $order_meta_data['backlog'] = $backlog;
     zibpay::update_meta($order['id'], 'order_data', $order_meta_data);
 
+    // 注册到全局补发队列（用于导入卡密时自动检索）
+    xingxy_register_pending_backlog($order['id'], $card_pass_key, $remaining);
+
     // 通知卖家补发
     xingxy_notify_seller_backlog($order, $order_meta_data, $backlog);
 }
@@ -343,5 +346,248 @@ function xingxy_notify_seller_backlog($order, $order_meta_data, $backlog)
             'status' => '待补发',
         );
         zib_wechat_template_send($author_data->ID, 'shop_notify_shipping_to_author', $wechat_template_data, $link);
+    }
+}
+
+// =========================================================================
+//  自动补发系统
+// =========================================================================
+
+/**
+ * 将订单注册到全局待补发队列
+ * 
+ * 使用 WordPress option 维护一个轻量级索引：
+ *   xingxy_pending_backlogs = [
+ *     { order_id, card_pass_key, remaining_count, created_time }
+ *   ]
+ */
+function xingxy_register_pending_backlog($order_id, $card_pass_key, $remaining_count)
+{
+    $backlogs = get_option('xingxy_pending_backlogs', array());
+
+    // 防止重复注册
+    foreach ($backlogs as $item) {
+        if ($item['order_id'] == $order_id) {
+            return;
+        }
+    }
+
+    $backlogs[] = array(
+        'order_id'        => $order_id,
+        'card_pass_key'   => $card_pass_key,
+        'remaining_count' => $remaining_count,
+        'created_time'    => current_time('mysql'),
+    );
+
+    update_option('xingxy_pending_backlogs', $backlogs, false);
+}
+
+/**
+ * 从全局队列中移除已完成的补发订单
+ */
+function xingxy_remove_pending_backlog($order_id)
+{
+    $backlogs = get_option('xingxy_pending_backlogs', array());
+    $backlogs = array_filter($backlogs, function ($item) use ($order_id) {
+        return $item['order_id'] != $order_id;
+    });
+    update_option('xingxy_pending_backlogs', array_values($backlogs), false);
+}
+
+/**
+ * 自动补发核心逻辑
+ * 
+ * 当商家导入新卡密后调用此函数。
+ * 扫描该 card_pass_key 下所有 pending 的 backlog 订单，逐个处理。
+ * 
+ * @param string $card_pass_key  补货的卡密备注
+ * @return array                 补发结果摘要
+ */
+function xingxy_auto_fulfill_backlogs($card_pass_key)
+{
+    $backlogs = get_option('xingxy_pending_backlogs', array());
+
+    if (empty($backlogs)) {
+        return array('fulfilled' => 0);
+    }
+
+    // 筛选出匹配当前 card_pass_key 的待补发订单
+    $matching = array_filter($backlogs, function ($item) use ($card_pass_key) {
+        return $item['card_pass_key'] === $card_pass_key;
+    });
+
+    if (empty($matching)) {
+        return array('fulfilled' => 0);
+    }
+
+    $fulfilled_count = 0;
+
+    foreach ($matching as $backlog_item) {
+        $order_id        = $backlog_item['order_id'];
+        $remaining_count = $backlog_item['remaining_count'];
+
+        // 检查当前可用库存
+        $available = xingxy_get_available_card_count($card_pass_key);
+        if ($available <= 0) {
+            break; // 库存耗尽，停止处理后续订单
+        }
+
+        // 取出所需数量（不超过可用库存）
+        $to_fulfill = min($remaining_count, $available);
+
+        // 构建发货配置
+        $order = zibpay::get_order($order_id);
+        if (!$order) {
+            xingxy_remove_pending_backlog($order_id);
+            continue;
+        }
+
+        $order_meta_data = zibpay::get_meta($order_id, 'order_data');
+
+        $delivery_config = array(
+            'type'               => 'card_pass',
+            'card_pass_key'      => $card_pass_key,
+            'order_id'           => $order_id,
+            'options_active_str' => $order_meta_data['options_active_str'] ?? '',
+            'count'              => $to_fulfill,
+        );
+
+        // 取出卡密
+        $new_delivery_html = zib_shop_get_auto_delivery_card_pass_content($delivery_config);
+        if (!$new_delivery_html) {
+            continue;
+        }
+
+        // 构建补发提示
+        $fulfill_notice = xingxy_build_fulfill_notice($to_fulfill, $remaining_count);
+
+        // 追加到原发货内容
+        $old_content = $order_meta_data['shipping_data']['delivery_content'] ?? '';
+        $new_content = $old_content . $fulfill_notice . $new_delivery_html;
+
+        // 更新发货内容
+        $order_meta_data['shipping_data']['delivery_content'] = $new_content;
+
+        // 更新 backlog 状态
+        $new_remaining = $remaining_count - $to_fulfill;
+        $old_delivered  = $order_meta_data['backlog']['delivered_count'] ?? 0;
+
+        $order_meta_data['backlog']['delivered_count'] = $old_delivered + $to_fulfill;
+        $order_meta_data['backlog']['remaining_count'] = $new_remaining;
+        $order_meta_data['backlog']['fulfilled_time']  = current_time('mysql');
+
+        if ($new_remaining <= 0) {
+            $order_meta_data['backlog']['status'] = 'fulfilled';
+            xingxy_remove_pending_backlog($order_id);
+        } else {
+            // 还没补完，更新队列中的剩余数量
+            $order_meta_data['backlog']['status'] = 'partial';
+            $all_backlogs = get_option('xingxy_pending_backlogs', array());
+            foreach ($all_backlogs as &$bl) {
+                if ($bl['order_id'] == $order_id) {
+                    $bl['remaining_count'] = $new_remaining;
+                    break;
+                }
+            }
+            update_option('xingxy_pending_backlogs', $all_backlogs, false);
+        }
+
+        zibpay::update_meta($order_id, 'order_data', $order_meta_data);
+
+        // 通知买家补发完成
+        xingxy_notify_buyer_fulfilled($order, $order_meta_data, $to_fulfill, $new_remaining);
+
+        $fulfilled_count++;
+    }
+
+    return array('fulfilled' => $fulfilled_count);
+}
+
+/**
+ * 构建补发成功提示 HTML（追加在原内容后面）
+ */
+function xingxy_build_fulfill_notice($fulfilled_count, $was_remaining)
+{
+    $is_complete = ($fulfilled_count >= $was_remaining);
+
+    $html = '
+    <div style="
+        background: var(--main-bg-color, #1a1d23);
+        border: 1px solid rgba(82, 196, 26, 0.3);
+        border-left: 4px solid #52c41a;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 18px 0;
+        position: relative;
+    ">
+        <div style="display:flex; align-items:center; margin-bottom:10px;">
+            <span style="
+                display:inline-flex; align-items:center; justify-content:center;
+                width:28px; height:28px; border-radius:50%;
+                background: linear-gradient(135deg, #52c41a 0%, #95de64 100%);
+                margin-right:10px; font-size:14px; flex-shrink:0;
+            ">✅</span>
+            <span style="font-size:15px; font-weight:700; color:var(--color-text, #e0e0e0);">' . ($is_complete ? '补发完成' : '部分补发') . '</span>
+        </div>
+        <div style="font-size:13px; color:var(--muted-2-color, #b0b0b0); line-height:1.7;">
+            商家已补发 <b style="color:#52c41a;">' . $fulfilled_count . '</b> 张卡密' . ($is_complete ? '，所有商品已全部发出！' : '。') . '
+        </div>
+        <div style="font-size:11px; color:var(--muted-3-color, #999); margin-top:6px;">
+            补发时间：' . current_time('Y-m-d H:i:s') . '
+        </div>
+    </div>';
+
+    return $html;
+}
+
+/**
+ * 通知买家补发完成
+ */
+function xingxy_notify_buyer_fulfilled($order, $order_meta_data, $fulfilled_count, $remaining)
+{
+    $product_id = $order['post_id'];
+    $post_data  = get_post($product_id);
+    $user_data  = get_userdata($order['user_id']);
+
+    if (!$user_data) {
+        return;
+    }
+
+    $post_title = $order_meta_data['product_title'] ?? '';
+    if ($post_data) {
+        $post_title = function_exists('zib_str_cut') ? zib_str_cut($post_data->post_title, 0, 20, '...') : mb_substr($post_data->post_title, 0, 20) . '...';
+    }
+
+    $is_complete = ($remaining <= 0);
+    $order_link  = function_exists('zib_get_user_center_url') ? zib_get_user_center_url('order') : home_url('/user/order');
+
+    $title   = ($is_complete ? '✅ 补发完成' : '📦 部分补发') . '：[' . $post_title . ']';
+    $message = '您好！' . $user_data->display_name . '<br>';
+    $message .= '<div style="background:var(--main-bg-color,#f0f9eb);border:1px solid rgba(82,196,26,0.3);border-left:4px solid #52c41a;border-radius:8px;padding:12px 16px;margin:10px 0;color:var(--color-text,#333);">';
+    $message .= '<b>' . ($is_complete ? '✅ 您的购买已全部发出！' : '📦 商家已为您补发部分卡密') . '</b><br>';
+    $message .= '商品：' . $post_title . '<br>';
+    $message .= '本次补发：<b style="color:#52c41a;">' . $fulfilled_count . '</b> 张<br>';
+    if (!$is_complete) {
+        $message .= '仍待补发：<b style="color:#ff6b6b;">' . $remaining . '</b> 张<br>';
+    }
+    $message .= '</div>';
+    $message .= '您可以在订单详情的「发货信息」中查看完整的卡密内容。<br>';
+    $message .= '<a target="_blank" style="margin-top:20px;padding:5px 20px;display:inline-block;" class="but jb-green" href="' . esc_url($order_link) . '">查看订单</a><br>';
+
+    // 发送邮件
+    if (function_exists('zib_send_email')) {
+        $user_email = $user_data->user_email ?? '';
+        zib_send_email($user_email, $title, $message);
+    }
+
+    // 发送站内信
+    if (function_exists('_pz') && _pz('message_s', true) && class_exists('ZibMsg')) {
+        ZibMsg::add(array(
+            'send_user'    => $post_data ? $post_data->post_author : 'admin',
+            'receive_user' => $user_data->ID,
+            'type'         => 'pay',
+            'title'        => $title,
+            'content'      => $message,
+        ));
     }
 }

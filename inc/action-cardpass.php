@@ -115,12 +115,31 @@ function xingxy_ajax_import_cardpass() {
         'status' => '0',
     ));
     
+    // 触发自动补发：检查是否有待补发的 backlog 订单
+    $fulfill_result = array('fulfilled' => 0);
+    if (function_exists('xingxy_auto_fulfill_backlogs')) {
+        $fulfill_result = xingxy_auto_fulfill_backlogs($card_pass_key);
+        // 补发后重新查询库存（补发会消耗卡密）
+        if ($fulfill_result['fulfilled'] > 0) {
+            $stock = ZibCardPass::get_count(array(
+                'other'  => $card_pass_key,
+                'status' => '0',
+            ));
+        }
+    }
+    
+    $msg = '成功导入 ' . $success_count . ' 条卡密';
+    if ($fulfill_result['fulfilled'] > 0) {
+        $msg .= '，已自动补发 ' . $fulfill_result['fulfilled'] . ' 笔待补发订单';
+    }
+    
     zib_send_json_success(array(
-        'msg'           => '成功导入 ' . $success_count . ' 条卡密',
+        'msg'           => $msg,
         'success_count' => $success_count,
         'error_count'   => $error_count,
         'stock'         => (int) $stock,
         'card_pass_key' => $card_pass_key,
+        'fulfilled'     => $fulfill_result['fulfilled'],
     ));
 }
 add_action('wp_ajax_xingxy_import_cardpass', 'xingxy_ajax_import_cardpass');
