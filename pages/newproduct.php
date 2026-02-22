@@ -496,17 +496,16 @@ get_header();
                     <!-- 左侧导入区 -->
                     <div class="xingxy-delivery-col-left">
                         <p class="muted-color em09 mb10"><i class="fa fa-info-circle mr3"></i>支持自由拼接形式（如：<code class="c-blue">长串账号信息作为卡号</code>，<code class="c-blue">兑换/登录说明作为卡密</code>），两者间用<code class="c-red">单个空格</code>分隔即可</p>
-                        <textarea id="xingxy-cardpass-data" class="form-control" rows="12" placeholder="粘贴卡密数据，一行一条。支持长信息自由组合配对，中间用空格隔开。&#10;&#10;示例 1（常规）：&#10;account01@mail.com P@ssw0rd123&#10;&#10;示例 2（超级组合：极长字符整体作卡号，网址作卡密）：&#10;AnastasiaParmar@gmail.com----ek8ondgru9----AnastasiaParmar657689@neiar.xyz----jyhjhtumwudslm6fz4uxoigtalmn 2fa.cn" style="background:var(--muted-border-color);resize:vertical;font-size:13px;border:none; border:2px solid transparent; border-bottom: 2px solid var(--muted-3-color); border-radius: 6px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.05); padding: 12px; transition: border 0.3s;"></textarea>
+                        <textarea id="xingxy-cardpass-data" class="form-control" rows="12" placeholder="粘贴卡密数据，一行一条。支持长信息自由组合配对，中间用空格隔开。&#10;&#10;示例 1（常规）：&#10;account01@mail.com P@ssw0rd123&#10;&#10;示例 2（超级组合：极长字符整体作卡号，网址作卡密）：&#10;AnastasiaParmar@gmail.com----ek8ondgru9----AnastasiaParmar657689@neiar.xyz----jyhjhtumwudslm6fz4uxoigtalmn 2fa.cn" style="resize:vertical;font-size:13px;border:none; border-bottom: 2px solid var(--muted-3-color); border-radius: 6px; padding: 12px; transition: border 0.3s;"></textarea>
                         <style>
                             #xingxy-cardpass-data:focus {
                                 border-bottom-color: var(--theme-color);
-                                background: var(--main-bg-color);
                                 box-shadow: 0 0 10px rgba(var(--theme-color-rgb), 0.1);
                             }
                             .xingxy-mobile-scroll-hint { display: none; }
                             @media (max-width: 768px) {
-                                .xingxy-mobile-scroll-hint {
-                                    display: inline-block;
+                                .xingxy-mobile-scroll-hint.is-show {
+                                    display: inline-block !important;
                                     animation: xingxy-scroll-pulse 2s infinite;
                                 }
                             }
@@ -769,6 +768,7 @@ jQuery(function($) {
             $table.html('<p class="muted-3-color em09 text-center" style="padding:10px;">暂无卡密数据</p>');
             $actions.hide();
             $wrap.show();
+            $('.xingxy-mobile-scroll-hint').removeClass('is-show');
             return;
         }
         
@@ -818,6 +818,7 @@ jQuery(function($) {
         $table.html('<div class="xingxy-card-table-wrapper">' + html + '</div>');
         $actions.toggle(hasUnused);
         $wrap.show();
+        $('.xingxy-mobile-scroll-hint').addClass('is-show');
         $('#xingxy-select-all-cards').prop('checked', false);
         
         // 选中计数
