@@ -299,6 +299,7 @@ get_header();
                     <?php endif; ?>
                 </div>
             </div>
+
         </div>
 
         <!-- 侧边栏 -->
@@ -364,70 +365,6 @@ get_header();
                 <p class="muted-3-color em09 mt6">实际售价，管理员可在后台调整 VIP 价格等</p>
             </div>
             
-            <!-- 发货设置 -->
-            <div class="zib-widget mb10-sm dependency-box">
-                <div class="title-theme mb10">发货设置</div>
-                
-                <!-- 发货类型 -->
-                <div class="mb10">
-                    <label class="badg p2-10 mr10 pointer">
-                        <input type="radio" name="shipping_type" value="auto" <?php checked($in['shipping_type'], 'auto'); ?>> 自动发货
-                    </label>
-                    <label class="badg p2-10 mr10 pointer">
-                        <input type="radio" name="shipping_type" value="manual" <?php checked($in['shipping_type'], 'manual'); ?>> 手动发货
-                    </label>
-                </div>
-                
-                <!-- 自动发货配置（仅自动发货时显示） -->
-                <div id="xingxy-auto-delivery-box" style="<?php echo $in['shipping_type'] !== 'auto' ? 'display:none;' : ''; ?>">
-                    
-                    <!-- 自动发货子类型 -->
-                    <div class="mb10" style="border-bottom:1px dashed var(--muted-border-color);padding-bottom:10px;">
-                        <label class="badg badg-sm p2-10 mr6 pointer">
-                            <input type="radio" name="auto_type" value="fixed" <?php checked($in['auto_type'], 'fixed'); ?>> 固定内容
-                        </label>
-                        <label class="badg badg-sm p2-10 mr6 pointer">
-                            <input type="radio" name="auto_type" value="card_pass" <?php checked($in['auto_type'], 'card_pass'); ?>> 卡密
-                        </label>
-                    </div>
-                    
-                    <!-- 固定内容区 -->
-                    <div id="xingxy-fixed-content-box" style="<?php echo $in['auto_type'] !== 'fixed' ? 'display:none;' : ''; ?>">
-                        <p class="muted-color em09 mb6"><i class="fa fa-info-circle mr3"></i>所有买家将收到相同内容，支持HTML</p>
-                        <textarea class="form-control" name="fixed_content" rows="5" placeholder="输入发送给用户的内容，例如网盘链接、教程地址等"><?php echo esc_textarea($in['fixed_content']); ?></textarea>
-                    </div>
-                    
-                    <!-- 卡密区 -->
-                    <div id="xingxy-cardpass-box" style="<?php echo $in['auto_type'] !== 'card_pass' ? 'display:none;' : ''; ?>">
-                        
-                        <!-- 卡密备注（核心匹配字段） -->
-                        <div class="mb10">
-                            <p class="muted-color em09 mb6"><i class="fa fa-tag mr3"></i>卡密备注 <span style="color:var(--color-red);">*</span></p>
-                            <input type="text" class="form-control" name="card_pass_key" id="xingxy-card-pass-key" value="<?php echo esc_attr($in['card_pass_key']); ?>" placeholder="例如：谷歌账号、苹果ID、VPN月卡">
-                            <p class="muted-3-color em09 mt3">用于区分不同商品的卡密，发货时按此备注匹配</p>
-                        </div>
-                        
-                        <!-- 库存显示 -->
-                        <div class="flex ac jc mb10" style="padding:8px 12px;border-radius:6px;background:var(--muted-border-color);">
-                            <span class="muted-color"><i class="fa fa-database mr3"></i>当前库存</span>
-                            <span id="xingxy-card-stock" class="ml10 em12" style="font-weight:bold;color:<?php echo $card_stock > 0 ? 'var(--color-green)' : 'var(--color-red)'; ?>;"><?php echo (int) $card_stock; ?></span>
-                            <span class="muted-3-color ml3">张</span>
-                        </div>
-                        
-                        <!-- 导入区 -->
-                        <p class="muted-color em09 mb6"><i class="fa fa-upload mr3"></i>导入卡密（一行一条，格式：<code>卡号 密码</code>，用空格分隔）</p>
-                        <textarea id="xingxy-cardpass-data" class="form-control" rows="6" placeholder="粘贴卡密数据，一行一条&#10;&#10;示例：&#10;account01@mail.com P@ssw0rd123&#10;account02@mail.com Abc456def&#10;CARD-001 SecretKey-ABC"></textarea>
-                        
-                        <div class="flex ac mt6">
-                            <span class="flex1"></span>
-                            <button type="button" id="xingxy-import-cardpass-btn" class="but but-sm c-blue">
-                                <i class="fa fa-upload mr3"></i>导入
-                            </button>
-                        </div>
-                        <div id="xingxy-import-result" class="mt6 em09" style="display:none;"></div>
-                    </div>
-                </div>
-            </div>
             
             <!-- 提交按钮 -->
             <div class="zib-widget">
@@ -450,6 +387,105 @@ get_header();
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- 发货设置（独立全宽区块，脱离 sidebar 麻痹范围） -->
+    <div class="zib-widget dependency-box" style="margin-top:15px;">
+        <div class="title-theme mb10">发货设置</div>
+        
+        <!-- 发货类型 -->
+        <div class="mb10">
+            <label class="badg p2-10 mr10 pointer">
+                <input type="radio" name="shipping_type" value="auto" <?php checked($in['shipping_type'], 'auto'); ?>> 自动发货
+            </label>
+            <label class="badg p2-10 mr10 pointer">
+                <input type="radio" name="shipping_type" value="manual" <?php checked($in['shipping_type'], 'manual'); ?>> 手动发货
+            </label>
+        </div>
+        
+        <!-- 自动发货配置 -->
+        <div id="xingxy-auto-delivery-box" style="<?php echo $in['shipping_type'] !== 'auto' ? 'display:none;' : ''; ?>">
+            
+            <div class="mb10" style="border-bottom:1px dashed var(--muted-border-color);padding-bottom:10px;">
+                <label class="badg badg-sm p2-10 mr6 pointer">
+                    <input type="radio" name="auto_type" value="fixed" <?php checked($in['auto_type'], 'fixed'); ?>> 固定内容
+                </label>
+                <label class="badg badg-sm p2-10 mr6 pointer">
+                    <input type="radio" name="auto_type" value="card_pass" <?php checked($in['auto_type'], 'card_pass'); ?>> 卡密
+                </label>
+            </div>
+            
+            <!-- 固定内容区 -->
+            <div id="xingxy-fixed-content-box" style="<?php echo $in['auto_type'] !== 'fixed' ? 'display:none;' : ''; ?>">
+                <p class="muted-color em09 mb6"><i class="fa fa-info-circle mr3"></i>所有买家将收到相同内容，支持HTML</p>
+                <textarea class="form-control" name="fixed_content" rows="5" placeholder="输入发送给用户的内容，例如网盘链接、教程地址等"><?php echo esc_textarea($in['fixed_content']); ?></textarea>
+            </div>
+            
+            <!-- 卡密区 -->
+            <div id="xingxy-cardpass-box" style="<?php echo $in['auto_type'] !== 'card_pass' ? 'display:none;' : ''; ?>">
+                
+                <div class="mb10">
+                    <p class="muted-color em09 mb6"><i class="fa fa-tag mr3"></i>卡密备注 <span style="color:var(--color-red);">*</span></p>
+                    <input type="text" class="form-control" name="card_pass_key" id="xingxy-card-pass-key" value="<?php echo esc_attr($in['card_pass_key']); ?>" placeholder="例如：谷歌账号、苹果ID、VPN月卡">
+                    <p class="muted-3-color em09 mt3">用于区分不同商品的卡密，发货时按此备注匹配</p>
+                </div>
+                
+                <!-- 库存 + 导入：优化比例 4:6 -->
+                <div class="flex" style="gap:20px;flex-wrap:wrap;">
+                    <!-- 左侧导入区 -->
+                    <div style="flex:2;min-width:300px;">
+                        <p class="muted-color em09 mb6"><i class="fa fa-info-circle mr3"></i>支持自由拼接形式（如：<code class="c-blue">长串账号信息作为卡号</code>，<code class="c-blue">兑换/登录说明作为卡密</code>），两者间用<code class="c-red">单个空格</code>分隔即可</p>
+                        <textarea id="xingxy-cardpass-data" class="form-control" rows="12" placeholder="粘贴卡密数据，一行一条。支持长信息自由组合配对，中间用空格隔开。&#10;&#10;示例 1（常规）：&#10;account01@mail.com P@ssw0rd123&#10;&#10;示例 2（超级组合：极长字符整体作卡号，网址作卡密）：&#10;AnastasiaParmar@gmail.com----ek8ondgru9----AnastasiaParmar657689@neiar.xyz----jyhjhtumwudslm6fz4uxoigtalmn 2fa.cn" style="background:var(--main-bg-color);resize:vertical;font-size:13px;border:1px solid var(--muted-border-color);"></textarea>
+                        <div class="flex ac mt6">
+                            <span class="flex1"></span>
+                            <button type="button" id="xingxy-import-cardpass-btn" class="but jb-blue padding-lg">
+                                <i class="fa fa-cloud-upload mr6"></i>确认导入
+                            </button>
+                        </div>
+                        <div id="xingxy-import-result" class="mt6 em09" style="display:none;"></div>
+                    </div>
+                    
+                    <!-- 右侧库存与列表 -->
+                    <div style="flex:3;min-width:400px;border-left:1px dashed var(--muted-border-color);padding-left:20px;">
+                        <div class="flex ac jc mb10" style="padding:15px;border-radius:8px;background:var(--muted-border-color);box-shadow:inset 0 0 10px rgba(0,0,0,0.02);">
+                            <span class="muted-color font-bold"><i class="fa fa-database mr6"></i>当前库存总数：</span>
+                            <?php
+                            $init_stock_color = $card_stock > 0 ? '#ff4d4f' : 'var(--muted-3-color)';
+                            $init_stock_shadow = $card_stock > 0 ? 'text-shadow: 0 0 10px rgba(255,77,79,0.3);' : '';
+                            ?>
+                            <span id="xingxy-card-stock" class="ml10" style="font-size:22px;font-weight:bold;color:<?php echo $init_stock_color; ?>;<?php echo $init_stock_shadow; ?>"><?php echo (int) $card_stock; ?></span>
+                            <span class="muted-3-color ml3 em09">张</span>
+                        </div>
+                        
+                        <?php if ($in['ID'] && $in['card_pass_key']) : ?>
+                        <div class="mt20">
+                            <div class="flex ac mb10 pb10" style="border-bottom:1px solid var(--muted-border-color);">
+                                <span class="muted-color font-bold"><i class="fa fa-list-alt mr6"></i>卡密库存明细</span>
+                                <span class="flex1"></span>
+                                <button type="button" id="xingxy-load-cardlist-btn" class="but but-sm jb-cyan" style="white-space:nowrap;">
+                                    <i class="fa fa-refresh mr3"></i>刷新列表
+                                </button>
+                            </div>
+                            <div id="xingxy-cardlist-wrap" style="display:none;background:var(--main-bg-color);border-radius:6px;padding:10px;">
+                                <div id="xingxy-cardlist-actions" class="flex ac mb10" style="display:none;padding:6px;background:var(--muted-border-color);border-radius:4px;">
+                                    <label class="muted-color em09 pointer mb0 ml6" style="white-space:nowrap;">
+                                        <input type="checkbox" id="xingxy-select-all-cards"> 全选未使用
+                                    </label>
+                                    <span class="flex1"></span>
+                                    <button type="button" id="xingxy-delete-cards-btn" class="but but-sm hollow c-red mr6" style="white-space:nowrap;">
+                                        <i class="fa fa-trash mr3"></i>批量删除
+                                    </button>
+                                </div>
+                                <div id="xingxy-cardlist-table" style="max-height:350px;overflow-y:auto;" class="scroll-y mini-scrollbar"></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </main>
 
 <style>
@@ -568,7 +604,7 @@ jQuery(function($) {
             return;
         }
         
-        $btn.addClass('loading').prop('disabled', true);
+        $btn.prop('disabled', true);
         
         $.ajax({
             url: ajaxurl || '/wp-admin/admin-ajax.php',
@@ -581,7 +617,7 @@ jQuery(function($) {
             },
             dataType: 'json',
             success: function(res) {
-                $btn.removeClass('loading').prop('disabled', false);
+                $btn.prop('disabled', false);
                 var $result = $('#xingxy-import-result');
                 if (res.success || res.error == 0) {
                     var d = res.data || res;
@@ -600,6 +636,8 @@ jQuery(function($) {
                     // 清空输入框
                     $('#xingxy-cardpass-data').val('');
                     $('#xingxy-import-hint').remove();
+                    // 触发列表刷新
+                    $(document).trigger('xingxy_cardpass_imported');
                     if (typeof notyf_top !== 'undefined') {
                         notyf_top(resultMsg, 'success');
                     }
@@ -617,6 +655,251 @@ jQuery(function($) {
             }
         });
     });
+
+    // === 卡密管理列表 ===
+    
+    // 渲染卡密表格
+    function renderCardList(list) {
+        var $wrap = $('#xingxy-cardlist-wrap');
+        var $table = $('#xingxy-cardlist-table');
+        var $actions = $('#xingxy-cardlist-actions');
+        
+        if (!list || list.length === 0) {
+            $table.html('<p class="muted-3-color em09 text-center" style="padding:10px;">暂无卡密数据</p>');
+            $actions.hide();
+            $wrap.show();
+            return;
+        }
+        
+        var usedCount = 0, unusedCount = 0;
+        var html = '<table style="width:100%;font-size:12px;border-collapse:collapse;">';
+        html += '<thead><tr style="background:var(--muted-border-color);">';
+        html += '<th style="padding:6px 8px;width:28px;text-align:center;">#</th>';
+        html += '<th style="padding:6px 8px;width:28px;"></th>';
+        html += '<th style="padding:6px 8px;text-align:left;">卡号</th>';
+        html += '<th style="padding:6px 8px;text-align:left;">密码</th>';
+        html += '<th style="padding:6px 8px;width:55px;text-align:center;">状态</th>';
+        html += '<th style="padding:6px 8px;width:110px;text-align:center;">时间</th>';
+        html += '<th style="padding:6px 8px;width:50px;text-align:center;">操作</th>';
+        html += '</tr></thead><tbody>';
+        
+        var hasUnused = false;
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            if (item.used) { usedCount++; } else { unusedCount++; }
+            var statusColor = item.used ? '#ff4d4f' : '#52c41a';
+            var checkbox = item.used ? '<span class="muted-3-color">—</span>' : '<input type="checkbox" class="xingxy-card-check" value="' + item.id + '">';
+            if (!item.used) hasUnused = true;
+            
+            // 编辑按钮：仅未使用的可编辑
+            var editBtn = item.used
+                ? '<span class="muted-3-color">—</span>'
+                : '<a href="javascript:;" class="xingxy-edit-card" data-id="' + item.id + '" data-card="' + $('<span>').text(item.card).html() + '" data-pass="' + $('<span>').text(item.password).html() + '" style="color:var(--color-blue);"><i class="fa fa-pencil"></i></a>';
+            
+            html += '<tr data-row-id="' + item.id + '" style="border-bottom:1px solid var(--muted-border-color);">';
+            html += '<td style="padding:5px 8px;text-align:center;color:var(--muted-3-color);">' + (i + 1) + '</td>';
+            html += '<td style="padding:5px 8px;text-align:center;">' + checkbox + '</td>';
+            html += '<td class="td-card" style="padding:5px 8px;word-break:break-all;">' + $('<span>').text(item.card).html() + '</td>';
+            html += '<td class="td-pass" style="padding:5px 8px;word-break:break-all;">' + $('<span>').text(item.password).html() + '</td>';
+            html += '<td style="padding:5px 8px;text-align:center;color:' + statusColor + ';font-weight:bold;">' + item.status + '</td>';
+            html += '<td style="padding:5px 8px;text-align:center;white-space:nowrap;">' + item.time + '</td>';
+            html += '<td style="padding:5px 8px;text-align:center;">' + editBtn + '</td>';
+            html += '</tr>';
+        }
+        
+        // 统计行
+        html += '</tbody><tfoot><tr style="background:var(--muted-border-color);">';
+        html += '<td colspan="5" style="padding:6px 8px;font-weight:bold;">共 ' + list.length + ' 条</td>';
+        html += '<td style="padding:6px 8px;text-align:center;"><span style="color:#52c41a;">' + unusedCount + '</span>/<span style="color:#ff4d4f;">' + usedCount + '</span></td>';
+        html += '<td></td>';
+        html += '</tr></tfoot></table>';
+        
+        $table.html(html);
+        $actions.toggle(hasUnused);
+        $wrap.show();
+        $('#xingxy-select-all-cards').prop('checked', false);
+        
+        // 选中计数
+        $(document).off('change.cardcheck').on('change.cardcheck', '.xingxy-card-check, #xingxy-select-all-cards', function() {
+            var count = $('.xingxy-card-check:checked').length;
+            var $btn = $('#xingxy-delete-cards-btn');
+            $btn.html('<i class="fa fa-trash mr3"></i>批量删除' + (count > 0 ? ' (' + count + ')' : ''));
+            $btn.prop('disabled', count === 0);
+        });
+        
+        // 初始状态重置删除按钮
+        $('#xingxy-delete-cards-btn').html('<i class="fa fa-trash mr3"></i>批量删除').prop('disabled', true);
+    }
+    
+    // 行内编辑
+    $(document).on('click', '.xingxy-edit-card', function() {
+        var $a = $(this);
+        var id = $a.data('id');
+        var card = $a.data('card');
+        var pass = $a.data('pass');
+        var $tr = $('tr[data-row-id="' + id + '"]');
+        var $tdCard = $tr.find('.td-card');
+        var $tdPass = $tr.find('.td-pass');
+        
+        // 替换为 input
+        $tdCard.html('<input type="text" class="form-control" value="' + card + '" style="font-size:12px;padding:2px 6px;height:auto;">');
+        $tdPass.html('<input type="text" class="form-control" value="' + pass + '" style="font-size:12px;padding:2px 6px;height:auto;">');
+        
+        // 按钮变为 保存/取消
+        $a.closest('td').html(
+            '<a href="javascript:;" class="xingxy-save-card" data-id="' + id + '" style="color:#52c41a;margin-right:6px;" title="保存"><i class="fa fa-check"></i></a>' +
+            '<a href="javascript:;" class="xingxy-cancel-card" style="color:var(--muted-3-color);" title="取消"><i class="fa fa-times"></i></a>'
+        );
+    });
+    
+    // 保存编辑
+    $(document).on('click', '.xingxy-save-card', function() {
+        var id = $(this).data('id');
+        var $tr = $('tr[data-row-id="' + id + '"]');
+        var newCard = $tr.find('.td-card input').val();
+        var newPass = $tr.find('.td-pass input').val();
+        
+        if (!newCard || !newPass) {
+            if (typeof notyf_top !== 'undefined') notyf_top('卡号和密码不能为空', 'danger');
+            return;
+        }
+        
+        $.ajax({
+            url: ajaxurl || '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: {
+                action: 'xingxy_edit_cardpass',
+                product_id: $('input[name="product_id"]').val(),
+                card_id: id,
+                new_card: newCard,
+                new_password: newPass
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.success || res.error == 0) {
+                    if (typeof notyf_top !== 'undefined') notyf_top('编辑成功', 'success');
+                    loadCardList();
+                } else {
+                    if (typeof notyf_top !== 'undefined') notyf_top(res.data || res.msg || '编辑失败', 'danger');
+                }
+            }
+        });
+    });
+    
+    // 取消编辑
+    $(document).on('click', '.xingxy-cancel-card', function() {
+        loadCardList();
+    });
+    
+    // 加载卡密列表
+    function loadCardList() {
+        var productId = $('input[name="product_id"]').val();
+        var cardPassKey = $('input[name="card_pass_key"]').val();
+        if (!productId || !cardPassKey) return;
+        
+        var $btn = $('#xingxy-load-cardlist-btn');
+        var originalHtml = $btn.html();
+        $btn.html('<i class="fa fa-refresh fa-spin mr3"></i>加载中...').prop('disabled', true);
+        
+        $.ajax({
+            url: ajaxurl || '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: {
+                action: 'xingxy_list_cardpass',
+                product_id: productId,
+                card_pass_key: cardPassKey
+            },
+            dataType: 'json',
+            success: function(res) {
+                $btn.html(originalHtml).prop('disabled', false);
+                if (res.success || res.error == 0) {
+                    var d = res.data || res;
+                    renderCardList(d.list || []);
+                    if (d.stock !== undefined) {
+                        var stock = parseInt(d.stock) || 0;
+                        var stockColor = stock > 0 ? '#ff4d4f' : 'var(--muted-3-color)';
+                        var textShadow = stock > 0 ? 'text-shadow: 0 0 10px rgba(255,77,79,0.3);' : '';
+                        $('#xingxy-card-stock').text(stock).attr('style', 'font-size:22px;font-weight:bold;color:' + stockColor + ';' + textShadow);
+                    }
+                } else {
+                    $('#xingxy-cardlist-table').html('<p class="muted-3-color em09 text-center" style="padding:20px;">加载失败：' + (res.data || res.msg) + '</p>');
+                    $('#xingxy-cardlist-wrap').show();
+                }
+            },
+            error: function() {
+                $btn.html(originalHtml).prop('disabled', false);
+                $('#xingxy-cardlist-table').html('<p class="muted-3-color em09 text-center" style="padding:20px;">网络错误，加载失败</p>');
+                $('#xingxy-cardlist-wrap').show();
+            }
+        });
+    }
+    
+    // 点击加载列表
+    $('#xingxy-load-cardlist-btn').on('click', loadCardList);
+    
+    // 全选未使用
+    $('#xingxy-select-all-cards').on('change', function() {
+        var checked = $(this).is(':checked');
+        $('.xingxy-card-check').prop('checked', checked);
+    });
+    
+    // 删除选中
+    $('#xingxy-delete-cards-btn').on('click', function() {
+        var ids = [];
+        $('.xingxy-card-check:checked').each(function() {
+            ids.push($(this).val());
+        });
+        if (ids.length === 0) {
+            if (typeof notyf_top !== 'undefined') {
+                notyf_top('请先勾选要删除的卡密', 'danger');
+            }
+            return;
+        }
+        if (!confirm('确定删除选中的 ' + ids.length + ' 条卡密？此操作不可撤销。')) return;
+        
+        var $btn = $(this);
+        var originalHtml = $btn.html();
+        $btn.html('<i class="fa fa-trash fa-spin mr3"></i>删除中...').prop('disabled', true);
+        $.ajax({
+            url: ajaxurl || '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: {
+                action: 'xingxy_delete_cardpass',
+                product_id: $('input[name="product_id"]').val(),
+                card_pass_key: $('input[name="card_pass_key"]').val(),
+                'delete_ids[]': ids
+            },
+            dataType: 'json',
+            success: function(res) {
+                // 如果成功，loadCardList() 里的 renderCardList() 会重置按钮 html
+                $btn.prop('disabled', false);
+                if (res.success || res.error == 0) {
+                    var d = res.data || res;
+                    if (typeof notyf_top !== 'undefined') {
+                        notyf_top(d.msg || '删除成功', 'success');
+                    }
+                    if (d.stock !== undefined) {
+                        var stock = parseInt(d.stock) || 0;
+                        var stockColor = stock > 0 ? '#ff4d4f' : 'var(--muted-3-color)';
+                        var textShadow = stock > 0 ? 'text-shadow: 0 0 10px rgba(255,77,79,0.3);' : '';
+                        $('#xingxy-card-stock').text(stock).attr('style', 'font-size:22px;font-weight:bold;color:' + stockColor + ';' + textShadow);
+                    }
+                    loadCardList();
+                } else {
+                    var msg = res.data || res.msg || '删除失败';
+                    if (typeof notyf_top !== 'undefined') {
+                        notyf_top(msg, 'danger');
+                    }
+                }
+            },
+            error: function() {
+                $btn.removeClass('loading').prop('disabled', false);
+            }
+        });
+    });
+
+    // 导入成功后自动刷新列表
+    $(document).on('xingxy_cardpass_imported', loadCardList);
 
     // 提交表单
     $('.xingxy-product-submit').on('click', function() {

@@ -124,3 +124,159 @@ function xingxy_ajax_import_cardpass() {
     ));
 }
 add_action('wp_ajax_xingxy_import_cardpass', 'xingxy_ajax_import_cardpass');
+
+/**
+ * 前台卡密列表 AJAX handler
+ */
+function xingxy_ajax_list_cardpass() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        zib_send_json_error('请先登录');
+    }
+    
+    $product_id    = !empty($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+    $card_pass_key = !empty($_POST['card_pass_key']) ? sanitize_text_field($_POST['card_pass_key']) : '';
+    
+    if (!$product_id || !$card_pass_key) {
+        zib_send_json_error('参数不完整');
+    }
+    
+    // 权限检查
+    $product = get_post($product_id);
+    if (!$product || $product->post_type !== 'shop_product') {
+        zib_send_json_error('商品不存在');
+    }
+    if (!is_super_admin($user_id) && (int) $product->post_author !== $user_id) {
+        zib_send_json_error('无权限');
+    }
+    
+    // 查询该备注下的卡密
+    $items = ZibCardPass::get(
+        array('other' => $card_pass_key, 'type' => 'partner_custom'),
+        'id', 0, 200, 'DESC'
+    );
+    
+    $list = array();
+    if ($items) {
+        foreach ($items as $item) {
+            $list[] = array(
+                'id'       => (int) $item->id,
+                'card'     => $item->card,
+                'password' => $item->password,
+                'status'   => $item->status === 'used' ? '已使用' : '未使用',
+                'used'     => $item->status === 'used',
+                'time'     => substr($item->create_time, 0, 16),
+            );
+        }
+    }
+    
+    $stock = ZibCardPass::get_count(array('other' => $card_pass_key, 'status' => '0'));
+    
+    zib_send_json_success(array(
+        'list'  => $list,
+        'total' => count($list),
+        'stock' => (int) $stock,
+    ));
+}
+add_action('wp_ajax_xingxy_list_cardpass', 'xingxy_ajax_list_cardpass');
+
+/**
+ * 前台卡密删除 AJAX handler
+ */
+function xingxy_ajax_delete_cardpass() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        zib_send_json_error('请先登录');
+    }
+    
+    $product_id = !empty($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+    $delete_ids = !empty($_POST['delete_ids']) ? array_map('intval', (array) $_POST['delete_ids']) : array();
+    $card_pass_key = !empty($_POST['card_pass_key']) ? sanitize_text_field($_POST['card_pass_key']) : '';
+    
+    if (!$product_id || empty($delete_ids)) {
+        zib_send_json_error('参数不完整');
+    }
+    
+    // 权限检查
+    $product = get_post($product_id);
+    if (!$product || $product->post_type !== 'shop_product') {
+        zib_send_json_error('商品不存在');
+    }
+    if (!is_super_admin($user_id) && (int) $product->post_author !== $user_id) {
+        zib_send_json_error('无权限');
+    }
+    
+    // 仅删除 partner_custom 类型、未使用、且备注匹配的卡密
+    $deleted = ZibCardPass::delete(array(
+        'id'     => $delete_ids,
+        'type'   => 'partner_custom',
+        'status' => '0',
+        'other'  => $card_pass_key,
+    ));
+    
+    $stock = ZibCardPass::get_count(array('other' => $card_pass_key, 'status' => '0'));
+    
+    zib_send_json_success(array(
+        'msg'     => '已删除 ' . (int) $deleted . ' 条卡密',
+        'deleted' => (int) $deleted,
+        'stock'   => (int) $stock,
+    ));
+}
+add_action('wp_ajax_xingxy_delete_cardpass', 'xingxy_ajax_delete_cardpass');
+
+/**
+ * 前台卡密编辑 AJAX handler
+ */
+function xingxy_ajax_edit_cardpass() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        zib_send_json_error('请先登录');
+    }
+    
+    $product_id    = !empty($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+    $card_id       = !empty($_POST['card_id']) ? (int) $_POST['card_id'] : 0;
+    $new_card      = isset($_POST['new_card']) ? sanitize_text_field($_POST['new_card']) : '';
+    $new_password  = isset($_POST['new_password']) ? sanitize_text_field($_POST['new_password']) : '';
+    
+    if (!$product_id || !$card_id) {
+        zib_send_json_error('参数不完整');
+    }
+    
+    // 权限检查
+    $product = get_post($product_id);
+    if (!$product || $product->post_type !== 'shop_product') {
+        zib_send_json_error('商品不存在');
+    }
+    if (!is_super_admin($user_id) && (int) $product->post_author !== $user_id) {
+        zib_send_json_error('无权限');
+    }
+    
+    // 查询卡密是否存在且未使用
+    $item = ZibCardPass::get_row(array('id' => $card_id));
+    if (!$item) {
+        zib_send_json_error('卡密不存在');
+    }
+    if ($item->status === 'used') {
+        zib_send_json_error('已使用的卡密不可编辑');
+    }
+    if ($item->type !== 'partner_custom') {
+        zib_send_json_error('仅允许编辑合作商卡密');
+    }
+    
+    if (empty($new_card) || empty($new_password)) {
+        zib_send_json_error('卡号和密码不能为空');
+    }
+    
+    $result = ZibCardPass::update(array(
+        'id'       => $card_id,
+        'card'     => $new_card,
+        'password' => $new_password,
+    ));
+    
+    if ($result) {
+        zib_send_json_success(array('msg' => '编辑成功'));
+    } else {
+        zib_send_json_error('编辑失败');
+    }
+}
+add_action('wp_ajax_xingxy_edit_cardpass', 'xingxy_ajax_edit_cardpass');
