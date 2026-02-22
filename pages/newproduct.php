@@ -471,18 +471,23 @@ get_header();
                         border-radius: 8px;
                         padding: 15px;
                         background: rgba(0,0,0,0.01);
+                        min-width: 0;
+                        max-width: 100%;
                     }
                     .xingxy-delivery-col-right {
                         flex: 1.5 1 450px; /* 权重1.5，实现近似 2:3 的视觉比例 */
                         padding: 15px;
                         border: 1px solid var(--muted-border-color);
                         border-radius: 8px;
+                        min-width: 0;
+                        max-width: 100%;
                     }
                     @media (max-width: 768px) {
                         .xingxy-delivery-col-left, .xingxy-delivery-col-right {
                             flex: 1 1 100%;
                             border-left: 1px solid var(--muted-border-color) !important;
                             padding-left: 15px !important;
+                            max-width: 100%;
                         }
                     }
                 </style>
