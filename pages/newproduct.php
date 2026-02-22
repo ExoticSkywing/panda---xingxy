@@ -46,16 +46,18 @@ if ($edit_id) {
 
 // 准备表单数据
 $in = array(
-    'ID'           => '',
-    'post_title'   => '',
-    'post_content' => '',
-    'desc'         => '',
-    'price'        => '',
-    'cover_ids'    => '',
-    'shipping_type'=> 'manual',
-    'card_pass_key'=> '',
-    'tags'         => '',
-    'post_status'  => '',
+    'ID'            => '',
+    'post_title'    => '',
+    'post_content'  => '',
+    'desc'          => '',
+    'price'         => '',
+    'cover_ids'     => '',
+    'shipping_type' => 'manual',
+    'auto_type'     => 'fixed',      // 自动发货子类型：fixed / card_pass
+    'fixed_content' => '',           // 固定内容
+    'card_pass_key' => '',           // 卡密备注关键词
+    'tags'          => '',
+    'post_status'   => '',
 );
 
 if ($is_edit) {
@@ -70,8 +72,13 @@ if ($is_edit) {
         $in['price']         = isset($config['start_price']) ? $config['start_price'] : '';
         $in['cover_ids']     = isset($config['cover_images']) ? $config['cover_images'] : '';
         $in['shipping_type'] = isset($config['shipping_type']) ? $config['shipping_type'] : 'manual';
-        if (isset($config['auto_delivery']['card_pass_key'])) {
-            $in['card_pass_key'] = $config['auto_delivery']['card_pass_key'];
+        
+        // 自动发货配置
+        if (isset($config['auto_delivery']) && is_array($config['auto_delivery'])) {
+            $ad = $config['auto_delivery'];
+            $in['auto_type']     = isset($ad['type']) ? $ad['type'] : 'fixed';
+            $in['fixed_content'] = isset($ad['fixed_content']) ? $ad['fixed_content'] : '';
+            $in['card_pass_key'] = isset($ad['card_pass_key']) ? $ad['card_pass_key'] : '';
         }
     }
     
@@ -80,6 +87,15 @@ if ($is_edit) {
     if ($tags && !is_wp_error($tags)) {
         $in['tags'] = implode(', ', array_column((array) $tags, 'name'));
     }
+}
+
+// 计算卡密库存（仅编辑时且有 card_pass_key）
+$card_stock = 0;
+if ($in['card_pass_key'] && class_exists('ZibCardPass')) {
+    $card_stock = ZibCardPass::get_count(array(
+        'other'  => $in['card_pass_key'],
+        'status' => '0',
+    ));
 }
 
 // 封面图片预览数据
@@ -348,23 +364,68 @@ get_header();
                 <p class="muted-3-color em09 mt6">实际售价，管理员可在后台调整 VIP 价格等</p>
             </div>
             
-            <!-- 发货方式 -->
+            <!-- 发货设置 -->
             <div class="zib-widget mb10-sm dependency-box">
-                <div class="title-theme mb10">发货方式</div>
-                <div>
+                <div class="title-theme mb10">发货设置</div>
+                
+                <!-- 发货类型 -->
+                <div class="mb10">
                     <label class="badg p2-10 mr10 pointer">
-                        <input type="radio" name="shipping_type" value="auto" <?php checked($in['shipping_type'], 'auto'); ?>> 自动发货（卡密）
+                        <input type="radio" name="shipping_type" value="auto" <?php checked($in['shipping_type'], 'auto'); ?>> 自动发货
                     </label>
                     <label class="badg p2-10 mr10 pointer">
                         <input type="radio" name="shipping_type" value="manual" <?php checked($in['shipping_type'], 'manual'); ?>> 手动发货
                     </label>
                 </div>
                 
-                <!-- 卡密备注（自动发货时显示） -->
-                <div id="xingxy-card-pass-box" class="mt10" style="<?php echo $in['shipping_type'] !== 'auto' ? 'display:none;' : ''; ?>">
-                    <p class="muted-3-color em09">卡密备注关键词（用于匹配已创建的卡密）</p>
-                    <input type="text" class="form-control" name="card_pass_key" value="<?php echo esc_attr($in['card_pass_key']); ?>" placeholder="输入卡密备注">
-                    <p class="muted-3-color em09 mt6">请提前在后台创建好卡密，此处填写备注用于匹配</p>
+                <!-- 自动发货配置（仅自动发货时显示） -->
+                <div id="xingxy-auto-delivery-box" style="<?php echo $in['shipping_type'] !== 'auto' ? 'display:none;' : ''; ?>">
+                    
+                    <!-- 自动发货子类型 -->
+                    <div class="mb10" style="border-bottom:1px dashed var(--muted-border-color);padding-bottom:10px;">
+                        <label class="badg badg-sm p2-10 mr6 pointer">
+                            <input type="radio" name="auto_type" value="fixed" <?php checked($in['auto_type'], 'fixed'); ?>> 固定内容
+                        </label>
+                        <label class="badg badg-sm p2-10 mr6 pointer">
+                            <input type="radio" name="auto_type" value="card_pass" <?php checked($in['auto_type'], 'card_pass'); ?>> 卡密
+                        </label>
+                    </div>
+                    
+                    <!-- 固定内容区 -->
+                    <div id="xingxy-fixed-content-box" style="<?php echo $in['auto_type'] !== 'fixed' ? 'display:none;' : ''; ?>">
+                        <p class="muted-color em09 mb6"><i class="fa fa-info-circle mr3"></i>所有买家将收到相同内容，支持HTML</p>
+                        <textarea class="form-control" name="fixed_content" rows="5" placeholder="输入发送给用户的内容，例如网盘链接、教程地址等"><?php echo esc_textarea($in['fixed_content']); ?></textarea>
+                    </div>
+                    
+                    <!-- 卡密区 -->
+                    <div id="xingxy-cardpass-box" style="<?php echo $in['auto_type'] !== 'card_pass' ? 'display:none;' : ''; ?>">
+                        
+                        <!-- 卡密备注（核心匹配字段） -->
+                        <div class="mb10">
+                            <p class="muted-color em09 mb6"><i class="fa fa-tag mr3"></i>卡密备注 <span style="color:var(--color-red);">*</span></p>
+                            <input type="text" class="form-control" name="card_pass_key" id="xingxy-card-pass-key" value="<?php echo esc_attr($in['card_pass_key']); ?>" placeholder="例如：谷歌账号、苹果ID、VPN月卡">
+                            <p class="muted-3-color em09 mt3">用于区分不同商品的卡密，发货时按此备注匹配</p>
+                        </div>
+                        
+                        <!-- 库存显示 -->
+                        <div class="flex ac jc mb10" style="padding:8px 12px;border-radius:6px;background:var(--muted-border-color);">
+                            <span class="muted-color"><i class="fa fa-database mr3"></i>当前库存</span>
+                            <span id="xingxy-card-stock" class="ml10 em12" style="font-weight:bold;color:<?php echo $card_stock > 0 ? 'var(--color-green)' : 'var(--color-red)'; ?>;"><?php echo (int) $card_stock; ?></span>
+                            <span class="muted-3-color ml3">张</span>
+                        </div>
+                        
+                        <!-- 导入区 -->
+                        <p class="muted-color em09 mb6"><i class="fa fa-upload mr3"></i>导入卡密（一行一条，格式：<code>卡号 密码</code>，用空格分隔）</p>
+                        <textarea id="xingxy-cardpass-data" class="form-control" rows="6" placeholder="粘贴卡密数据，一行一条&#10;&#10;示例：&#10;account01@mail.com P@ssw0rd123&#10;account02@mail.com Abc456def&#10;CARD-001 SecretKey-ABC"></textarea>
+                        
+                        <div class="flex ac mt6">
+                            <span class="flex1"></span>
+                            <button type="button" id="xingxy-import-cardpass-btn" class="but but-sm c-blue">
+                                <i class="fa fa-upload mr3"></i>导入
+                            </button>
+                        </div>
+                        <div id="xingxy-import-result" class="mt6 em09" style="display:none;"></div>
+                    </div>
                 </div>
             </div>
             
@@ -391,6 +452,12 @@ get_header();
         </div>
 </main>
 
+<style>
+@keyframes xingxy-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+</style>
 <script>
 jQuery(function($) {
     // Gallery 上传
@@ -433,13 +500,122 @@ jQuery(function($) {
         $('#cover_image_ids').val(ids.join(','));
     });
 
-    // 发货方式切换
+    // 发货类型切换（自动/手动）
     $('input[name="shipping_type"]').on('change', function() {
         if ($(this).val() === 'auto') {
-            $('#xingxy-card-pass-box').slideDown(200);
+            $('#xingxy-auto-delivery-box').slideDown(200);
         } else {
-            $('#xingxy-card-pass-box').slideUp(200);
+            $('#xingxy-auto-delivery-box').slideUp(200);
         }
+    });
+
+    // 自动发货子类型切换（固定内容/卡密）
+    $('input[name="auto_type"]').on('change', function() {
+        var type = $(this).val();
+        if (type === 'fixed') {
+            $('#xingxy-fixed-content-box').slideDown(200);
+            $('#xingxy-cardpass-box').slideUp(200);
+        } else {
+            $('#xingxy-fixed-content-box').slideUp(200);
+            $('#xingxy-cardpass-box').slideDown(200);
+        }
+    });
+
+    // 卡密输入时实时引导
+    $('#xingxy-cardpass-data').on('input', function() {
+        var hasData = $(this).val() && $(this).val().trim();
+        if (hasData) {
+            if (!$('#xingxy-import-hint').length) {
+                $(this).after('<div id="xingxy-import-hint" style="margin-top:6px;padding:6px 10px;border-radius:4px;border:1px dashed var(--muted-2-color);background:var(--main-bg-color);font-size:12px;color:var(--color-blue);animation:xingxy-pulse 1.5s infinite;"><i class="fa fa-hand-pointer-o mr3"></i>数据已就绪，请点击右下方「导入」按钮完成导入</div>');
+            }
+        } else {
+            $('#xingxy-import-hint').remove();
+        }
+    });
+
+    // 卡密导入
+    $('#xingxy-import-cardpass-btn').on('click', function() {
+        var $btn = $(this);
+        var data = $('#xingxy-cardpass-data').val();
+        var productId = $('input[name="product_id"]').val();
+        var cardPassKey = $('input[name="card_pass_key"]').val();
+        
+        if (!data || !data.trim()) {
+            if (typeof notyf_top !== 'undefined') {
+                notyf_top('请先粘贴卡密数据', 'danger');
+            } else {
+                alert('请先粘贴卡密数据');
+            }
+            return;
+        }
+        
+        if (!cardPassKey || !cardPassKey.trim()) {
+            if (typeof notyf_top !== 'undefined') {
+                notyf_top('请先填写卡密备注', 'danger');
+            } else {
+                alert('请先填写卡密备注');
+            }
+            $('#xingxy-card-pass-key').focus();
+            return;
+        }
+        
+        if (!productId || productId === '0') {
+            if (typeof notyf_top !== 'undefined') {
+                notyf_top('请先保存商品后再导入卡密', 'danger');
+            } else {
+                alert('请先保存商品后再导入卡密');
+            }
+            return;
+        }
+        
+        $btn.addClass('loading').prop('disabled', true);
+        
+        $.ajax({
+            url: ajaxurl || '/wp-admin/admin-ajax.php',
+            type: 'POST',
+            data: {
+                action: 'xingxy_import_cardpass',
+                product_id: productId,
+                import_data: data,
+                card_pass_key: cardPassKey
+            },
+            dataType: 'json',
+            success: function(res) {
+                $btn.removeClass('loading').prop('disabled', false);
+                var $result = $('#xingxy-import-result');
+                if (res.success || res.error == 0) {
+                    var d = res.data || res;
+                    var resultMsg = '成功导入 ' + d.success_count + ' 条卡密';
+                    if (d.error_count > 0) {
+                        resultMsg += '，' + d.error_count + ' 条失败';
+                    }
+                    $result.html('<span style="color:#52c41a;font-weight:bold;"><i class="fa fa-check-circle mr3"></i>' + resultMsg + '</span>').show();
+                    // 更新库存数
+                    var newStock = d.stock !== undefined ? d.stock : d.success_count;
+                    $('#xingxy-card-stock').text(newStock).css('color', newStock > 0 ? 'var(--color-green)' : 'var(--color-red)');
+                    // 更新 card_pass_key
+                    if (d.card_pass_key) {
+                        $('input[name="card_pass_key"]').val(d.card_pass_key);
+                    }
+                    // 清空输入框
+                    $('#xingxy-cardpass-data').val('');
+                    $('#xingxy-import-hint').remove();
+                    if (typeof notyf_top !== 'undefined') {
+                        notyf_top(resultMsg, 'success');
+                    }
+                } else {
+                    var msg = res.data || res.msg || '导入失败';
+                    $result.html('<span style="color:var(--color-red);"><i class="fa fa-times-circle mr3"></i>' + msg + '</span>').show();
+                    if (typeof notyf_top !== 'undefined') {
+                        notyf_top(msg, 'danger');
+                    }
+                }
+            },
+            error: function() {
+                $btn.removeClass('loading').prop('disabled', false);
+                alert('网络错误，请稍后重试');
+            }
+        });
     });
 
     // 提交表单
@@ -448,6 +624,17 @@ jQuery(function($) {
         var action = $btn.data('action');
         
         if ($btn.hasClass('loading')) return;
+        
+        // 检测未导入的卡密数据
+        var pendingCardData = $('#xingxy-cardpass-data').val();
+        var isCardPassMode = $('input[name="auto_type"]:checked').val() === 'card_pass';
+        var isAutoShipping = $('input[name="shipping_type"]:checked').val() === 'auto';
+        if (isAutoShipping && isCardPassMode && pendingCardData && pendingCardData.trim()) {
+            if (!confirm('检测到卡密输入框中还有未导入的数据，请先点击「导入」按钮导入卡密。\n\n点击「确定」忽略并继续提交，点击「取消」返回导入。')) {
+                return;
+            }
+        }
+        
         $btn.addClass('loading').prop('disabled', true);
         
         // 获取 TinyMCE 内容
@@ -457,6 +644,9 @@ jQuery(function($) {
         } else {
             content = $('#product_content').val();
         }
+        
+        var shippingType = $('input[name="shipping_type"]:checked').val();
+        var autoType = $('input[name="auto_type"]:checked').val();
         
         var formData = {
             action: action,
@@ -468,7 +658,9 @@ jQuery(function($) {
             'shop_cat[]': [],
             product_tags: $('textarea[name="product_tags"]').val(),
             cover_image_ids: $('#cover_image_ids').val(),
-            shipping_type: $('input[name="shipping_type"]:checked').val(),
+            shipping_type: shippingType,
+            auto_type: shippingType === 'auto' ? autoType : '',
+            fixed_content: (shippingType === 'auto' && autoType === 'fixed') ? $('textarea[name="fixed_content"]').val() : '',
             card_pass_key: $('input[name="card_pass_key"]').val()
         };
         
@@ -485,10 +677,9 @@ jQuery(function($) {
             dataType: 'json',
             success: function(res) {
                 $btn.removeClass('loading').prop('disabled', false);
-                if (res.success || res.error === 0) {
+                if (res.success || res.error == 0) {
                     var data = res.data || res;
                     if (data.msg) {
-                        // 使用 Zibll 的通知系统
                         if (typeof notyf_top !== 'undefined') {
                             notyf_top(data.msg, 'success');
                         } else {

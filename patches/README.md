@@ -154,3 +154,13 @@ git diff HEAD~1 -- inc/functions/shop/
 详见 [staralliance-product-improvements.md](./staralliance-product-improvements.md)
 
 **更新日期**: 2026-02-21
+
+---
+
+## 星盟阶段三：卡密与发货设置
+
+前台商品发布增加发货设置（固定内容/卡密），合作商可导入卡密（type=`partner_custom`，后台隔离）。子主题 `charge-card.php` 增加合作商卡密筛选 tab。
+
+详见 [staralliance-cardpass.md](./staralliance-cardpass.md)
+
+**更新日期**: 2026-02-22

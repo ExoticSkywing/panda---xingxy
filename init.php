@@ -72,6 +72,8 @@ require_once XINGXY_PATH . 'inc/shop-coupon.php';
 require_once XINGXY_PATH . 'inc/product-capability.php';
 // 加载商品发布 AJAX 处理
 require_once XINGXY_PATH . 'inc/action-newproduct.php';
+// 加载卡密导入 AJAX 处理
+require_once XINGXY_PATH . 'inc/action-cardpass.php';
 // 加载用户中心商品管理入口
 require_once XINGXY_PATH . 'inc/user-products.php';
 

@@ -24,6 +24,10 @@ xingxy/
 │   ├── referral.php            # 邀请注册送积分
 │   ├── referral-tracker.php    # 推广链接伪装追踪 & 商城返佣修复
 │   ├── shop-coupon.php         # 商城优惠码集成
+│   ├── product-capability.php  # 商品发布权限控制
+│   ├── action-newproduct.php   # 商品发布 AJAX 处理
+│   ├── action-cardpass.php     # 卡密导入 AJAX 处理
+│   ├── user-products.php       # 用户中心商品管理
 │   ├── assets.php              # 前端资源加载
 │   ├── console-cleaner.php     # 控制台净化
 │   └── discount.php            # 数量限制功能
@@ -51,6 +55,7 @@ xingxy/
 - [x] Shop VIP 引导功能
 - [x] 控制台净化
 - [x] 星盟创作分成 & 前台商品发布
+- [x] 星盟卡密导入与发货设置
 
 ## 主题更新后恢复
 

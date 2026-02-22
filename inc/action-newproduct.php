@@ -39,6 +39,8 @@ function xingxy_ajax_save_product() {
     
     // 发货相关
     $shipping_type  = !empty($_POST['shipping_type']) ? sanitize_text_field($_POST['shipping_type']) : 'manual';
+    $auto_type      = !empty($_POST['auto_type']) ? sanitize_text_field($_POST['auto_type']) : 'fixed';
+    $fixed_content  = isset($_POST['fixed_content']) ? wp_kses_post($_POST['fixed_content']) : '';
     $card_pass_key  = !empty($_POST['card_pass_key']) ? sanitize_text_field($_POST['card_pass_key']) : '';
     
     // 编辑权限检查
@@ -122,13 +124,20 @@ function xingxy_ajax_save_product() {
         $product_config['shipping_type'] = $shipping_type;
     }
     
-    // 卡密备注（自动发货时）
+    // 自动发货配置
     if ($shipping_type === 'auto') {
-        if (!isset($product_config['auto_delivery'])) {
-            $product_config['auto_delivery'] = array();
+        $allowed_auto_types = array('fixed', 'card_pass');
+        $auto_type = in_array($auto_type, $allowed_auto_types) ? $auto_type : 'fixed';
+        
+        $product_config['auto_delivery'] = array(
+            'type' => $auto_type,
+        );
+        
+        if ($auto_type === 'fixed') {
+            $product_config['auto_delivery']['fixed_content'] = $fixed_content;
+        } elseif ($auto_type === 'card_pass') {
+            $product_config['auto_delivery']['card_pass_key'] = $card_pass_key;
         }
-        $product_config['auto_delivery']['type'] = 'card_pass';
-        $product_config['auto_delivery']['card_pass_key'] = $card_pass_key;
     }
     
     // 封面图片（gallery 格式，逗号分隔的 attachment IDs）
