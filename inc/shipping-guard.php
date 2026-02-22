@@ -150,6 +150,9 @@ function xingxy_get_available_card_count($card_pass_key)
  */
 function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $available_count, $total_count)
 {
+    // 提取卡密备注（用于后续注册补发队列）
+    $card_pass_key = $auto_delivery['card_pass_key'] ?? '';
+
     // 构建发货配置（模拟原始流程的参数）
     $delivery_config = $auto_delivery;
     $delivery_config['order_id']           = $order['id'];
