@@ -29,43 +29,6 @@ add_action('init', function () {
 }, 999); // 用 init + 极高优先级，确保 Zibll 所有模块已加载完毕
 
 /**
- * 修复支付成功弹窗"发货失败"的时序问题
- * 
- * Zibll 原生缺陷：弹窗 HTML 在 payment_order_success 回调完成前就渲染了，
- * 导致 shipping_status 仍为 0，显示"发货失败"。
- * 
- * 修复方式：在弹窗弹出后检测是否包含"发货失败"文案，
- * 如果有则延迟 1.5 秒自动刷新页面（此时回调已完成，数据已更新）。
- */
-add_action('wp_footer', function () {
-    // 仅在有支付成功 cookie 时执行
-    if (empty($_COOKIE['shop_pay_success_notice'])) {
-        return;
-    }
-    ?>
-    <script>
-    (function(){
-        // 等弹窗弹出后检测
-        var checkTimer = setInterval(function(){
-            var modal = document.getElementById('shop_auto_delivery_notice');
-            if (!modal || !modal.classList.contains('in')) return;
-            clearInterval(checkTimer);
-
-            // 检查弹窗内是否有"发货失败"提示
-            var failBox = modal.querySelector('.c-yellow.muted-box');
-            if (failBox && failBox.textContent.indexOf('发货失败') !== -1) {
-                // 延迟 1.5 秒刷新页面（等待 payment_order_success 回调执行完毕）
-                setTimeout(function(){ location.reload(); }, 1500);
-            }
-        }, 200);
-        // 安全超时：5 秒后停止检测
-        setTimeout(function(){ clearInterval(checkTimer); }, 5000);
-    })();
-    </script>
-    <?php
-}, 9999); // 在 Zibll 的弹窗脚本之后执行
-
-/**
  * 增强版支付成功回调
  * 
  * 复制原始 zib_shop_order_payment_success 的逻辑，
