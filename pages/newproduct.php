@@ -473,12 +473,12 @@ get_header();
                     </div>
                     
                     <!-- 右侧库存与列表 -->
-                    <div style="flex:3;min-width:400px;border-left:1px dashed var(--muted-border-color);padding-left:20px;">
+                    <div style="flex:3;min-width:0;flex-basis:400px;border-left:1px dashed var(--muted-border-color);padding-left:20px;">
                         <div class="flex ac jc mb10" style="padding:15px;border-radius:8px;background:var(--muted-border-color);box-shadow:inset 0 0 10px rgba(0,0,0,0.02);">
                             <span class="muted-color font-bold"><i class="fa fa-database mr6"></i>当前库存总数：</span>
                             <?php
-                            $init_stock_color = $card_stock > 0 ? '#2997f7' : 'var(--muted-3-color)';
-                            $init_stock_shadow = $card_stock > 0 ? 'text-shadow: 0 0 10px rgba(41,151,247,0.3);' : '';
+                            $init_stock_color = $card_stock > 0 ? '#67C23A' : 'var(--muted-3-color)';
+                            $init_stock_shadow = $card_stock > 0 ? 'text-shadow: 0 0 10px rgba(103,194,58,0.3);' : '';
                             ?>
                             <span id="xingxy-card-stock" class="ml10" style="font-size:22px;font-weight:bold;color:<?php echo $init_stock_color; ?>;<?php echo $init_stock_shadow; ?>"><?php echo (int) $card_stock; ?></span>
                             <span class="muted-3-color ml6" style="font-size:16px;">张</span>
@@ -861,8 +861,8 @@ jQuery(function($) {
                     renderCardList(d.list || []);
                     if (d.stock !== undefined) {
                         var stock = parseInt(d.stock) || 0;
-                        var stockColor = stock > 0 ? '#2997f7' : 'var(--muted-3-color)';
-                        var textShadow = stock > 0 ? 'text-shadow: 0 0 10px rgba(41,151,247,0.3);' : '';
+                        var stockColor = stock > 0 ? '#67C23A' : 'var(--muted-3-color)';
+                        var textShadow = stock > 0 ? 'text-shadow: 0 0 10px rgba(103,194,58,0.3);' : '';
                         $('#xingxy-card-stock').text(stock).attr('style', 'font-size:22px;font-weight:bold;color:' + stockColor + ';' + textShadow);
                     }
                 } else {
