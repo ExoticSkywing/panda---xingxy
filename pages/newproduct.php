@@ -531,20 +531,21 @@ get_header();
                                 /* 卡密列表移动端自适应优化 */
                                 .xingxy-card-table-wrapper {
                                     width: 100%;
+                                    max-width: 100%;
                                     overflow-x: auto;
                                     -webkit-overflow-scrolling: touch;
                                 }
                                 .xingxy-card-table-wrapper table {
+                                    width: 100%;
                                     min-width: 500px;
-                                    table-layout: fixed;
+                                    table-layout: auto;
                                 }
                                 .xingxy-card-table-wrapper td {
                                     word-wrap: break-word;
                                     word-break: break-all;
-                                    white-space: normal;
                                 }
                             </style>
-                            <div id="xingxy-cardlist-wrap" class="xingxy-card-table-wrapper" style="display:none;background:var(--main-bg-color);border-radius:6px;padding:10px;">
+                            <div id="xingxy-cardlist-wrap" style="display:none;background:var(--main-bg-color);border-radius:6px;padding:10px;width:100%;max-width:100%;box-sizing:border-box;">
                                 <div id="xingxy-cardlist-actions" class="flex ac mb10" style="display:none;padding:6px;background:var(--muted-border-color);border-radius:4px;">
                                     <label class="muted-color em09 pointer mb0 ml6" style="white-space:nowrap;">
                                         <input type="checkbox" id="xingxy-select-all-cards"> 全选未使用
@@ -792,7 +793,7 @@ jQuery(function($) {
         html += '<td></td>';
         html += '</tr></tfoot></table>';
         
-        $table.html(html);
+        $table.html('<div class="xingxy-card-table-wrapper">' + html + '</div>');
         $actions.toggle(hasUnused);
         $wrap.show();
         $('#xingxy-select-all-cards').prop('checked', false);
