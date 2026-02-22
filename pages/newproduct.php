@@ -393,12 +393,39 @@ get_header();
     <div class="zib-widget dependency-box" style="margin-top:15px;">
         <div class="title-theme mb10">发货设置</div>
         
+        <style>
+            .shipping-option-label {
+                border: 1px solid var(--muted-border-color);
+                border-radius: 4px;
+                padding: 6px 15px;
+                margin-right: 10px;
+                cursor: pointer;
+                transition: all 0.3s;
+                opacity: 0.8;
+                display: inline-block;
+            }
+            .shipping-option-label:hover {
+                border-color: var(--theme-color);
+                opacity: 1;
+            }
+            .shipping-option-label:has(input:checked) {
+                border-color: var(--theme-color);
+                background: rgba(var(--theme-color-rgb), 0.1);
+                color: var(--theme-color);
+                font-weight: bold;
+                opacity: 1;
+            }
+            .shipping-option-label input[type="radio"] {
+                display: none;
+            }
+        </style>
+
         <!-- 发货类型 -->
         <div class="mb10">
-            <label class="badg p2-10 mr10 pointer">
+            <label class="shipping-option-label">
                 <input type="radio" name="shipping_type" value="auto" <?php checked($in['shipping_type'], 'auto'); ?>> 自动发货
             </label>
-            <label class="badg p2-10 mr10 pointer">
+            <label class="shipping-option-label">
                 <input type="radio" name="shipping_type" value="manual" <?php checked($in['shipping_type'], 'manual'); ?>> 手动发货
             </label>
         </div>
@@ -407,10 +434,10 @@ get_header();
         <div id="xingxy-auto-delivery-box" style="<?php echo $in['shipping_type'] !== 'auto' ? 'display:none;' : ''; ?>">
             
             <div class="mb10" style="border-bottom:1px dashed var(--muted-border-color);padding-bottom:10px;">
-                <label class="badg badg-sm p2-10 mr6 pointer">
+                <label class="shipping-option-label" style="padding: 4px 12px; margin-right: 6px;">
                     <input type="radio" name="auto_type" value="fixed" <?php checked($in['auto_type'], 'fixed'); ?>> 固定内容
                 </label>
-                <label class="badg badg-sm p2-10 mr6 pointer">
+                <label class="shipping-option-label" style="padding: 4px 12px; margin-right: 6px;">
                     <input type="radio" name="auto_type" value="card_pass" <?php checked($in['auto_type'], 'card_pass'); ?>> 卡密
                 </label>
             </div>
@@ -450,8 +477,8 @@ get_header();
                         <div class="flex ac jc mb10" style="padding:15px;border-radius:8px;background:var(--muted-border-color);box-shadow:inset 0 0 10px rgba(0,0,0,0.02);">
                             <span class="muted-color font-bold"><i class="fa fa-database mr6"></i>当前库存总数：</span>
                             <?php
-                            $init_stock_color = $card_stock > 0 ? '#ff4d4f' : 'var(--muted-3-color)';
-                            $init_stock_shadow = $card_stock > 0 ? 'text-shadow: 0 0 10px rgba(255,77,79,0.3);' : '';
+                            $init_stock_color = $card_stock > 0 ? '#2997f7' : 'var(--muted-3-color)';
+                            $init_stock_shadow = $card_stock > 0 ? 'text-shadow: 0 0 10px rgba(41,151,247,0.3);' : '';
                             ?>
                             <span id="xingxy-card-stock" class="ml10" style="font-size:22px;font-weight:bold;color:<?php echo $init_stock_color; ?>;<?php echo $init_stock_shadow; ?>"><?php echo (int) $card_stock; ?></span>
                             <span class="muted-3-color ml3 em09">张</span>
@@ -817,8 +844,8 @@ jQuery(function($) {
                     renderCardList(d.list || []);
                     if (d.stock !== undefined) {
                         var stock = parseInt(d.stock) || 0;
-                        var stockColor = stock > 0 ? '#ff4d4f' : 'var(--muted-3-color)';
-                        var textShadow = stock > 0 ? 'text-shadow: 0 0 10px rgba(255,77,79,0.3);' : '';
+                        var stockColor = stock > 0 ? '#2997f7' : 'var(--muted-3-color)';
+                        var textShadow = stock > 0 ? 'text-shadow: 0 0 10px rgba(41,151,247,0.3);' : '';
                         $('#xingxy-card-stock').text(stock).attr('style', 'font-size:22px;font-weight:bold;color:' + stockColor + ';' + textShadow);
                     }
                 } else {
