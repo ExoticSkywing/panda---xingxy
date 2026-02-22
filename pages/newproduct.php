@@ -496,7 +496,26 @@ get_header();
                     <!-- 左侧导入区 -->
                     <div class="xingxy-delivery-col-left">
                         <p class="muted-color em09 mb10"><i class="fa fa-info-circle mr3"></i>支持自由拼接形式（如：<code class="c-blue">长串账号信息作为卡号</code>，<code class="c-blue">兑换/登录说明作为卡密</code>），两者间用<code class="c-red">单个空格</code>分隔即可</p>
-                        <textarea id="xingxy-cardpass-data" class="form-control" rows="12" placeholder="粘贴卡密数据，一行一条。支持长信息自由组合配对，中间用空格隔开。&#10;&#10;示例 1（常规）：&#10;account01@mail.com P@ssw0rd123&#10;&#10;示例 2（超级组合：极长字符整体作卡号，网址作卡密）：&#10;AnastasiaParmar@gmail.com----ek8ondgru9----AnastasiaParmar657689@neiar.xyz----jyhjhtumwudslm6fz4uxoigtalmn 2fa.cn" style="background:var(--muted-border-color);resize:vertical;font-size:13px;border:1px solid rgba(128,128,128,0.2); border-radius: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);"></textarea>
+                        <textarea id="xingxy-cardpass-data" class="form-control" rows="12" placeholder="粘贴卡密数据，一行一条。支持长信息自由组合配对，中间用空格隔开。&#10;&#10;示例 1（常规）：&#10;account01@mail.com P@ssw0rd123&#10;&#10;示例 2（超级组合：极长字符整体作卡号，网址作卡密）：&#10;AnastasiaParmar@gmail.com----ek8ondgru9----AnastasiaParmar657689@neiar.xyz----jyhjhtumwudslm6fz4uxoigtalmn 2fa.cn" style="background:var(--muted-border-color);resize:vertical;font-size:13px;border:none; border:2px solid transparent; border-bottom: 2px solid var(--muted-3-color); border-radius: 6px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.05); padding: 12px; transition: border 0.3s;"></textarea>
+                        <style>
+                            #xingxy-cardpass-data:focus {
+                                border-bottom-color: var(--theme-color);
+                                background: var(--main-bg-color);
+                                box-shadow: 0 0 10px rgba(var(--theme-color-rgb), 0.1);
+                            }
+                            .xingxy-mobile-scroll-hint { display: none; }
+                            @media (max-width: 768px) {
+                                .xingxy-mobile-scroll-hint {
+                                    display: inline-block;
+                                    animation: xingxy-scroll-pulse 2s infinite;
+                                }
+                            }
+                            @keyframes xingxy-scroll-pulse {
+                                0% { opacity: 0.4; transform: translateX(0); }
+                                50% { opacity: 1; transform: translateX(-3px); color: var(--color-blue); }
+                                100% { opacity: 0.4; transform: translateX(0); }
+                            }
+                        </style>
                         <div class="flex ac mt10">
                             <span class="flex1"></span>
                             <button type="button" id="xingxy-import-cardpass-btn" class="but jb-blue padding-lg">
@@ -520,27 +539,18 @@ get_header();
                         
                         <?php if ($in['ID'] && $in['card_pass_key']) : ?>
                         <div class="mt20">
-                            <div class="flex ac mb10 pb10" style="border-bottom:1px solid var(--muted-border-color);">
+                            <div class="flex ac mb10 pb10" style="border-bottom:1px solid var(--muted-border-color); flex-wrap: wrap; gap: 10px;">
                                 <span class="muted-color font-bold"><i class="fa fa-list-alt mr6"></i>卡密库存明细</span>
                                 <span class="flex1"></span>
+                                <span class="xingxy-mobile-scroll-hint muted-3-color em09 mr10">
+                                    <i class="fa fa-angle-double-left mr3"></i>向左滑动查看更多
+                                </span>
                                 <button type="button" id="xingxy-load-cardlist-btn" class="but but-sm jb-cyan" style="white-space:nowrap;">
                                     <i class="fa fa-refresh mr3"></i>刷新列表
                                 </button>
                             </div>
                             <style>
                                 /* 卡密列表移动端自适应优化 */
-                                .xingxy-mobile-scroll-hint { display: none; }
-                                @media (max-width: 768px) {
-                                    .xingxy-mobile-scroll-hint {
-                                        display: block;
-                                        text-align: center;
-                                        font-size: 12px;
-                                        color: var(--muted-3-color);
-                                        margin-bottom: 8px;
-                                        animation: xingxy-pulse-hint 2s infinite;
-                                    }
-                                    @keyframes xingxy-pulse-hint { 0%, 100% { opacity: 0.5; transform: translateX(0); } 50% { opacity: 1; transform: translateX(3px); } }
-                                }
                                 .xingxy-card-table-wrapper {
                                     width: 100%;
                                     max-width: 100%;
@@ -557,7 +567,6 @@ get_header();
                                     word-break: break-all;
                                 }
                             </style>
-                            <div class="xingxy-mobile-scroll-hint"><i class="fa fa-arrows-h mr3"></i>表格可左右滑动查看剩余信息</div>
                             <div id="xingxy-cardlist-wrap" style="display:none;background:var(--main-bg-color);border-radius:6px;padding:10px;width:100%;max-width:100%;box-sizing:border-box;">
                                 <div id="xingxy-cardlist-actions" class="flex ac mb10" style="display:none;padding:6px;background:var(--muted-border-color);border-radius:4px;">
                                     <label class="muted-color em09 pointer mb0 ml6" style="white-space:nowrap;">
