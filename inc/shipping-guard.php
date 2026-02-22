@@ -21,12 +21,49 @@ if (!defined('ABSPATH')) {
  * 
  * 必须在 Zibll 注册之后执行（使用 after_setup_theme 确保父主题先加载完毕）
  */
-add_action('after_setup_theme', function () {
+add_action('init', function () {
     // 摘掉原始回调
     remove_action('payment_order_success', 'zib_shop_order_payment_success', 10);
     // 挂载增强版回调
     add_action('payment_order_success', 'xingxy_order_payment_success_guard', 10, 2);
-}, 20); // 优先级 20，确保在 Zibll 的 add_action 之后执行
+}, 999); // 用 init + 极高优先级，确保 Zibll 所有模块已加载完毕
+
+/**
+ * 修复支付成功弹窗"发货失败"的时序问题
+ * 
+ * Zibll 原生缺陷：弹窗 HTML 在 payment_order_success 回调完成前就渲染了，
+ * 导致 shipping_status 仍为 0，显示"发货失败"。
+ * 
+ * 修复方式：在弹窗弹出后检测是否包含"发货失败"文案，
+ * 如果有则延迟 1.5 秒自动刷新页面（此时回调已完成，数据已更新）。
+ */
+add_action('wp_footer', function () {
+    // 仅在有支付成功 cookie 时执行
+    if (empty($_COOKIE['shop_pay_success_notice'])) {
+        return;
+    }
+    ?>
+    <script>
+    (function(){
+        // 等弹窗弹出后检测
+        var checkTimer = setInterval(function(){
+            var modal = document.getElementById('shop_auto_delivery_notice');
+            if (!modal || !modal.classList.contains('in')) return;
+            clearInterval(checkTimer);
+
+            // 检查弹窗内是否有"发货失败"提示
+            var failBox = modal.querySelector('.c-yellow.muted-box');
+            if (failBox && failBox.textContent.indexOf('发货失败') !== -1) {
+                // 延迟 1.5 秒刷新页面（等待 payment_order_success 回调执行完毕）
+                setTimeout(function(){ location.reload(); }, 1500);
+            }
+        }, 200);
+        // 安全超时：5 秒后停止检测
+        setTimeout(function(){ clearInterval(checkTimer); }, 5000);
+    })();
+    </script>
+    <?php
+}, 9999); // 在 Zibll 的弹窗脚本之后执行
 
 /**
  * 增强版支付成功回调
@@ -48,7 +85,6 @@ function xingxy_order_payment_success_guard($order)
     // 准备发货
     $shipping_type = zib_shop_get_product_config($order['post_id'], 'shipping_type');
     if ($shipping_type === 'auto') {
-        // 获取自动发货配置
         $auto_delivery = zib_shop_get_product_config($order['post_id'], 'auto_delivery');
         $delivery_type = $auto_delivery['type'] ?? '';
 
@@ -56,11 +92,9 @@ function xingxy_order_payment_success_guard($order)
         if ($delivery_type === 'card_pass') {
             xingxy_auto_shipping_guard($order, $auto_delivery);
         } else {
-            // 固定内容、邀请码等其他类型走原始逻辑
             zib_shop_auto_shipping($order);
         }
     } else {
-        // 手动发货：通知商家
         zib_shop_notify_shipping($order);
     }
 
@@ -83,7 +117,6 @@ function xingxy_auto_shipping_guard($order, $auto_delivery)
     $card_pass_key   = $auto_delivery['card_pass_key'] ?? '';
 
     if (!$card_pass_key) {
-        // 未配置卡密备注，走原始失败逻辑
         zib_shop_auto_delivery_fail_to_user($order, $order_meta_data);
         zib_shop_notify_shipping($order, $order_meta_data);
         return;
@@ -93,7 +126,7 @@ function xingxy_auto_shipping_guard($order, $auto_delivery)
     $available_count = xingxy_get_available_card_count($card_pass_key);
 
     if ($available_count >= $count) {
-        // 情况一：库存充足 → 走原始自动发货（不干预）
+        // 情况一：库存充足 → 走原始自动发货
         zib_shop_auto_shipping($order);
         return;
     }
@@ -105,7 +138,7 @@ function xingxy_auto_shipping_guard($order, $auto_delivery)
         return;
     }
 
-    // 情况二：部分有货（0 < available < count）→ 执行部分发货
+    // 情况二：部分有货 → 执行部分发货
     xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $available_count, $count);
 }
 
