@@ -481,7 +481,7 @@ get_header();
                             $init_stock_shadow = $card_stock > 0 ? 'text-shadow: 0 0 10px rgba(41,151,247,0.3);' : '';
                             ?>
                             <span id="xingxy-card-stock" class="ml10" style="font-size:22px;font-weight:bold;color:<?php echo $init_stock_color; ?>;<?php echo $init_stock_shadow; ?>"><?php echo (int) $card_stock; ?></span>
-                            <span class="muted-3-color ml3 em09">张</span>
+                            <span class="muted-3-color ml6" style="font-size:16px;">张</span>
                         </div>
                         
                         <?php if ($in['ID'] && $in['card_pass_key']) : ?>
@@ -493,7 +493,24 @@ get_header();
                                     <i class="fa fa-refresh mr3"></i>刷新列表
                                 </button>
                             </div>
-                            <div id="xingxy-cardlist-wrap" style="display:none;background:var(--main-bg-color);border-radius:6px;padding:10px;">
+                            <style>
+                                /* 卡密列表移动端自适应优化 */
+                                .xingxy-card-table-wrapper {
+                                    width: 100%;
+                                    overflow-x: auto;
+                                    -webkit-overflow-scrolling: touch;
+                                }
+                                .xingxy-card-table-wrapper table {
+                                    min-width: 500px;
+                                    table-layout: fixed;
+                                }
+                                .xingxy-card-table-wrapper td {
+                                    word-wrap: break-word;
+                                    word-break: break-all;
+                                    white-space: normal;
+                                }
+                            </style>
+                            <div id="xingxy-cardlist-wrap" class="xingxy-card-table-wrapper" style="display:none;background:var(--main-bg-color);border-radius:6px;padding:10px;">
                                 <div id="xingxy-cardlist-actions" class="flex ac mb10" style="display:none;padding:6px;background:var(--muted-border-color);border-radius:4px;">
                                     <label class="muted-color em09 pointer mb0 ml6" style="white-space:nowrap;">
                                         <input type="checkbox" id="xingxy-select-all-cards"> 全选未使用
