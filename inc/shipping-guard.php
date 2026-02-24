@@ -245,26 +245,26 @@ function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $avai
 function xingxy_build_partial_notice($total, $delivered, $remaining)
 {
     $html = '<!-- XINGXY_PARTIAL_NOTICE_START -->';
-    $html .= '<div data-no-copy="1" class="muted-box mb10" style="padding:15px; border:1px solid var(--focus-color, #2997f7); background:var(--muted-bg-color, rgba(41,151,247,0.05));">';
+    $html .= '<div data-no-copy="1" class="mb10">';
     
     // 头部信息
-    $html .= '<div class="flex jc-between ac mb10">';
+    $html .= '<div class="flex jc-between ac mb6">';
     $html .= '<div class="flex ac font-bold">';
-    $html .= '<span class="mr6 tag-color ' . ($delivered > 0 ? 'c-blue' : 'c-yellow') . '"><i class="fa ' . ($delivered > 0 ? 'fa-dropbox' : 'fa-hourglass-half') . '"></i></span>';
-    $html .= '<span class="em10">' . ($delivered > 0 ? '部分发货通知' : '等待发货通知') . '</span>';
+    $html .= '<span class="mr6 ' . ($delivered > 0 ? 'c-blue' : 'c-yellow') . '"><i class="fa ' . ($delivered > 0 ? 'fa-dropbox' : 'fa-hourglass-half') . '"></i></span>';
+    $html .= '<span class="em09 ' . ($delivered > 0 ? 'c-blue' : 'c-yellow') . '">' . ($delivered > 0 ? '部分发货通知' : '等待发货通知') . '</span>';
     $html .= '</div>';
     $html .= '<div class="muted-3-color em09">' . $delivered . '/' . $total . '</div>';
     $html .= '</div>';
     
     // 文案说明
-    $html .= '<div class="muted-2-color em09 mt6 mb10">' .
+    $html .= '<div class="muted-2-color em09 mt6">' .
         ($delivered > 0
             ? '您购买 <b>' . $total . '</b> 张，当前发出 <b>' . $delivered . '</b> 张，剩余 <b>' . $remaining . '</b> 张待补发。'
             : '您购买的 <b>' . $total . '</b> 张卡密暂时缺货，商家正在备货中，到货后将自动为您发出。'
         ) . '</div>';
         
     // 补充说明
-    $html .= '<div class="em09 mt10 pt10" style="color:var(--muted-3-color, #999); border-top: 1px dashed var(--muted-border-color, rgba(0,0,0,0.05));">';
+    $html .= '<div class="em09 mt6" style="color:var(--muted-3-color, #999);">';
     $html .= '<i class="fa fa-info-circle mr6"></i>商家已收到补货通知，补发后您将收到邮件提醒。';
     $html .= '</div>';
     $html .= '</div>';
@@ -279,11 +279,11 @@ function xingxy_build_partial_notice($total, $delivered, $remaining)
 function xingxy_build_completed_notice($total)
 {
     $html = '
-    <div data-no-copy="1" class="muted-box mb10" style="padding:15px; border:1px solid var(--focus-color, #52c41a); background:var(--muted-bg-color, rgba(82,196,26,0.05));">
-        <div class="flex jc-between ac">
+    <div data-no-copy="1" class="mt10 mb6">
+        <div class="flex jc-between ac mb6">
             <div class="flex ac font-bold">
-                <span class="mr6 tag-color c-green"><i class="fa fa-check-circle"></i></span>
-                <span class="em10 c-green">全部发货完成</span>
+                <span class="mr6 c-green"><i class="fa fa-check-circle"></i></span>
+                <span class="em09 c-green">全部发货完成</span>
             </div>
             <div class="muted-3-color em09">' . $total . '/' . $total . '</div>
         </div>
@@ -564,17 +564,16 @@ function xingxy_build_fulfill_notice($fulfilled_count, $was_remaining)
     $is_complete = ($fulfilled_count >= $was_remaining);
 
     $html = '
-    <div data-no-copy="1" class="muted-box mt10" style="padding:10px 15px; border:none; background:var(--muted-bg-color, rgba(0,0,0,0.03)); border-radius:4px; position:relative;">
-        <div style="position:absolute; left:0; top:10px; bottom:10px; width:3px; background:' . ($is_complete ? '#52c41a' : '#ffbc00') . '; border-radius:0 2px 2px 0;"></div>
-        <div class="flex jc-between ac">
+    <div data-no-copy="1" class="mt10 pt10" style="border-top:1px dashed var(--muted-border-color, rgba(0,0,0,0.05));">
+        <div class="flex jc-between ac mb6">
             <div class="flex ac">
-                <span class="mr6 tag-color ' . ($is_complete ? 'c-green' : 'c-yellow') . '"><i class="fa fa-info-circle"></i></span>
+                <span class="mr6 ' . ($is_complete ? 'c-green' : 'c-yellow') . '"><i class="fa fa-info-circle"></i></span>
                 <span class="em09 font-bold ' . ($is_complete ? 'c-green' : 'muted-color') . '">' . ($is_complete ? '补发完成记录' : '部分补发记录') . '</span>
             </div>
             <div class="muted-3-color" style="font-size:11px;">' . current_time('m-d H:i') . '</div>
         </div>
         <div class="muted-2-color em09 mt6">
-            系统自动为您补发了 <b>' . $fulfilled_count . '</b> 张卡密' . ($is_complete ? '，该订单已全额结清。' : '。') . '
+            系统自动为您补发了 <b>' . $fulfilled_count . '</b> 张卡密' . ($is_complete ? '，全单已结清。' : '。') . '
         </div>
     </div>';
 
