@@ -164,3 +164,24 @@ git diff HEAD~1 -- inc/functions/shop/
 详见 [staralliance-cardpass.md](./staralliance-cardpass.md)
 
 **更新日期**: 2026-02-22
+
+---
+
+## 前台卡密管理与发货区 UI 优化
+
+前台卡密管理增加列表查看、编辑、删除功能，发货设置区域 UI 优化。
+
+详见 [staralliance-cardpass-manage.md](./staralliance-cardpass-manage.md)
+
+**更新日期**: 2026-02-23
+
+---
+
+## 卡密发货守护：库存校验 & 部分发货 & 自动补发
+
+对卡密自动发货流程全面增强：支付前校验库存、部分发货、导入卡密后自动补发、支付成功弹窗时序修复（消除"发货失败"误报）、发货信息一键复制按钮。涉及父主题 `pay.php` 和 `action.php` 的修改。
+
+详见 [shipping-guard-fix.md](./shipping-guard-fix.md)
+
+**更新日期**: 2026-02-24
+

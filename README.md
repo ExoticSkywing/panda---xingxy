@@ -27,6 +27,7 @@ xingxy/
 │   ├── product-capability.php  # 商品发布权限控制
 │   ├── action-newproduct.php   # 商品发布 AJAX 处理
 │   ├── action-cardpass.php     # 卡密导入/列表/编辑/删除 AJAX 处理
+│   ├── shipping-guard.php      # 卡密发货守护（库存校验/部分发货/自动补发）
 │   ├── user-products.php       # 用户中心商品管理
 │   ├── assets.php              # 前端资源加载
 │   ├── console-cleaner.php     # 控制台净化
@@ -57,6 +58,7 @@ xingxy/
 - [x] 星盟创作分成 & 前台商品发布
 - [x] 星盟卡密导入与发货设置
 - [x] 前台卡密管理（列表/编辑/删除）与发货区 UI 优化
+- [x] 卡密发货守护（库存校验 / 部分发货 / 自动补发 / 弹窗修复 / 一键复制）
 
 ## 主题更新后恢复
 
