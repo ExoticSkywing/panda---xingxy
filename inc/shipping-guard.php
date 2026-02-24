@@ -29,6 +29,40 @@ add_action('init', function () {
 }, 999); // 用 init + 极高优先级，确保 Zibll 所有模块已加载完毕
 
 /**
+ * AJAX endpoint：轮询订单发货状态
+ * 
+ * 弹窗在 shipping_status=0 且无 delivery_content 时调用此接口，
+ * 每 2 秒查一次直到发货完成或超时。仅读操作，无性能负担。
+ */
+add_action('wp_ajax_xingxy_check_shipping', 'xingxy_ajax_check_shipping');
+function xingxy_ajax_check_shipping()
+{
+    $order_id = !empty($_REQUEST['order_id']) ? (int) $_REQUEST['order_id'] : 0;
+    if (!$order_id) {
+        wp_send_json_error('参数错误');
+    }
+
+    // 权限校验：只能查自己的订单
+    $order = zibpay::get_order($order_id);
+    if (!$order || $order['user_id'] != get_current_user_id()) {
+        wp_send_json_error('无权限');
+    }
+
+    $shipping_status = zib_shop_get_order_shipping_status($order_id);
+    $order_meta_data = zibpay::get_meta($order_id, 'order_data');
+    $delivery_content = $order_meta_data['shipping_data']['delivery_content'] ?? '';
+
+    // 发货已完成（status>0）或已有发货内容（零库存通知）
+    $ready = ($shipping_status > 0 || !empty($delivery_content));
+
+    wp_send_json_success([
+        'ready'   => $ready,
+        'status'  => (int) $shipping_status,
+        'content' => $ready ? $delivery_content : '',
+    ]);
+}
+
+/**
  * 增强版支付成功回调
  * 
  * 复制原始 zib_shop_order_payment_success 的逻辑，
