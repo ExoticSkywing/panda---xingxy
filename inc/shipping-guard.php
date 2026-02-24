@@ -330,30 +330,29 @@ function xingxy_notify_seller_backlog($order, $order_meta_data, $backlog)
     $link = admin_url('admin.php?page=zibpay_page#/shipping');
 
     // 构建通知内容
-    $title   = '⚠️ 卡密库存不足，订单需要补发[商品：' . $post_title . ']';
-    $message = '您好！' . $author_data->display_name . '<br>';
-    $message .= '<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin:10px 0;color:#856404;">';
-    $message .= '<b>⚠️ 卡密库存不足，需要补发</b><br>';
-    $message .= '商品：<a href="' . get_the_permalink($product_id) . '">' . $post_title . (!$options_active_name ? '' : '[' . $options_active_name . ']') . '</a><br>';
-    $message .= '订单号：' . $order['order_num'] . '<br>';
-    $message .= '购买数量：<b style="color:#d63384;">' . $backlog['total_count'] . '</b> 张<br>';
-    $message .= '已发货：<b style="color:#28a745;">' . $backlog['delivered_count'] . '</b> 张<br>';
-    $message .= '待补发：<b style="color:#dc3545;">' . $backlog['remaining_count'] . '</b> 张<br>';
-    $message .= '</div>';
-    $message .= '订单金额：' . zib_floatval_round($order['pay_price']) . ($order['pay_type'] === 'points' ? '积分' : '') . '<br>';
-    $message .= '付款时间：' . $order['pay_time'] . '<br><br>';
+    $title   = '【补货提醒】商品库存不足：' . $post_title;
+    $message = '您好，' . $author_data->display_name . '：<br><br>';
+    $message .= '您的商品有一个订单急需补发卡密，请尽快处理。<br><br>';
 
-    // 补货操作引导
-    $message .= '<div style="background:#e8f5e9;border:1px solid #4caf50;border-radius:8px;padding:14px 16px;margin:10px 0;color:#2e7d32;">';
-    $message .= '<b>📋 补货操作指引（仅需两步）</b><br><br>';
-    $message .= '<b>第一步：补充卡密</b><br>';
-    $message .= '进入商品编辑页 → 发货设置 → 导入新的卡密数据<br><br>';
-    $message .= '<b>第二步：自动补发</b><br>';
-    $message .= '卡密导入成功后，系统会<b style="color:#1b5e20;">自动检测</b>待补发订单并完成发货，无需手动操作<br><br>';
-    $message .= '<span style="font-size:12px;color:#558b2f;">💡 提示：请确保导入卡密时使用的「备注」与原商品一致，否则系统无法自动匹配</span>';
+    $message .= '<div style="background:#f8f9fa; border:1px solid #e9ecef; border-left:3px solid #ffbc00; border-radius:4px; padding:15px; margin:15px 0; font-size:14px; line-height:1.6; color:#495057;">';
+    $message .= '<b>商品信息：</b><a href="' . get_the_permalink($product_id) . '" style="color:#2997f7;text-decoration:none;">' . $post_title . (!$options_active_name ? '' : ' [' . $options_active_name . ']') . '</a><br>';
+    $message .= '<span style="color:#868e96;font-size:12px;">订单号：' . $order['order_num'] . ' &nbsp;|&nbsp; 支付：' . zib_floatval_round($order['pay_price']) . ($order['pay_type'] === 'points' ? '积分' : '元') . '</span><br><br>';
+    
+    $message .= '<div style="display:inline-block; background:#fff; border:1px solid #dee2e6; border-radius:4px; padding:10px 15px;">';
+    $message .= '<span style="color:#6c757d;margin-right:15px;">购买：<b style="color:#343a40;">' . $backlog['total_count'] . '</b></span>';
+    $message .= '<span style="color:#6c757d;margin-right:15px;">已发：<b style="color:#52c41a;">' . $backlog['delivered_count'] . '</b></span>';
+    $message .= '<span style="color:#6c757d;">缺货：<b style="color:#f5222d;">' . $backlog['remaining_count'] . '</b></span>';
+    $message .= '</div>';
     $message .= '</div>';
 
-    $message .= '<a target="_blank" style="margin-top:20px;padding:5px 20px;display:inline-block;" class="but jb-blue" href="' . esc_url(get_edit_post_link($product_id, '')) . '">前往补货</a><br>';
+    $message .= '<b>🛠️ 如何补货与自动发货？</b><br>';
+    $message .= '<ol style="color:#6c757d; padding-left:20px; line-height:1.6; margin-top:8px;">';
+    $message .= '<li>点击下方按钮前往编辑对应的商品。</li>';
+    $message .= '<li>在「发货设置」中导入足够数量的卡密数据（<span style="color:#fa8c16;">注：不要修改原来的卡密备注名</span>）。</li>';
+    $message .= '<li>导入成功后，系统会<b style="color:#52c41a;">自动</b>为该订单完成发货并通知买家，无需您再做额外操作。</li>';
+    $message .= '</ol>';
+
+    $message .= '<a target="_blank" style="display:inline-block; margin-top:15px; padding:8px 20px; background:#2997f7; color:#fff; text-decoration:none; border-radius:4px; font-size:14px;" href="' . esc_url(get_edit_post_link($product_id, '')) . '">立即前往补充库存</a><br>';
 
     // 发送邮件
     if (function_exists('zib_send_email')) {
@@ -565,22 +564,17 @@ function xingxy_build_fulfill_notice($fulfilled_count, $was_remaining)
     $is_complete = ($fulfilled_count >= $was_remaining);
 
     $html = '
-    <div data-no-copy="1" style="
-        background: var(--main-bg-color, #1a1d23);
-        border: 1px dashed rgba(82, 196, 26, 0.4);
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin: 12px 0;
-    ">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center;">
-                <span style="font-size:13px; margin-right:6px;">✅</span>
-                <span style="font-size:13px; font-weight:700; color:#52c41a;">' . ($is_complete ? '商品补发完成' : '商品部分补发') . '</span>
+    <div data-no-copy="1" class="muted-box mt10" style="padding:10px 15px; border:none; background:var(--muted-bg-color, rgba(0,0,0,0.03)); border-radius:4px; position:relative;">
+        <div style="position:absolute; left:0; top:10px; bottom:10px; width:3px; background:' . ($is_complete ? '#52c41a' : '#ffbc00') . '; border-radius:0 2px 2px 0;"></div>
+        <div class="flex jc-between ac">
+            <div class="flex ac">
+                <span class="mr6 tag-color ' . ($is_complete ? 'c-green' : 'c-yellow') . '"><i class="fa fa-info-circle"></i></span>
+                <span class="em09 font-bold ' . ($is_complete ? 'c-green' : 'muted-color') . '">' . ($is_complete ? '补发完成记录' : '部分补发记录') . '</span>
             </div>
-            <div style="font-size:11px; color:var(--muted-3-color, #999);">' . current_time('m-d H:i') . '</div>
+            <div class="muted-3-color" style="font-size:11px;">' . current_time('m-d H:i') . '</div>
         </div>
-        <div style="font-size:12px; color:var(--muted-2-color, #b0b0b0); margin-top:4px;">
-            已补发 <b style="color:#52c41a;">' . $fulfilled_count . '</b> 张卡密' . ($is_complete ? '，全单已完结。' : '。') . '
+        <div class="muted-2-color em09 mt6">
+            系统自动为您补发了 <b>' . $fulfilled_count . '</b> 张卡密' . ($is_complete ? '，该订单已全额结清。' : '。') . '
         </div>
     </div>';
 
@@ -608,18 +602,22 @@ function xingxy_notify_buyer_fulfilled($order, $order_meta_data, $fulfilled_coun
     $is_complete = ($remaining <= 0);
     $order_link  = function_exists('zib_get_user_center_url') ? zib_get_user_center_url('order') : home_url('/user/order');
 
-    $title   = ($is_complete ? '✅ 补发完成' : '📦 部分补发') . '：[' . $post_title . ']';
-    $message = '您好！' . $user_data->display_name . '<br>';
-    $message .= '<div style="background:var(--main-bg-color,#f0f9eb);border:1px solid rgba(82,196,26,0.3);border-left:4px solid #52c41a;border-radius:8px;padding:12px 16px;margin:10px 0;color:var(--color-text,#333);">';
-    $message .= '<b>' . ($is_complete ? '✅ 您的购买已全部发出！' : '📦 商家已为您补发部分卡密') . '</b><br>';
-    $message .= '商品：' . $post_title . '<br>';
-    $message .= '本次补发：<b style="color:#52c41a;">' . $fulfilled_count . '</b> 张<br>';
+    $title   = ($is_complete ? '【发货通知】您的商品已全部发货' : '【部分发货通知】您的商品有新的补发卡密');
+    $message = '您好，' . $user_data->display_name . '：<br><br>';
+    
+    $message .= '<div style="background:#f8f9fa; border:1px solid #e9ecef; border-left:3px solid ' . ($is_complete ? '#52c41a' : '#ffbc00') . '; border-radius:4px; padding:15px; margin:15px 0; font-size:14px; line-height:1.6; color:#495057;">';
+    $message .= '<b>' . ($is_complete ? '您的订单已全额发货完毕。' : '商家已为您补发了部分卡密。') . '</b><br><br>';
+    
+    $message .= '<span style="color:#868e96;">商品名称：</span>' . $post_title . '<br>';
+    $message .= '<span style="color:#868e96;">本次发出：</span><b style="color:#52c41a;">' . $fulfilled_count . '</b> 张<br>';
     if (!$is_complete) {
-        $message .= '仍待补发：<b style="color:#ff6b6b;">' . $remaining . '</b> 张<br>';
+        $message .= '<span style="color:#868e96;">等待后续补发：</span><b style="color:#f5222d;">' . $remaining . '</b> 张<br>';
     }
+    $message .= '<br><span style="color:#868e96;font-size:12px;">补发时间：' . current_time('Y-m-d H:i:s') . '</span>';
     $message .= '</div>';
-    $message .= '您可以在订单详情的「发货信息」中查看完整的卡密内容。<br>';
-    $message .= '<a target="_blank" style="margin-top:20px;padding:5px 20px;display:inline-block;" class="but jb-green" href="' . esc_url($order_link) . '">查看订单</a><br>';
+    
+    $message .= '<p style="color:#6c757d; font-size:13px;">包含完整卡密信息的发货详情已更新到您的订单中心。</p>';
+    $message .= '<a target="_blank" style="display:inline-block; margin-top:10px; padding:8px 20px; background:#2997f7; color:#fff; text-decoration:none; border-radius:4px; font-size:14px;" href="' . esc_url($order_link) . '">前往订单中心查看卡密</a><br>';
 
     // 发送邮件
     if (function_exists('zib_send_email')) {
