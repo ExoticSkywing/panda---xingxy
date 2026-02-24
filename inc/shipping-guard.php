@@ -507,6 +507,9 @@ function xingxy_auto_fulfill_backlogs($card_pass_key)
         $old_content = $order_meta_data['shipping_data']['delivery_content'] ?? '';
         $new_content = $old_content . $fulfill_notice . $new_delivery_html;
 
+        // 计算补发后的剩余数量（必须在使用前计算）
+        $new_remaining = $remaining_count - $to_fulfill;
+
         // 如果补发完毕，将头部黄色"部分发货通知"替换为绿色"全部到齐"版本
         if ($new_remaining <= 0) {
             $total_count = $order_meta_data['backlog']['total_count'] ?? 0;
@@ -522,7 +525,6 @@ function xingxy_auto_fulfill_backlogs($card_pass_key)
         $order_meta_data['shipping_data']['delivery_content'] = $new_content;
 
         // 更新 backlog 状态
-        $new_remaining = $remaining_count - $to_fulfill;
         $old_delivered  = $order_meta_data['backlog']['delivered_count'] ?? 0;
 
         $order_meta_data['backlog']['delivered_count'] = $old_delivered + $to_fulfill;
@@ -546,6 +548,12 @@ function xingxy_auto_fulfill_backlogs($card_pass_key)
         }
 
         zibpay::update_meta($order_id, 'order_data', $order_meta_data);
+
+        // 如果补发完毕且订单尚未确认收货，触发确认收货
+        $current_shipping_status = zib_shop_get_order_shipping_status($order_id);
+        if ($new_remaining <= 0 && $current_shipping_status == 0) {
+            zib_shop_order_receive_confirm($order_id, 'auto', '补发完成自动确认收货', $order_meta_data);
+        }
 
         // 通知买家补发完成
         xingxy_notify_buyer_fulfilled($order, $order_meta_data, $to_fulfill, $new_remaining);
