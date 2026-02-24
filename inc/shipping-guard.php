@@ -244,58 +244,30 @@ function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $avai
  */
 function xingxy_build_partial_notice($total, $delivered, $remaining)
 {
-    $percent = round(($delivered / $total) * 100);
     $html = '<!-- XINGXY_PARTIAL_NOTICE_START -->';
-    $html .= '
-    <div data-no-copy="1" style="
-        background: var(--main-bg-color, #1a1d23);
-        border: 1px solid rgba(255, 193, 7, 0.3);
-        border-left: 3px solid #ffc107;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 12px;
-        position: relative;
-        overflow: hidden;
-    ">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="display:flex; align-items:center;">
-                <span style="
-                    display:inline-flex; align-items:center; justify-content:center;
-                    width:20px; height:20px; border-radius:50%;
-                    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-                    margin-right:8px; font-size:12px; flex-shrink:0;
-                ">' . ($delivered > 0 ? '📦' : '⏳') . '</span>
-                <span style="font-size:14px; font-weight:700; color:var(--color-text, #e0e0e0);">' . ($delivered > 0 ? '部分发货通知' : '等待发货通知') . '</span>
-            </div>
-            <div style="font-size:12px; color:var(--muted-3-color, #888);">' . $delivered . '/' . $total . ' (' . $percent . '%)</div>
-        </div>
+    $html .= '<div data-no-copy="1" class="muted-box mb10" style="padding:15px; border:1px solid var(--focus-color, #2997f7); background:var(--muted-bg-color, rgba(41,151,247,0.05));">';
+    
+    // 头部信息
+    $html .= '<div class="flex jc-between ac mb10">';
+    $html .= '<div class="flex ac font-bold">';
+    $html .= '<span class="mr6 tag-color ' . ($delivered > 0 ? 'c-blue' : 'c-yellow') . '"><i class="fa ' . ($delivered > 0 ? 'fa-dropbox' : 'fa-hourglass-half') . '"></i></span>';
+    $html .= '<span class="em10">' . ($delivered > 0 ? '部分发货通知' : '等待发货通知') . '</span>';
+    $html .= '</div>';
+    $html .= '<div class="muted-3-color em09">' . $delivered . '/' . $total . '</div>';
+    $html .= '</div>';
+    
+    // 文案说明
+    $html .= '<div class="muted-2-color em09 mt6 mb10">' .
+        ($delivered > 0
+            ? '您购买 <b>' . $total . '</b> 张，当前发出 <b>' . $delivered . '</b> 张，剩余 <b>' . $remaining . '</b> 张待补发。'
+            : '您购买的 <b>' . $total . '</b> 张卡密暂时缺货，商家正在备货中，到货后将自动为您发出。'
+        ) . '</div>';
         
-        <div style="font-size:13px; line-height:1.5; color:var(--muted-2-color, #b0b0b0); margin-bottom:10px;">' .
-            ($delivered > 0
-                ? '您购买 <b style="color:#ffc107;">' . $total . '</b> 张，当前发出 <b style="color:#52c41a;">' . $delivered . '</b> 张，剩余 <b style="color:#ff6b6b;">' . $remaining . '</b> 张待补发。'
-                : '您购买的 <b style="color:#ffc107;">' . $total . '</b> 张卡密暂时缺货，商家正在备货中，到货后将自动为您发出。'
-            ) . '
-        </div>
-        
-        <div style="
-            width:100%; height:4px; border-radius:2px;
-            background: var(--muted-border-color, rgba(255,255,255,0.08));
-            overflow:hidden; margin-bottom:8px;
-        ">
-            <div style="
-                width:' . $percent . '%; height:100%; border-radius:2px;
-                background: linear-gradient(90deg, #52c41a 0%, #95de64 100%);
-                transition: width 0.6s ease;
-            "></div>
-        </div>
-        
-        <div style="
-            font-size:11px; color: var(--muted-3-color, #999);
-            padding-top:6px; border-top: 1px dashed var(--muted-border-color, rgba(255,255,255,0.1));
-        ">
-            💬 商家已收到补货通知，补发后您将收到邮件提醒。
-        </div>
-    </div>';
+    // 补充说明
+    $html .= '<div class="em09 mt10 pt10" style="color:var(--muted-3-color, #999); border-top: 1px dashed var(--muted-border-color, rgba(0,0,0,0.05));">';
+    $html .= '<i class="fa fa-info-circle mr6"></i>商家已收到补货通知，补发后您将收到邮件提醒。';
+    $html .= '</div>';
+    $html .= '</div>';
     $html .= '<!-- XINGXY_PARTIAL_NOTICE_END -->';
 
     return $html;
@@ -307,29 +279,16 @@ function xingxy_build_partial_notice($total, $delivered, $remaining)
 function xingxy_build_completed_notice($total)
 {
     $html = '
-    <div data-no-copy="1" style="
-        background: var(--main-bg-color, #1a1d23);
-        border: 1px solid rgba(82, 196, 26, 0.3);
-        border-left: 3px solid #52c41a;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 12px;
-        position: relative;
-    ">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <div style="display:flex; align-items:center;">
-                <span style="
-                    display:inline-flex; align-items:center; justify-content:center;
-                    width:20px; height:20px; border-radius:50%;
-                    background: linear-gradient(135deg, #52c41a 0%, #95de64 100%);
-                    margin-right:8px; font-size:12px; flex-shrink:0;
-                ">🎉</span>
-                <span style="font-size:14px; font-weight:700; color:var(--color-text, #e0e0e0);">全部发货完成</span>
+    <div data-no-copy="1" class="muted-box mb10" style="padding:15px; border:1px solid var(--focus-color, #52c41a); background:var(--muted-bg-color, rgba(82,196,26,0.05));">
+        <div class="flex jc-between ac">
+            <div class="flex ac font-bold">
+                <span class="mr6 tag-color c-green"><i class="fa fa-check-circle"></i></span>
+                <span class="em10 c-green">全部发货完成</span>
             </div>
-            <div style="font-size:12px; color:var(--muted-3-color, #888);">' . $total . '/' . $total . ' (100%)</div>
+            <div class="muted-3-color em09">' . $total . '/' . $total . '</div>
         </div>
-        <div style="font-size:13px; color:var(--muted-2-color, #b0b0b0);">
-            您购买的 <b style="color:#52c41a;">' . $total . '</b> 张卡密已全部发出！感谢耐心等待！
+        <div class="muted-2-color em09 mt6">
+            您购买的 <b>' . $total . '</b> 张卡密已全部发出！感谢耐心等待。
         </div>
     </div>';
 
