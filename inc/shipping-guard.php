@@ -339,9 +339,19 @@ function xingxy_notify_seller_backlog($order, $order_meta_data, $backlog)
     $message .= '待补发：<b style="color:#dc3545;">' . $backlog['remaining_count'] . '</b> 张<br>';
     $message .= '</div>';
     $message .= '订单金额：' . zib_floatval_round($order['pay_price']) . ($order['pay_type'] === 'points' ? '积分' : '') . '<br>';
-    $message .= '付款时间：' . $order['pay_time'] . '<br>';
-    $message .= '<br><b>请尽快补充卡密库存，然后到后台订单管理手动补发剩余卡密。</b><br>';
-    $message .= '<a target="_blank" style="margin-top:20px;padding:5px 20px;display:inline-block;" class="but jb-blue" href="' . esc_url($link) . '">前往处理</a><br>';
+    $message .= '付款时间：' . $order['pay_time'] . '<br><br>';
+
+    // 补货操作引导
+    $message .= '<div style="background:#e8f5e9;border:1px solid #4caf50;border-radius:8px;padding:14px 16px;margin:10px 0;color:#2e7d32;">';
+    $message .= '<b>📋 补货操作指引（仅需两步）</b><br><br>';
+    $message .= '<b>第一步：补充卡密</b><br>';
+    $message .= '进入商品编辑页 → 发货设置 → 导入新的卡密数据<br><br>';
+    $message .= '<b>第二步：自动补发</b><br>';
+    $message .= '卡密导入成功后，系统会<b style="color:#1b5e20;">自动检测</b>待补发订单并完成发货，无需手动操作<br><br>';
+    $message .= '<span style="font-size:12px;color:#558b2f;">💡 提示：请确保导入卡密时使用的「备注」与原商品一致，否则系统无法自动匹配</span>';
+    $message .= '</div>';
+
+    $message .= '<a target="_blank" style="margin-top:20px;padding:5px 20px;display:inline-block;" class="but jb-blue" href="' . esc_url(get_edit_post_link($product_id, '')) . '">前往补货</a><br>';
 
     // 发送邮件
     if (function_exists('zib_send_email')) {
