@@ -166,8 +166,19 @@ function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $avai
     $notice_html = xingxy_build_partial_notice($total_count, $available_count, $remaining);
     $delivery_html = $notice_html . $delivery_html;
 
-    // 执行虚拟发货（会自动确认收货 + 发送邮件通知买家）
-    zib_shop_virtual_shipping($order, $delivery_html, 'card_pass');
+    if ($available_count > 0) {
+        // 有部分卡密发出：走正常虚拟发货流程（确认收货 + 通知买家）
+        zib_shop_virtual_shipping($order, $delivery_html, 'card_pass');
+    } else {
+        // 零库存：仅保存发货内容到 order_meta，不触发确认收货
+        // 保持 shipping_status = 0（待发货），订单留在"待收货"列表
+        $order_meta_data['shipping_data'] = array_merge($order_meta_data['shipping_data'] ?? [], [
+            'delivery_time'    => current_time('mysql'),
+            'delivery_content' => $delivery_html,
+            'delivery_type'    => 'card_pass',
+        ]);
+        zibpay::update_meta($order['id'], 'order_data', $order_meta_data);
+    }
 
     // 记录 backlog 信息到 order_meta
     $backlog = array(
