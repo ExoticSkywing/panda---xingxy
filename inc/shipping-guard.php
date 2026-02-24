@@ -94,14 +94,7 @@ function xingxy_auto_shipping_guard($order, $auto_delivery)
         return;
     }
 
-    if ($available_count <= 0) {
-        // 情况三：完全无货 → 走原始失败逻辑
-        zib_shop_auto_delivery_fail_to_user($order, $order_meta_data);
-        zib_shop_notify_shipping($order, $order_meta_data);
-        return;
-    }
-
-    // 情况二：部分有货 → 执行部分发货
+    // 情况二/三：库存不足或完全无货 → 统一走部分发货（含零发货）+ 补发队列
     xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $available_count, $count);
 }
 
@@ -155,14 +148,16 @@ function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $avai
     $delivery_config['options_active_str'] = $order_meta_data['options_active_str'] ?? '';
     $delivery_config['count']              = $available_count; // 关键：只取可用的数量
 
-    // 调用原始卡密取出函数（会取出 available_count 个并标记为已发货）
-    $delivery_html = zib_shop_get_auto_delivery_card_pass_content($delivery_config);
+    $delivery_html = '';
 
-    if (!$delivery_html) {
-        // 罕见情况：在查询和取出之间卡密被其他订单抢走了
-        zib_shop_auto_delivery_fail_to_user($order, $order_meta_data);
-        zib_shop_notify_shipping($order, $order_meta_data);
-        return;
+    if ($available_count > 0) {
+        // 有部分库存：调用原始卡密取出函数
+        $delivery_html = zib_shop_get_auto_delivery_card_pass_content($delivery_config);
+
+        if (!$delivery_html) {
+            // 罕见情况：在查询和取出之间卡密被其他订单抢走了（降级为零库存处理）
+            $available_count = 0;
+        }
     }
 
     $remaining = $total_count - $available_count;
@@ -224,14 +219,17 @@ function xingxy_build_partial_notice($total, $delivered, $remaining)
                     width:20px; height:20px; border-radius:50%;
                     background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
                     margin-right:8px; font-size:12px; flex-shrink:0;
-                ">📦</span>
-                <span style="font-size:14px; font-weight:700; color:var(--color-text, #e0e0e0);">部分发货通知</span>
+                ">' . ($delivered > 0 ? '📦' : '⏳') . '</span>
+                <span style="font-size:14px; font-weight:700; color:var(--color-text, #e0e0e0);">' . ($delivered > 0 ? '部分发货通知' : '等待发货通知') . '</span>
             </div>
             <div style="font-size:12px; color:var(--muted-3-color, #888);">' . $delivered . '/' . $total . ' (' . $percent . '%)</div>
         </div>
         
-        <div style="font-size:13px; line-height:1.5; color:var(--muted-2-color, #b0b0b0); margin-bottom:10px;">
-            您购买 <b style="color:#ffc107;">' . $total . '</b> 张，当前发出 <b style="color:#52c41a;">' . $delivered . '</b> 张，剩余 <b style="color:#ff6b6b;">' . $remaining . '</b> 张待补发。
+        <div style="font-size:13px; line-height:1.5; color:var(--muted-2-color, #b0b0b0); margin-bottom:10px;">' .
+            ($delivered > 0
+                ? '您购买 <b style="color:#ffc107;">' . $total . '</b> 张，当前发出 <b style="color:#52c41a;">' . $delivered . '</b> 张，剩余 <b style="color:#ff6b6b;">' . $remaining . '</b> 张待补发。'
+                : '您购买的 <b style="color:#ffc107;">' . $total . '</b> 张卡密暂时缺货，商家正在备货中，到货后将自动为您发出。'
+            ) . '
         </div>
         
         <div style="
