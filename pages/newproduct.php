@@ -315,7 +315,7 @@ get_header();
         </div>
 
         <!-- 侧边栏 -->
-        <div class="sidebar show-sidebar">
+        <div class="sidebar show-sidebar" style="align-self:flex-start;">
             
             <!-- 封面图片 -->
             <div class="zib-widget mb10-sm">
@@ -378,17 +378,7 @@ get_header();
             </div>
             
             
-            <!-- 状态提示 -->
-            <div class="zib-widget">
-                <input type="hidden" name="product_id" value="<?php echo (int) $in['ID']; ?>">
-                <?php if ($in['post_status'] === 'publish'): ?>
-                    <p class="em09 muted-2-color text-center"><i class="fa fa-check-circle c-green mr3"></i>商品已发布，修改后直接生效</p>
-                <?php elseif ($in['post_status'] === 'pending'): ?>
-                    <p class="em09 muted-2-color text-center"><i class="fa fa-clock-o c-yellow mr3"></i>待审核中</p>
-                <?php else: ?>
-                    <p class="em09 muted-3-color text-center">编辑完成后，请在底部提交</p>
-                <?php endif; ?>
-            </div>
+            <input type="hidden" name="product_id" value="<?php echo (int) $in['ID']; ?>">
         </div>
     </div>
 
