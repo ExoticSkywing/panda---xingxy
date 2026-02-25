@@ -519,7 +519,7 @@ get_header();
                             }
                         </style>
                         <div class="flex ac mt10">
-                            <span class="flex1"></span>
+                            <span class="flex1 muted-3-color em09"><i class="fa fa-info-circle mr3"></i>导入后立即生效，无需另外保存</span>
                             <button type="button" id="xingxy-import-cardpass-btn" class="but jb-blue padding-lg">
                                 <i class="fa fa-cloud-upload mr6"></i>确认导入
                             </button>
@@ -674,7 +674,7 @@ get_header();
         <div class="flex ac jsb" style="max-width:1200px;margin:0 auto;padding:0 15px;">
             <div class="muted-2-color em09">
                 <?php if ($in['post_status'] === 'publish'): ?>
-                    <i class="fa fa-check-circle c-green mr3"></i>已发布 &middot; 点击保存即时生效
+                    <i class="fa fa-check-circle c-green mr3"></i>已发布 &middot; 修改后点保存生效（卡密导入除外）
                 <?php elseif ($in['post_status'] === 'pending'): ?>
                     <i class="fa fa-clock-o c-yellow mr3"></i>审核中 &middot; 请等待管理员通过
                 <?php elseif ($in['ID']): ?>
