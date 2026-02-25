@@ -722,8 +722,14 @@ get_header();
             white-space: nowrap;
         }
         @media (max-width: 768px) {
-            .xingxy-sticky-bar .muted-2-color { display: none; }
-            .xingxy-sticky-bar .flex.ac { width: 100%; justify-content: center; }
+            .xingxy-sticky-bar .flex.ac.jsb {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .xingxy-sticky-bar .muted-2-color {
+                text-align: center;
+                font-size: 12px;
+            }
         }
     </style>
 
