@@ -75,8 +75,17 @@ function xingxy_ajax_save_product() {
     // 构建 post 数组
     $post_status = 'draft';
     if ($action === 'product_save') {
-        // 非管理员提交后进入待审核
-        $post_status = is_super_admin($user_id) ? 'publish' : 'pending';
+        if (is_super_admin($user_id)) {
+            // 管理员始终直接发布
+            $post_status = 'publish';
+        } elseif ($product_id) {
+            // 编辑已有商品：已发布的保持 publish，其他走审核
+            $existing_post = get_post($product_id);
+            $post_status = ($existing_post && $existing_post->post_status === 'publish') ? 'publish' : 'pending';
+        } else {
+            // 新商品：非管理员走审核
+            $post_status = 'pending';
+        }
     }
     
     $postarr = array(

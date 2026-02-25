@@ -378,25 +378,16 @@ get_header();
             </div>
             
             
-            <!-- 提交按钮 -->
+            <!-- 状态提示 -->
             <div class="zib-widget">
-                <div class="text-center">
-                    <p class="separator muted-3-color theme-box">准备好了吗？</p>
-                    <input type="hidden" name="product_id" value="<?php echo (int) $in['ID']; ?>">
-                    <div class="but-average">
-                        <?php if ($in['post_status'] !== 'publish' && $in['post_status'] !== 'pending'): ?>
-                        <button type="button" class="but jb-green xingxy-product-submit padding-lg" data-action="product_draft">
-                            <i class="fa fa-fw fa-dot-circle-o"></i>保存草稿
-                        </button>
-                        <?php endif; ?>
-                        <button type="button" class="but jb-blue xingxy-product-submit padding-lg ml10" data-action="product_save">
-                            <i class="fa fa-fw fa-check-square-o"></i>提交<?php echo ($in['post_status'] === 'publish' || $in['post_status'] === 'pending') ? '保存' : '审核'; ?>
-                        </button>
-                    </div>
-                    <?php if (!is_super_admin()): ?>
-                    <p class="em09 muted-3-color mt10">提交后需等待管理员审核通过</p>
-                    <?php endif; ?>
-                </div>
+                <input type="hidden" name="product_id" value="<?php echo (int) $in['ID']; ?>">
+                <?php if ($in['post_status'] === 'publish'): ?>
+                    <p class="em09 muted-2-color text-center"><i class="fa fa-check-circle c-green mr3"></i>商品已发布，修改后直接生效</p>
+                <?php elseif ($in['post_status'] === 'pending'): ?>
+                    <p class="em09 muted-2-color text-center"><i class="fa fa-clock-o c-yellow mr3"></i>待审核中</p>
+                <?php else: ?>
+                    <p class="em09 muted-3-color text-center">编辑完成后，请在底部提交</p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -606,7 +597,7 @@ get_header();
     ?>
     <div class="zib-widget" style="margin-top:15px;">
         <div class="title-theme mb10">推广返佣</div>
-        <p class="muted-2-color em09 mb10">为当前商品设置推广返佣规则。选择"默认"将使用分类或全局配置。</p>
+        <p class="muted-2-color em09 mb10">有人通过推广链接购买此商品时，推广者可获得佣金。选"默认"即跟随平台统一规则，无需单独配置。</p>
         
         <div class="mb10">
             <label class="shipping-option-label">
@@ -677,6 +668,45 @@ get_header();
             </div>
         </div>
     </div>
+
+    <!-- 底部固定操作栏 -->
+    <div class="xingxy-sticky-bar">
+        <div class="flex ac jsb" style="max-width:1200px;margin:0 auto;padding:0 15px;">
+            <div class="muted-2-color em09 hidden-xs">
+                <?php if ($in['post_status'] === 'publish'): ?>
+                    <i class="fa fa-check-circle c-green mr3"></i>已发布 &middot; 修改即时生效
+                <?php elseif ($in['post_status'] === 'pending'): ?>
+                    <i class="fa fa-clock-o c-yellow mr3"></i>审核中
+                <?php elseif ($in['ID']): ?>
+                    <i class="fa fa-pencil mr3"></i>编辑草稿
+                <?php else: ?>
+                    <i class="fa fa-plus mr3"></i>新商品
+                <?php endif; ?>
+            </div>
+            <div class="flex ac">
+                <?php if ($in['post_status'] !== 'publish' && $in['post_status'] !== 'pending'): ?>
+                <button type="button" class="but jb-green xingxy-product-submit" data-action="product_draft" style="padding:8px 20px;">
+                    <i class="fa fa-fw fa-dot-circle-o"></i>保存草稿
+                </button>
+                <?php endif; ?>
+                <button type="button" class="but jb-blue xingxy-product-submit ml10" data-action="product_save" style="padding:8px 24px;">
+                    <i class="fa fa-fw fa-check-square-o"></i><?php echo ($in['post_status'] === 'publish') ? '保存' : '提交审核'; ?>
+                </button>
+            </div>
+        </div>
+    </div>
+    <style>
+        .xingxy-sticky-bar {
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            background: var(--main-bg-color, #fff);
+            border-top: 1px solid var(--muted-border-color);
+            padding: 12px 0;
+            margin-top: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+        }
+    </style>
 
 </main>
 
@@ -1145,7 +1175,14 @@ jQuery(function($) {
             shipping_type: shippingType,
             auto_type: shippingType === 'auto' ? autoType : '',
             fixed_content: (shippingType === 'auto' && autoType === 'fixed') ? $('textarea[name="fixed_content"]').val() : '',
-            card_pass_key: $('input[name="card_pass_key"]').val()
+            card_pass_key: $('input[name="card_pass_key"]').val(),
+            rebate_type: $('input[name="rebate_type"]:checked').val() || '',
+            rebate_all_ratio: $('input[name="rebate_all_ratio"]').val() || 0,
+            rebate_vip1_ratio: $('input[name="rebate_vip1_ratio"]').val() || 0,
+            rebate_vip2_ratio: $('input[name="rebate_vip2_ratio"]').val() || 0,
+            rebate_all_fixed: $('input[name="rebate_all_fixed"]').val() || 0,
+            rebate_vip1_fixed: $('input[name="rebate_vip1_fixed"]').val() || 0,
+            rebate_vip2_fixed: $('input[name="rebate_vip2_fixed"]').val() || 0
         };
         
         // 收集分类
