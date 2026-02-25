@@ -718,6 +718,13 @@ get_header();
             opacity: 0.7;
             pointer-events: none;
         }
+        .xingxy-sticky-bar .but {
+            white-space: nowrap;
+        }
+        @media (max-width: 768px) {
+            .xingxy-sticky-bar .muted-2-color { display: none; }
+            .xingxy-sticky-bar .flex.ac { width: 100%; justify-content: center; }
+        }
     </style>
 
 </main>
