@@ -692,8 +692,13 @@ get_header();
                 <?php endif; ?>
             </div>
             <div class="flex ac">
+                <?php if ($in['ID']): ?>
+                <a href="<?php echo esc_url(get_permalink($in['ID'])); ?>" target="_blank" class="but hollow" style="padding:8px 16px;">
+                    <i class="fa fa-fw fa-eye"></i>预览商品
+                </a>
+                <?php endif; ?>
                 <?php if ($in['post_status'] !== 'publish' && $in['post_status'] !== 'pending'): ?>
-                <button type="button" class="but jb-green xingxy-product-submit" data-action="product_draft" style="padding:8px 20px;">
+                <button type="button" class="but jb-green xingxy-product-submit ml10" data-action="product_draft" style="padding:8px 20px;">
                     <i class="fa fa-fw fa-dot-circle-o"></i>保存草稿
                 </button>
                 <?php endif; ?>
