@@ -285,8 +285,8 @@ get_header();
                     <!-- 商品详情（TinyMCE 编辑器） -->
                     <?php
                     $editor_settings = array(
-                        'textarea_rows'  => 15,
-                        'editor_height'  => (wp_is_mobile() ? 350 : 400),
+                        'textarea_rows'  => 20,
+                        'editor_height'  => (wp_is_mobile() ? 400 : 500),
                         'media_buttons'  => false,
                         'default_editor' => 'tinymce',
                         'quicktags'      => false,
