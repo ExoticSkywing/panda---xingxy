@@ -421,6 +421,14 @@ get_header();
             .shipping-option-label input[type="radio"] {
                 display: none;
             }
+            @media (max-width: 768px) {
+                .shipping-option-label {
+                    padding: 5px 10px;
+                    margin-right: 6px;
+                    margin-bottom: 6px;
+                    font-size: 13px;
+                }
+            }
         </style>
 
         <!-- 发货类型 -->
