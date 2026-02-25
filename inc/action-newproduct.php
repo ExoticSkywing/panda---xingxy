@@ -220,9 +220,16 @@ function xingxy_ajax_save_product() {
             $send['time'] = current_time('mysql');
             break;
         default:
-            $send['msg']    = '商品已发布';
-            $send['reload'] = true;
-            $send['goto']   = get_permalink($result_id);
+            // 区分首次发布 vs 编辑保存
+            if ($product_id && isset($existing_post) && $existing_post->post_status === 'publish') {
+                // 编辑已发布商品：留在当前页
+                $send['msg'] = '保存成功';
+            } else {
+                // 新商品首次发布：跳转到详情页
+                $send['msg']    = '商品已发布';
+                $send['reload'] = true;
+                $send['goto']   = get_permalink($result_id);
+            }
     }
     
     zib_send_json_success($send);

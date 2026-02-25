@@ -672,15 +672,15 @@ get_header();
     <!-- 底部固定操作栏 -->
     <div class="xingxy-sticky-bar">
         <div class="flex ac jsb" style="max-width:1200px;margin:0 auto;padding:0 15px;">
-            <div class="muted-2-color em09 hidden-xs">
+            <div class="muted-2-color em09">
                 <?php if ($in['post_status'] === 'publish'): ?>
-                    <i class="fa fa-check-circle c-green mr3"></i>已发布 &middot; 修改即时生效
+                    <i class="fa fa-check-circle c-green mr3"></i>已发布 &middot; 点击保存即时生效
                 <?php elseif ($in['post_status'] === 'pending'): ?>
-                    <i class="fa fa-clock-o c-yellow mr3"></i>审核中
+                    <i class="fa fa-clock-o c-yellow mr3"></i>审核中 &middot; 请等待管理员通过
                 <?php elseif ($in['ID']): ?>
-                    <i class="fa fa-pencil mr3"></i>编辑草稿
+                    <i class="fa fa-pencil mr3"></i>编辑完成后请点右侧提交
                 <?php else: ?>
-                    <i class="fa fa-plus mr3"></i>新商品
+                    <i class="fa fa-plus mr3"></i>填写商品信息 &middot; 点右侧提交审核
                 <?php endif; ?>
             </div>
             <div class="flex ac">
@@ -705,6 +705,10 @@ get_header();
             padding: 12px 0;
             margin-top: 20px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+        }
+        .xingxy-product-submit.is-saving {
+            opacity: 0.7;
+            pointer-events: none;
         }
     </style>
 
@@ -1137,7 +1141,7 @@ jQuery(function($) {
         var $btn = $(this);
         var action = $btn.data('action');
         
-        if ($btn.hasClass('loading')) return;
+        if ($btn.hasClass('is-saving')) return;
         
         // 检测未导入的卡密数据
         var pendingCardData = $('#xingxy-cardpass-data').val();
@@ -1149,7 +1153,11 @@ jQuery(function($) {
             }
         }
         
-        $btn.addClass('loading').prop('disabled', true);
+        // 自定义 loading（不用 Zibll 的 .loading 类，避免文案转圈 Bug）
+        var origHtml = $btn.html();
+        var allBtns = $('.xingxy-product-submit');
+        allBtns.addClass('is-saving').prop('disabled', true);
+        $btn.html('<i class="fa fa-spinner fa-spin mr6"></i>保存中...');
         
         // 获取 TinyMCE 内容
         var content = '';
@@ -1197,7 +1205,8 @@ jQuery(function($) {
             data: $.param(formData) + '&' + $.param({'shop_cat': cats}),
             dataType: 'json',
             success: function(res) {
-                $btn.removeClass('loading').prop('disabled', false);
+                $btn.html(origHtml);
+                allBtns.removeClass('is-saving').prop('disabled', false);
                 if (res.success || res.error == 0) {
                     var data = res.data || res;
                     if (data.msg) {
@@ -1222,7 +1231,8 @@ jQuery(function($) {
                 }
             },
             error: function() {
-                $btn.removeClass('loading').prop('disabled', false);
+                $btn.html(origHtml);
+                allBtns.removeClass('is-saving').prop('disabled', false);
                 alert('网络错误，请稍后重试');
             }
         });
