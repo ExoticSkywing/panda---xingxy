@@ -185,3 +185,13 @@ git diff HEAD~1 -- inc/functions/shop/
 
 **更新日期**: 2026-02-25
 
+---
+
+## 前台商品发布 - 补充完善增强功能
+
+在前台商品发布的基础上，增加推广返佣设置模块，优化 PC 及移动端底部操作栏、重写保存即时生效（免审核）与 AJAX 同步行为。
+
+详见 [newproduct-enhancement.md](./newproduct-enhancement.md)
+
+**更新日期**: 2026-02-25
+
