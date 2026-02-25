@@ -140,6 +140,21 @@ function xingxy_ajax_save_product() {
         }
     }
     
+    // 推广返佣配置
+    $rebate_type = isset($_POST['rebate_type']) ? sanitize_text_field($_POST['rebate_type']) : '';
+    $allowed_rebate_types = array('', 'off', 'ratio', 'fixed');
+    if (in_array($rebate_type, $allowed_rebate_types)) {
+        $product_config['rebate'] = array(
+            'type'        => $rebate_type,
+            'all_ratio'   => max(0, min(100, (float) ($_POST['rebate_all_ratio'] ?? 0))),
+            'vip_1_ratio' => max(0, min(100, (float) ($_POST['rebate_vip1_ratio'] ?? 0))),
+            'vip_2_ratio' => max(0, min(100, (float) ($_POST['rebate_vip2_ratio'] ?? 0))),
+            'all_fixed'   => max(0, (float) ($_POST['rebate_all_fixed'] ?? 0)),
+            'vip_1_fixed' => max(0, (float) ($_POST['rebate_vip1_fixed'] ?? 0)),
+            'vip_2_fixed' => max(0, (float) ($_POST['rebate_vip2_fixed'] ?? 0)),
+        );
+    }
+    
     // 封面图片（gallery 格式，逗号分隔的 attachment IDs）
     if ($cover_ids) {
         $product_config['cover_images'] = $cover_ids;

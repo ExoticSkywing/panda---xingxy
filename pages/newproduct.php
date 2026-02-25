@@ -80,6 +80,18 @@ if ($is_edit) {
             $in['fixed_content'] = isset($ad['fixed_content']) ? $ad['fixed_content'] : '';
             $in['card_pass_key'] = isset($ad['card_pass_key']) ? $ad['card_pass_key'] : '';
         }
+        
+        // 推广返佣配置
+        if (isset($config['rebate']) && is_array($config['rebate'])) {
+            $rb = $config['rebate'];
+            $in['rebate_type']       = isset($rb['type']) ? $rb['type'] : '';
+            $in['rebate_all_ratio']  = isset($rb['all_ratio']) ? $rb['all_ratio'] : 0;
+            $in['rebate_vip1_ratio'] = isset($rb['vip_1_ratio']) ? $rb['vip_1_ratio'] : 0;
+            $in['rebate_vip2_ratio'] = isset($rb['vip_2_ratio']) ? $rb['vip_2_ratio'] : 0;
+            $in['rebate_all_fixed']  = isset($rb['all_fixed']) ? $rb['all_fixed'] : 0;
+            $in['rebate_vip1_fixed'] = isset($rb['vip_1_fixed']) ? $rb['vip_1_fixed'] : 0;
+            $in['rebate_vip2_fixed'] = isset($rb['vip_2_fixed']) ? $rb['vip_2_fixed'] : 0;
+        }
     }
     
     // 标签
@@ -586,6 +598,86 @@ get_header();
         </div>
     </div>
 
+    <!-- 推广返佣设置 -->
+    <?php
+    $vip1_name = function_exists('_pz') ? _pz('pay_user_vip_1_name', 'VIP1') : 'VIP1';
+    $vip2_name = function_exists('_pz') ? _pz('pay_user_vip_2_name', 'VIP2') : 'VIP2';
+    $rb_type = isset($in['rebate_type']) ? $in['rebate_type'] : '';
+    ?>
+    <div class="zib-widget" style="margin-top:15px;">
+        <div class="title-theme mb10">推广返佣</div>
+        <p class="muted-2-color em09 mb10">为当前商品设置推广返佣规则。选择"默认"将使用分类或全局配置。</p>
+        
+        <div class="mb10">
+            <label class="shipping-option-label">
+                <input type="radio" name="rebate_type" value="" <?php checked($rb_type, ''); ?>> 默认
+            </label>
+            <label class="shipping-option-label">
+                <input type="radio" name="rebate_type" value="off" <?php checked($rb_type, 'off'); ?>> 不参与
+            </label>
+            <label class="shipping-option-label">
+                <input type="radio" name="rebate_type" value="ratio" <?php checked($rb_type, 'ratio'); ?>> 按比例返佣
+            </label>
+            <label class="shipping-option-label">
+                <input type="radio" name="rebate_type" value="fixed" <?php checked($rb_type, 'fixed'); ?>> 固定金额返佣
+            </label>
+        </div>
+        
+        <!-- 按比例返佣 -->
+        <div id="xingxy-rebate-ratio-box" style="<?php echo $rb_type !== 'ratio' ? 'display:none;' : ''; ?>">
+            <div class="flex ac" style="gap:15px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:120px;">
+                    <label class="muted-color em09 mb3" style="display:block;">普通用户</label>
+                    <div class="flex ac">
+                        <input type="number" class="form-control" name="rebate_all_ratio" value="<?php echo esc_attr($in['rebate_all_ratio'] ?? 0); ?>" min="0" max="100" step="1" style="width:80px;">
+                        <span class="muted-2-color ml6">%</span>
+                    </div>
+                </div>
+                <div style="flex:1;min-width:120px;">
+                    <label class="muted-color em09 mb3" style="display:block;"><?php echo esc_html($vip1_name); ?></label>
+                    <div class="flex ac">
+                        <input type="number" class="form-control" name="rebate_vip1_ratio" value="<?php echo esc_attr($in['rebate_vip1_ratio'] ?? 0); ?>" min="0" max="100" step="1" style="width:80px;">
+                        <span class="muted-2-color ml6">%</span>
+                    </div>
+                </div>
+                <div style="flex:1;min-width:120px;">
+                    <label class="muted-color em09 mb3" style="display:block;"><?php echo esc_html($vip2_name); ?></label>
+                    <div class="flex ac">
+                        <input type="number" class="form-control" name="rebate_vip2_ratio" value="<?php echo esc_attr($in['rebate_vip2_ratio'] ?? 0); ?>" min="0" max="100" step="1" style="width:80px;">
+                        <span class="muted-2-color ml6">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 固定金额返佣 -->
+        <div id="xingxy-rebate-fixed-box" style="<?php echo $rb_type !== 'fixed' ? 'display:none;' : ''; ?>">
+            <div class="flex ac" style="gap:15px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:120px;">
+                    <label class="muted-color em09 mb3" style="display:block;">普通用户</label>
+                    <div class="flex ac">
+                        <input type="number" class="form-control" name="rebate_all_fixed" value="<?php echo esc_attr($in['rebate_all_fixed'] ?? 0); ?>" min="0" step="0.01" style="width:80px;">
+                        <span class="muted-2-color ml6">元</span>
+                    </div>
+                </div>
+                <div style="flex:1;min-width:120px;">
+                    <label class="muted-color em09 mb3" style="display:block;"><?php echo esc_html($vip1_name); ?></label>
+                    <div class="flex ac">
+                        <input type="number" class="form-control" name="rebate_vip1_fixed" value="<?php echo esc_attr($in['rebate_vip1_fixed'] ?? 0); ?>" min="0" step="0.01" style="width:80px;">
+                        <span class="muted-2-color ml6">元</span>
+                    </div>
+                </div>
+                <div style="flex:1;min-width:120px;">
+                    <label class="muted-color em09 mb3" style="display:block;"><?php echo esc_html($vip2_name); ?></label>
+                    <div class="flex ac">
+                        <input type="number" class="form-control" name="rebate_vip2_fixed" value="<?php echo esc_attr($in['rebate_vip2_fixed'] ?? 0); ?>" min="0" step="0.01" style="width:80px;">
+                        <span class="muted-2-color ml6">元</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </main>
 
 <style>
@@ -655,6 +747,13 @@ jQuery(function($) {
             $('#xingxy-fixed-content-box').slideUp(200);
             $('#xingxy-cardpass-box').slideDown(200);
         }
+    });
+
+    // 推广返佣类型切换
+    $('input[name="rebate_type"]').on('change', function() {
+        var type = $(this).val();
+        $('#xingxy-rebate-ratio-box')[type === 'ratio' ? 'slideDown' : 'slideUp'](200);
+        $('#xingxy-rebate-fixed-box')[type === 'fixed' ? 'slideDown' : 'slideUp'](200);
     });
 
     // 卡密输入时实时引导
