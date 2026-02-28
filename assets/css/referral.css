@@ -420,3 +420,51 @@ body.dark-theme .xingxy-toggle-indicator {
     z-index: 8;
     letter-spacing: 1px;
 }
+/* =========================================
+   6. 移动端响应式适配 (Mobile Responsive)
+   ========================================= */
+@media (max-width: 768px) {
+    .xingxy-referral-highlight {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 20px 15px !important;
+        gap: 15px !important;
+    }
+    
+    .xingxy-referral-highlight .flex.jsb.ac {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
+        width: 100% !important;
+    }
+
+    .xingxy-gift-icon {
+        width: 60px !important;
+        height: 60px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .xingxy-referral-highlight>div:not(.xingxy-bg-container):not(.xingxy-right-panel):not(.xingxy-gift-icon),
+    .xingxy-referral-highlight .flex1.mr20 {
+        width: 100% !important;
+        padding-right: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .xingxy-right-panel {
+        width: 100% !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        margin-top: 5px !important;
+    }
+
+    .xingxy-right-panel .but {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    .xingxy-toggle-control {
+        width: 100% !important;
+        max-width: 250px !important;
+    }
+}
