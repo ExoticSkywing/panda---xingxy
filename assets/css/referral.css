@@ -488,17 +488,32 @@ body.dark-theme .xingxy-tg-card {
     --b-opacity: 0.35;
 }
 
-/* 前往领取按钮 - 套用玻璃拟态滑块外壳，但保留亮橙色/金橘色渐变增强点击欲 */
+/* 前往领取按钮 - 独立的玻璃材质单按钮，半透明微光黄 */
 .xingxy-tg-card .tg-btn-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 24px;
+    font-size: 13px;
+    font-weight: bold;
     color: #fff !important;
-    background: linear-gradient(135deg, #ff9e22 0%, #ff6b00 100%) !important;
     border-radius: 999px;
+    text-decoration: none;
+
+    /* 清透浅金/白黄 + 玻璃模糊 */
+    background: linear-gradient(135deg, rgba(255, 235, 130, 0.4) 0%, rgba(255, 200, 50, 0.3) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 240, 150, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4) !important;
 }
 
 .xingxy-tg-card .tg-btn-custom:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 20px rgba(255, 107, 0, 0.6) !important;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+    background: linear-gradient(135deg, rgba(255, 235, 130, 0.5) 0%, rgba(255, 200, 50, 0.45) 100%) !important;
     color: #fff !important;
 }
