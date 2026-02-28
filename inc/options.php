@@ -109,6 +109,25 @@ add_action('zib_require_end', function () {
                 'max'        => 720,
                 'dependency' => array('enable_referral_points', '==', 'true'),
             ),
+            array(
+                'type'    => 'heading',
+                'content' => 'TG Bot 引流',
+            ),
+            array(
+                'id'      => 'enable_tg_points_card',
+                'type'    => 'switcher',
+                'title'   => '积分任务页显示 TG 引导卡片',
+                'desc'    => '开启后在用户中心的"积分任务"页面显示 TG Bot 引流入口',
+                'default' => true,
+            ),
+            array(
+                'id'         => 'tg_bot_url',
+                'type'       => 'text',
+                'title'      => 'TG Bot 链接',
+                'desc'       => 'Telegram Bot 的直达链接',
+                'default'    => 'https://t.me/moemoji_bot',
+                'dependency' => array('enable_tg_points_card', '==', 'true'),
+            ),
         ),
     ));
     
