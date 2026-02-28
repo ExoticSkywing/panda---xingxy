@@ -468,3 +468,35 @@ body.dark-theme .xingxy-toggle-indicator {
         max-width: 250px !important;
     }
 }
+
+/* =========================================
+   7. TG Bot专属引流卡片特色样式
+   ========================================= */
+.xingxy-tg-card {
+    /* 清新科技蓝/青色背景，与上方卡片拉开区分度 */
+    --b-color1: 0, 136, 204;
+    --b-color2: 85, 170, 255;
+    --b-color3: 0, 204, 255;
+    --b-color4: 0, 100, 200;
+    --b-color5: 100, 200, 255;
+    --b-opacity: 0.12;
+    margin-top: 15px !important;
+}
+
+body.dark-theme .xingxy-tg-card {
+    --b-opacity: 0.35;
+}
+
+/* 前往领取按钮 - 强化对比色（亮橙色/金橘色渐变）以激发点击欲 */
+.xingxy-tg-card .but {
+    background: linear-gradient(135deg, #ff9e22 0%, #ff6b00 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4) !important;
+    transition: all 0.3s ease;
+}
+
+.xingxy-tg-card .but:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(255, 107, 0, 0.6) !important;
+}
