@@ -420,6 +420,7 @@ body.dark-theme .xingxy-toggle-indicator {
     z-index: 8;
     letter-spacing: 1px;
 }
+
 /* =========================================
    6. 移动端响应式适配 (Mobile Responsive)
    ========================================= */
@@ -430,7 +431,7 @@ body.dark-theme .xingxy-toggle-indicator {
         padding: 20px 15px !important;
         gap: 15px !important;
     }
-    
+
     .xingxy-referral-highlight .flex.jsb.ac {
         flex-direction: column !important;
         align-items: flex-start !important;
@@ -487,16 +488,17 @@ body.dark-theme .xingxy-tg-card {
     --b-opacity: 0.35;
 }
 
-/* 前往领取按钮 - 强化对比色（亮橙色/金橘色渐变）以激发点击欲 */
-.xingxy-tg-card .but {
-    background: linear-gradient(135deg, #ff9e22 0%, #ff6b00 100%) !important;
-    border: none !important;
+/* 前往领取按钮 - 套用玻璃拟态滑块外壳，但保留亮橙色/金橘色渐变增强点击欲 */
+.xingxy-tg-card .tg-btn-custom {
     color: #fff !important;
+    background: linear-gradient(135deg, #ff9e22 0%, #ff6b00 100%) !important;
+    border-radius: 999px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4) !important;
-    transition: all 0.3s ease;
 }
 
-.xingxy-tg-card .but:hover {
-    transform: translateY(-2px) scale(1.02);
+.xingxy-tg-card .tg-btn-custom:hover {
+    transform: scale(1.03);
     box-shadow: 0 6px 20px rgba(255, 107, 0, 0.6) !important;
+    color: #fff !important;
 }
