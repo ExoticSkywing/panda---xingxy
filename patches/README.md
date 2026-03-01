@@ -195,3 +195,12 @@ git diff HEAD~1 -- inc/functions/shop/
 
 **更新日期**: 2026-02-25
 
+---
+
+## TG Bot 引流卡片 & 积分互通
+
+在积分任务页面注入 TG Bot 引流卡片（赛博科技风），打通 TG Bot 与站点的积分兑换、余额查询、个人信息通道。涉及 `zibpay-points.php` 修改 + xingxy CSS/配置项 + zibll-oauth REST 端点。
+
+详见 [tg-bot-integration.md](./tg-bot-integration.md)
+
+**更新日期**: 2026-03-01
