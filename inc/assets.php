@@ -56,6 +56,25 @@ function xingxy_enqueue_assets() {
         XINGXY_VERSION
     );
     
+    // 小芽精灵：用户画像采集
+    wp_enqueue_style(
+        'xingxy-profile-capture',
+        XINGXY_URL . 'assets/css/profile-capture.css',
+        array(),
+        XINGXY_VERSION
+    );
+    
+    wp_enqueue_script(
+        'xingxy-profile-capture',
+        XINGXY_URL . 'assets/js/profile-capture.js',
+        array('jquery'),
+        XINGXY_VERSION,
+        true
+    );
+    wp_localize_script('xingxy-profile-capture', 'xingxy_profile', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+    ));
+
     // 商城优惠码（在商品详情页和购物车页加载）
     if (is_singular('shop_product') || xingxy_is_shop_page()) {
         wp_enqueue_style(

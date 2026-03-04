@@ -77,5 +77,8 @@ require_once XINGXY_PATH . 'inc/action-cardpass.php';
 // 加载用户中心商品管理入口
 require_once XINGXY_PATH . 'inc/user-products.php';
 
+// === 小芽精灵：用户画像采集系统 ===
+require_once XINGXY_PATH . 'inc/user-profile.php';
+
 // === 星盟：发货拦截（方案B：部分发货 + 补发通知） ===
 require_once XINGXY_PATH . 'inc/shipping-guard.php';

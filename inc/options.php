@@ -131,6 +131,173 @@ add_action('zib_require_end', function () {
         ),
     ));
     
+    // ==================== 画像采集（小芽精灵） ====================
+    CSF::createSection('xingxy_options', array(
+        'id'    => 'profile_capture_settings',
+        'title' => '画像采集 (免感知)',
+        'icon'  => 'fas fa-id-card',
+        'fields' => array(
+            array(
+                'type'    => 'notice',
+                'style'   => 'info',
+                'content' => '这里配置的选项将无缝注入到用户的「绑定邮箱」软键盘弹窗中。通过视觉化选项，在不干扰转化率的情况下采集用户画像标签（用于 TG Bot 资源定向推送）。<br>最终判定规则：API 微信/QQ 性别做基础兜底，本套问卷的极端选项结果拥有一票否决（覆盖）权。',
+            ),
+            // 维度一：明星/偶像
+            array(
+                'id'      => 'profile_dimension_1_title',
+                'type'    => 'text',
+                'title'   => '维度一问题文案',
+                'default' => '1. 说实话，看到谁让你心动过？',
+                'desc'    => '不填则显示默认文案',
+            ),
+            array(
+                'id'           => 'profile_dimension_1',
+                'type'         => 'group',
+                'title'        => '维度一：星标人物（强制选 4 个）',
+                'subtitle'     => '用于定大基调（年代界限 + 核心性别）。例如：刘德华、三上悠亚。',
+                'button_title' => '添加人物',
+                'fields'       => array(
+                    array(
+                        'id'    => 'name',
+                        'type'  => 'text',
+                        'title' => '名称',
+                    ),
+                    array(
+                        'id'      => 'image',
+                        'type'    => 'upload',
+                        'title'   => '正方形头像',
+                        'library' => 'image',
+                    ),
+                    array(
+                        'id'      => 'gender_weight',
+                        'type'    => 'select',
+                        'title'   => '性别倾向',
+                        'options' => array(
+                            'male'        => '绝对男性 (覆写API)',
+                            'male_weak'   => '偏男性',
+                            'female'      => '绝对女性 (覆写API)',
+                            'female_weak' => '偏女性',
+                            'neutral'     => '中性/无法判断',
+                        ),
+                        'default' => 'neutral',
+                    ),
+                    array(
+                        'id'      => 'age_weight',
+                        'type'    => 'select',
+                        'title'   => '年代倾向',
+                        'options' => array(
+                            '85_before' => '85前老哥专属',
+                            '85_95'     => '85-95中生代',
+                            '95_after'  => '95后新生代',
+                            'neutral'   => '全年龄通杀',
+                        ),
+                        'default' => 'neutral',
+                    ),
+                ),
+            ),
+            // 维度二：游戏/IP
+            array(
+                'id'      => 'profile_dimension_2_title',
+                'type'    => 'text',
+                'title'   => '维度二问题文案',
+                'default' => '你记忆中的经典游戏/IP是？',
+                'desc'    => '不填则显示默认文案',
+            ),
+            array(
+                'id'           => 'profile_dimension_2',
+                'type'         => 'group',
+                'title'        => '维度二：游戏/IP记忆（限选 2-3 个）',
+                'subtitle'     => '用于交叉验证年代与消费倾向。例如：中国象棋、泡泡玛特。',
+                'button_title' => '添加 IP',
+                'fields'       => array(
+                    array(
+                        'id'    => 'name',
+                        'type'  => 'text',
+                        'title' => '名称',
+                    ),
+                    array(
+                        'id'      => 'image',
+                        'type'    => 'upload',
+                        'title'   => '代表图标',
+                        'library' => 'image',
+                    ),
+                    array(
+                        'id'      => 'gender_weight',
+                        'type'    => 'select',
+                        'title'   => '性别倾向',
+                        'options' => array(
+                            'male'        => '绝对男性 (覆写API)',
+                            'male_weak'   => '偏男性',
+                            'female'      => '绝对女性 (覆写API)',
+                            'female_weak' => '偏女性',
+                            'neutral'     => '中性/无法判断',
+                        ),
+                        'default' => 'neutral',
+                    ),
+                    array(
+                        'id'      => 'age_weight',
+                        'type'    => 'select',
+                        'title'   => '年代倾向',
+                        'options' => array(
+                            '85_before' => '85前老哥专属',
+                            '85_95'     => '85-95中生代',
+                            '95_after'  => '95后新生代',
+                            'neutral'   => '全年龄通杀',
+                        ),
+                        'default' => 'neutral',
+                    ),
+                ),
+            ),
+            // 维度三：消费破冰回忆
+            array(
+                'id'      => 'profile_dimension_3_title',
+                'type'    => 'text',
+                'title'   => '维度三问题文案',
+                'default' => '3. 回忆一下，第一次充钱给了谁？',
+                'desc'    => '不填则显示默认文案',
+            ),
+            array(
+                'id'           => 'profile_dimension_3',
+                'type'         => 'group',
+                'title'        => '维度三：消费破冰库（限选 1-2 个）',
+                'subtitle'     => '用于判定未来的引流/变现赛道方向。例如：网吧买点卡、买爱奇艺会员。',
+                'button_title' => '添加消费事件',
+                'fields'       => array(
+                    array(
+                        'id'    => 'name',
+                        'type'  => 'text',
+                        'title' => '文案描述',
+                    ),
+                    array(
+                        'id'      => 'icon',
+                        'type'    => 'icon',
+                        'title'   => '图标 (FontAwesome)',
+                        'default' => 'fas fa-shopping-cart',
+                    ),
+                    array(
+                        'id'      => 'tag',
+                        'type'    => 'text',
+                        'title'   => '系统内部分组 Tag',
+                        'desc'    => '英文标识，如: `high_value`, `tg_nsfw`, `fans`, `video_vip`，用于业务逻辑分流。',
+                    ),
+                    array(
+                        'id'      => 'gender_weight',
+                        'type'    => 'select',
+                        'title'   => '性别辅助',
+                        'options' => array(
+                            'male'        => '偏男性',
+                            'male_weak'   => '微偏男',
+                            'female'      => '偏女性',
+                            'female_weak' => '微偏女',
+                            'neutral'     => '中性',
+                        ),
+                        'default' => 'neutral',
+                    ),
+                ),
+            ),
+        ),
+    ));
+
     // ==================== 高级设置 ====================
     CSF::createSection('xingxy_options', array(
         'id'    => 'advanced_settings',

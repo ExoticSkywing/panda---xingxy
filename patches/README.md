@@ -204,3 +204,14 @@ git diff HEAD~1 -- inc/functions/shop/
 详见 [tg-bot-integration.md](./tg-bot-integration.md)
 
 **更新日期**: 2026-03-01
+
+---
+
+## 新人盲盒奖励与画像收集系统
+
+在 Zibll 原生“绑定邮箱/手机号”流程拦截，嵌入基于选项的“用户画像测试” UI。
+包含专门制作的“高光金橙色福利盲盒卡片”横幅、强绑定的选项下限逻辑，以及依托 `zibpay_update_user_points` 自动下发 150 积分福利与 `_xingxy_welcome_rewarded` 死锁防刷机制。
+
+详见 [user-profile-reward.md](./user-profile-reward.md)
+
+**更新日期**: 2026-03-05
