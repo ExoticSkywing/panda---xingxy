@@ -80,5 +80,8 @@ require_once XINGXY_PATH . 'inc/user-products.php';
 // === 小芽精灵：用户画像采集系统 ===
 require_once XINGXY_PATH . 'inc/user-profile.php';
 
+// 星星球画像数据打标中心 (后台独立面板)
+require_once XINGXY_PATH . 'inc/admin-profile-dashboard.php';
+
 // === 星盟：发货拦截（方案B：部分发货 + 补发通知） ===
 require_once XINGXY_PATH . 'inc/shipping-guard.php';

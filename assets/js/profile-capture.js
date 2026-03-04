@@ -47,6 +47,9 @@ jQuery(document).ready(function ($) {
         let html = `
         <div class="xingxy-profile-capture-wrap">
             ${rewardBanner}
+            <div class="xingxy-notice" style="background:rgba(255,122,0,0.08); padding:8px 12px; border-radius:6px; font-size:12px; color:#d97706; margin-bottom:12px; border:1px solid rgba(255,122,0,0.2); text-align:center;">
+                <i class="fas fa-info-circle"></i> 提示：<strong>正常填写上面的验证码</strong>，并完成以下选择，即可解锁盲盒！
+            </div>
             <div class="xingxy-profile-steps-container">
         `;
 
@@ -139,9 +142,6 @@ jQuery(document).ready(function ($) {
         html += `
             </div> <!-- 结束 steps-container -->
             <button type="button" class="xingxy-profile-next-btn disabled" disabled>继续探索 <i class="fas fa-arrow-right"></i></button>
-            <input type="hidden" name="profile_dim1" class="profileDim1Input" value="">
-            <input type="hidden" name="profile_dim2" class="profileDim2Input" value="">
-            <input type="hidden" name="profile_dim3" class="profileDim3Input" value="">
         </div>`;
         return html;
     }
@@ -155,6 +155,13 @@ jQuery(document).ready(function ($) {
             let wrap = context.find('.xingxy-profile-capture-wrap');
             let currentStepEl = wrap.find('.xingxy-profile-step.is-active');
             let currentStepIdx = parseInt(currentStepEl.data('step')) || 1;
+
+            // 动态确保表单内永远挂载有隐藏域（不在包裹器内，直接插在表单最底部防止被屏蔽）
+            if (context.find('input[name="profile_dim1"]').length === 0) {
+                context.append('<input type="hidden" name="profile_dim1" class="profileDim1Input" value="">');
+                context.append('<input type="hidden" name="profile_dim2" class="profileDim2Input" value="">');
+                context.append('<input type="hidden" name="profile_dim3" class="profileDim3Input" value="">');
+            }
 
             let dim_count = 0;
             let dim_req_num = 0;
@@ -204,13 +211,21 @@ jQuery(document).ready(function ($) {
                 if (selectedIds.dim1.length >= reqLimits.dim1 &&
                     selectedIds.dim2.length >= reqLimits.dim2 &&
                     selectedIds.dim3.length >= reqLimits.dim3) {
-                    submitBtn.prop('disabled', false).removeClass('disabled').css({ 'opacity': '', 'cursor': '' }).removeAttr('data-xingxy-disabled');
-                    nextBtn.addClass('is-reward-btn').text('🎁 开启福利盲盒并完成').show(); // 把下一步直接变成开盲盒
-                    submitBtn.hide(); // 隐藏原生表单提交按钮框，我们通过点击 nextBtn 来触发原生提交
+                    submitBtn.prop('disabled', false).removeClass('disabled').css({ 'opacity': '1', 'cursor': 'pointer' }).removeAttr('data-xingxy-disabled');
+
+                    // 放弃模拟点击，直接劫持真实按钮的视觉，让用户真正点到 Zibll 的原生提交按钮上！
+                    submitBtn.text('🎁 开启盲盒并完成绑定').addClass('btn-primary').show();
+
+                    // 将这最后一步的引导下一步按钮隐藏，用户只需要直接点击 submitBtn
+                    nextBtn.hide();
+                } else {
+                    submitBtn.text(submitBtn.data('original-text') || '提交保存'); // 还原
+                    nextBtn.show();
                 }
             } else {
-                nextBtn.prop('disabled', true).addClass('disabled').removeClass('is-reward-btn').text('继续探索 →');
-                submitBtn.prop('disabled', true).addClass('disabled').css({ 'opacity': '0.5', 'cursor': 'not-allowed' }).attr('data-xingxy-disabled', '1');
+                nextBtn.prop('disabled', true).addClass('disabled').text('继续探索 →');
+                submitBtn.attr('data-original-text', submitBtn.text() || '提交保存');
+                submitBtn.prop('disabled', true).addClass('disabled').css({ 'opacity': '0.5', 'cursor': 'not-allowed' }).attr('data-xingxy-disabled', '1').hide();
             }
         });
     }
@@ -264,17 +279,6 @@ jQuery(document).ready(function ($) {
                         updateProfileStatus(wrap.closest('form'));
                     }, 50);
                 }, 300); // 配合 CSS 动画时长
-            } else {
-                // 如果这是最后一步的特效提交（开盲盒）
-                if ($(this).hasClass('is-reward-btn')) {
-                    // 模拟点击真实的提交按钮
-                    wrap.closest('form').find('.captchsubmit.xingxy-fake-submit, .send-capt-code.xingxy-fake-submit, button[type="submit"]:visible').not(this).trigger('click');
-                    // 或者可以直接找 submitButn
-                    wrap.find('.xingxy-fake-submit').trigger('click');
-
-                    // 防连点
-                    $(this).text('🎁 努力开启中...').addClass('disabled').prop('disabled', true);
-                }
             }
         });
     }
@@ -378,8 +382,54 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    // 某些弹窗是提前渲染好 display:none 的，初始也尝试跑一次
-    // setTimeout(injectProfileDOM, 1000); // Removed as per instruction
+    // ✨ 终极必杀技：全局拦截 Zibll 的 AJAX 请求，把我们的隐藏数据强行塞进去 ✨
+    // 【核心发现】Zibll 的 zib_ajax 函数用 $.ajax({data: jsObject}) 发送请求
+    // 在 $.ajaxPrefilter 执行阶段，options.data 依然是 JavaScript Object（不是字符串！）
+    // jQuery 会在 prefilter 之后才调用 $.param() 将 Object 转为查询字符串
+    // 所以我们必须用 options.data.action 来匹配！
+    $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+        let isTarget = false;
+
+        // 情况1：data 是纯 Object（Zibll zib_ajax 的标准模式，最常见！）
+        if (options.data && typeof options.data === 'object' && !(options.data instanceof FormData) && options.data.action === 'user_bind_email') {
+            isTarget = true;
+        }
+        // 情况2：data 已经被转为字符串（备用）
+        else if (typeof options.data === 'string' && options.data.indexOf('action=user_bind_email') !== -1) {
+            isTarget = true;
+        }
+        // 情况3：FormData 对象（备用）
+        else if (options.data instanceof FormData && options.data.get && options.data.get('action') === 'user_bind_email') {
+            isTarget = true;
+        }
+        // 情况4：action 在 URL 上（备用）
+        else if (options.url && options.url.indexOf('action=user_bind_email') !== -1) {
+            isTarget = true;
+        }
+
+        if (isTarget && selectedIds.dim1 && selectedIds.dim1.length > 0) {
+            let dim1str = selectedIds.dim1.join(',');
+            let dim2str = selectedIds.dim2.join(',');
+            let dim3str = selectedIds.dim3.join(',');
+
+            // 纯 Object —— 直接挂属性（最常见路径）
+            if (typeof options.data === 'object' && !(options.data instanceof FormData) && options.data !== null) {
+                options.data.profile_dim1 = dim1str;
+                options.data.profile_dim2 = dim2str;
+                options.data.profile_dim3 = dim3str;
+            }
+            // 字符串拼接
+            else if (typeof options.data === 'string') {
+                options.data += `&profile_dim1=${encodeURIComponent(dim1str)}&profile_dim2=${encodeURIComponent(dim2str)}&profile_dim3=${encodeURIComponent(dim3str)}`;
+            }
+            // FormData append
+            else if (options.data instanceof FormData) {
+                options.data.append('profile_dim1', dim1str);
+                options.data.append('profile_dim2', dim2str);
+                options.data.append('profile_dim3', dim3str);
+            }
+        }
+    });
 
     // 初始化绑定点击事件
     bindProfileEvents();

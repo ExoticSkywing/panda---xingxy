@@ -215,3 +215,14 @@ git diff HEAD~1 -- inc/functions/shop/
 详见 [user-profile-reward.md](./user-profile-reward.md)
 
 **更新日期**: 2026-03-05
+
+---
+
+## 画像数据后台分维度彩色着色修复
+
+修复后台「用户画像数据中心」中所有词汇均为灰色的问题。根因：旧数据缺少 `raw_split` 字段且邮箱只能绑定一次无法更新。通过后端反向匹配配置选项自动归类着色（蓝/紫/橘），并加固前端 `$.ajaxPrefilter` 的数据类型覆盖。
+
+详见 [profile-capture-colors-fix.md](./profile-capture-colors-fix.md)
+
+**更新日期**: 2026-03-05
+

@@ -29,20 +29,22 @@ function xingxy_calculate_user_profile($user_id, $selections) {
     $age_scores = ['85_before' => 0, '85_95' => 0, '95_after' => 0];
 
     $all_selected_opts = [];
+    $raw_split = ['dim1' => [], 'dim2' => [], 'dim3' => []];
     $dim3_tags = [];
     
-    // 合并计分遍历
+    // 维度一与二遍历
     $all_opts = [
-        ['selections' => $dim1_ids, 'data' => $opts1, 'weight' => 10],
-        ['selections' => $dim2_ids, 'data' => $opts2, 'weight' => 8],
+        ['type' => 'dim1', 'selections' => $dim1_ids, 'data' => $opts1, 'weight' => 10],
+        ['type' => 'dim2', 'selections' => $dim2_ids, 'data' => $opts2, 'weight' => 8],
     ];
 
     foreach ($all_opts as $dim) {
         foreach ($dim['data'] as $index => $opt) {
-            // CSF 的 repeater 项如果没有显式指定 id，索引通常是从 0 开始的数字/字符串
-            // 为了安全匹配，前端应回传此索引
             if (in_array((string)$index, $dim['selections'], true)) {
-                $all_selected_opts[] = $opt['name'] ?? '';
+                $name = $opt['name'] ?? '';
+                $all_selected_opts[] = $name;
+                $raw_split[$dim['type']][] = $name;
+                
                 $gw = $opt['gender_weight'] ?? 'neutral';
                 $aw = $opt['age_weight'] ?? 'neutral';
 
@@ -59,7 +61,10 @@ function xingxy_calculate_user_profile($user_id, $selections) {
     // 维度三（消费倾向）单独计分
     foreach ($opts3 as $index => $opt) {
         if (in_array((string)$index, $dim3_ids, true)) {
-            $all_selected_opts[] = $opt['name'] ?? '';
+            $name = $opt['name'] ?? '';
+            $all_selected_opts[] = $name;
+            $raw_split['dim3'][] = $name;
+            
             $gw = $opt['gender_weight'] ?? 'neutral';
             if ($gw === 'male') $male_score += 5;
             if ($gw === 'female') $female_score += 5;
@@ -105,6 +110,7 @@ function xingxy_calculate_user_profile($user_id, $selections) {
         'gender' => $final_gender,
         'age'    => $final_age,
         'tags'   => $dim3_tags,
+        'raw_split' => $raw_split,
         'raw'    => implode(' | ', array_filter($all_selected_opts))
     ];
 
