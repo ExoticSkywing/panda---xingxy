@@ -229,24 +229,78 @@ function xingxy_ajax_get_profile_options() {
 
 
 /**
+ * 从 Zibll 已存储的 OAuth 原始数据中提取用户性别
+ * 遍历所有可能的社交登录类型，取到第一个有效值即返回
+ * 
+ * @param int $user_id
+ * @return array ['gender' => '男'|'女'|'', 'source' => 'weixin'|'qq'|...]
+ */
+function xingxy_get_oauth_gender($user_id) {
+    // 所有 Zibll 支持的社交登录类型
+    $social_types = ['weixin', 'qq', 'weibo', 'github', 'google', 'baidu', 'alipay', 'huawei', 'xiaomi', 'gitee'];
+    
+    foreach ($social_types as $type) {
+        $info = zib_get_user_meta($user_id, 'oauth_' . $type . '_getUserInfo', true);
+        if (!empty($info) && is_array($info) && !empty($info['gender'])) {
+            $raw_gender = trim($info['gender']);
+            // 标准化：各平台返回格式可能不同 (男/male/1 等)
+            $gender = '';
+            if (in_array($raw_gender, ['男', 'male', '1', 'm', 'M'], true)) {
+                $gender = '男';
+            } elseif (in_array($raw_gender, ['女', 'female', '2', 'f', 'F'], true)) {
+                $gender = '女';
+            }
+            if ($gender) {
+                return ['gender' => $gender, 'source' => $type];
+            }
+        }
+    }
+    return ['gender' => '', 'source' => ''];
+}
+
+/**
  * 在后台用户列表新增【隐形画像】列
  */
 add_filter('manage_users_columns', function($columns) {
-    // 插入到 "注册日期" 前面
+    // 插入到注册日期列前面（兼容：Zibll 用 all_time，WP 原生用 registered）
     $new_columns = [];
+    $inserted = false;
     foreach ($columns as $key => $value) {
-        if ($key == 'registered') {
+        if (!$inserted && in_array($key, ['all_time', 'registered'], true)) {
             $new_columns['xingxy_profile'] = '隐形画像';
+            $inserted = true;
         }
         $new_columns[$key] = $value;
     }
+    // 兜底：如果以上锚点都没找到，直接追加到末尾
+    if (!$inserted) {
+        $new_columns['xingxy_profile'] = '隐形画像';
+    }
     return $new_columns;
-});
+}, 99);
 
 add_filter('manage_users_custom_column', function($val, $column_name, $user_id) {
     if ($column_name == 'xingxy_profile') {
         $profile = get_user_meta($user_id, 'xingxy_profile_data', true);
+        
+        // 降级路径：问卷数据为空时，尝试从 OAuth 社交登录数据中提取性别
         if (empty($profile)) {
+            $manual_gender = get_user_meta($user_id, 'xingxy_manual_gender', true);
+            if ($manual_gender) {
+                // 有人工打标，直接显示
+                $icon = $manual_gender === '男' ? '<span style="color:#2271b1;" title="男 (人工)"><i class="dashicons dashicons-businessman"></i></span>' : '<span style="color:#d63638;" title="女 (人工)"><i class="dashicons dashicons-businesswoman"></i></span>';
+                return '<div>' . $icon . ' <span style="background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;font-size:11px;">✨ 人工打标</span></div>';
+            }
+            
+            $oauth_result = xingxy_get_oauth_gender($user_id);
+            if ($oauth_result['gender']) {
+                // OAuth 推断到了性别
+                $source_names = ['weixin' => '微信', 'qq' => 'QQ', 'weibo' => '微博', 'google' => 'Google', 'github' => 'GitHub', 'baidu' => '百度', 'alipay' => '支付宝', 'huawei' => '华为', 'xiaomi' => '小米', 'gitee' => 'Gitee'];
+                $source_label = $source_names[$oauth_result['source']] ?? $oauth_result['source'];
+                $icon = $oauth_result['gender'] === '男' ? '<span style="color:#2271b1;" title="男"><i class="dashicons dashicons-businessman"></i></span>' : '<span style="color:#d63638;" title="女"><i class="dashicons dashicons-businesswoman"></i></span>';
+                return '<div>' . $icon . '<span style="background:#fff3e0;color:#e65100;padding:1px 5px;border-radius:3px;font-size:10px;margin-left:2px;">' . esc_html($source_label) . '</span></div>';
+            }
+            
             return '<span style="color:#999;font-size:12px;">未采集</span>';
         }
 

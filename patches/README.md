@@ -236,3 +236,12 @@ git diff HEAD~1 -- inc/functions/shop/
 
 **更新日期**: 2026-03-05
 
+---
+
+## OAuth 社交登录性别数据自动提取
+
+从 Zibll 已存储的 OAuth 回调数据（`oauth_{type}_getUserInfo`）中自动提取用户性别，形成"人工打标 > 盲盒问卷 > OAuth 推断"的三级优先级体系。修复了后台用户列表「隐形画像」列因 Zibll 重写列结构导致不显示的 bug；扩展画像数据中心查询范围，纳入社交登录注册用户；优化了人工打标后的性别列展示格式。
+
+详见 [oauth-gender-extraction.md](./oauth-gender-extraction.md)
+
+**更新日期**: 2026-03-05

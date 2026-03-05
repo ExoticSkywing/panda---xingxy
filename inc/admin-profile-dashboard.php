@@ -41,6 +41,10 @@ function xingxy_render_profile_dashboard() {
             array(
                 'key'     => '_xingxy_welcome_rewarded',
                 'compare' => 'EXISTS'
+            ),
+            array(
+                'key'     => 'oauth_new',
+                'compare' => 'EXISTS'
             )
         ),
         'number'  => 150, 
@@ -58,6 +62,7 @@ function xingxy_render_profile_dashboard() {
         <div class="notice notice-info inline">
             <p>此面板展示了所有完成了“首次探索盲盒问卷”拦截测试的用户。</p>
             <p><strong>数据飞轮机制</strong>：您可以参考用户勾选的「原始选项词汇」，并依据您的判断，进行<strong>人工干预打标</strong>。人工打标的准确数据将作为最高优先级存储在 `xingxy_manual_gender` 中，未来可直接导出为极高纯净度的 AI 训练材料集。</p>
+            <p><strong>优先级</strong>：人工打标 &gt; 盲盒问卷推断 &gt; OAuth 社交登录推断（<span style="color:#e65100;">橘色标记</span>）</p>
         </div>
         
         <table class="wp-list-table widefat fixed striped table-view-list users" style="margin-top: 15px;">
@@ -76,10 +81,23 @@ function xingxy_render_profile_dashboard() {
                         $profile_data = get_user_meta($user->ID, 'xingxy_profile_data', true);
                         $manual_gender = get_user_meta($user->ID, 'xingxy_manual_gender', true);
                         
+                        // OAuth 降级推断
+                        $oauth_gender_result = xingxy_get_oauth_gender($user->ID);
+                        $is_oauth_only = empty($profile_data);
+                        
                         $age = isset($profile_data['age']) ? $profile_data['age'] : '-';
                         $gender = isset($profile_data['gender']) ? $profile_data['gender'] : '未判断';
                         $raw = isset($profile_data['raw']) ? $profile_data['raw'] : '（暂无行为数据遗留）';
                         $raw_split = isset($profile_data['raw_split']) ? $profile_data['raw_split'] : [];
+                        
+                        // 问卷没采集到但 OAuth 有性别时，用 OAuth 降级填充
+                        $gender_source = '';
+                        if ($gender === '未判断' && $oauth_gender_result['gender']) {
+                            $src_names = ['weixin' => '微信', 'qq' => 'QQ', 'weibo' => '微博', 'google' => 'Google', 'github' => 'GitHub', 'baidu' => '百度', 'alipay' => '支付宝', 'huawei' => '华为', 'xiaomi' => '小米', 'gitee' => 'Gitee'];
+                            $src_label = $src_names[$oauth_gender_result['source']] ?? $oauth_gender_result['source'];
+                            $gender = $oauth_gender_result['gender'];
+                            $gender_source = $src_label;
+                        }
                         
                         // 预判人工标记状态 HTML
                         $status_html = '<span style="color:#888;">🔘 尚无人工清洗记录</span>';
@@ -150,7 +168,14 @@ function xingxy_render_profile_dashboard() {
                                     $evidence_html = '<div style="margin-bottom:6px;"><span style="display:inline-block; font-size:11px; padding:2px 6px; background:#f4f4f4; color:#666; border-radius:4px; margin-right:6px;">历史记录</span> ' . esc_html($raw) . '</div>';
                                 }
                             } else {
-                                $evidence_html = '<span style="color:#d63638;">暂无数据</span>';
+                                if ($is_oauth_only) {
+                                    $oauth_type = get_user_meta($user->ID, 'oauth_new', true);
+                                    $type_names = ['weixin' => '微信', 'qq' => 'QQ', 'weibo' => '微博', 'google' => 'Google', 'github' => 'GitHub', 'baidu' => '百度', 'alipay' => '支付宝', 'huawei' => '华为', 'xiaomi' => '小米', 'gitee' => 'Gitee'];
+                                    $type_label = $type_names[$oauth_type] ?? ($oauth_type ?: '未知');
+                                    $evidence_html = '<div style="margin-bottom:6px;"><span style="display:inline-block; font-size:11px; padding:2px 6px; background:#fff3e0; color:#e65100; border-radius:4px; margin-right:6px;">OAuth</span> 数据来源：' . esc_html($type_label) . ' 社交登录授权（用户未填写问卷）</div>';
+                                } else {
+                                    $evidence_html = '<span style="color:#d63638;">暂无数据</span>';
+                                }
                             }
                         }
                     ?>
@@ -164,9 +189,15 @@ function xingxy_render_profile_dashboard() {
                         <td data-title="推测性别" class="x-sys-gender-td">
                             <?php 
                             if ($manual_gender) {
-                                echo '<del style="color:#999;">' . esc_html($gender) . '</del><br><b style="color:#2271b1">✨ 人工修正</b>';
+                                $del_text = esc_html($gender);
+                                if (!empty($gender_source)) $del_text .= ' ' . esc_html($gender_source);
+                                $tag_color = $manual_gender === '男' ? '#0071a1' : '#d63638';
+                                echo '<del style="color:#ccc;font-size:12px;">' . $del_text . '</del> <b style="color:' . $tag_color . ';">' . esc_html($manual_gender) . '</b> <span style="background:#e8f5e9;color:#2e7d32;padding:1px 5px;border-radius:10px;font-size:10px;vertical-align:middle;">✨人工</span>';
                             } else {
-                                echo '<span>' . esc_html($gender) . '</span>'; 
+                                echo '<span>' . esc_html($gender) . '</span>';
+                                if (!empty($gender_source)) {
+                                    echo ' <span style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:10px;font-size:10px;vertical-align:middle;">' . esc_html($gender_source) . '</span>';
+                                }
                             }
                             ?>
                         </td>
@@ -229,14 +260,12 @@ function xingxy_render_profile_dashboard() {
                         wrap.find('.action-tag-gender[data-gender="男"]').text('已重设(男)').prop('disabled', false).removeClass('button-primary');
                         wrap.find('.action-tag-gender[data-gender="女"]').text('已重设(女)').prop('disabled', false).removeClass('button-primary');
                         
-                        // 3. 把系统推测栏划废线，宣告人工主权
                         var row = $('#x-user-row-' + uid);
                         var guessTd = row.find('.x-sys-gender-td');
-                        var rawSpan = guessTd.find('span');
-                        if (rawSpan.length > 0) {
-                            var curText = rawSpan.text().trim();
-                            guessTd.html('<del style="color:#999;">' + curText + '</del><br><b style="color:#2271b1">✨ 人工修正</b>');
-                        }
+                        // 获取原始推测文本（可能包含徽章）
+                        var oldText = guessTd.find('span').first().text().trim() || guessTd.text().trim().split('\n')[0];
+                        var tagColor = targetGender === '男' ? '#0071a1' : '#d63638';
+                        guessTd.html('<del style="color:#ccc;font-size:12px;">' + oldText + '</del> <b style="color:' + tagColor + ';">' + targetGender + '</b> <span style="background:#e8f5e9;color:#2e7d32;padding:1px 5px;border-radius:10px;font-size:10px;vertical-align:middle;">✨人工</span>');
                     } else {
                         alert('清洗打标失败: ' + (res.data || '发生未知拦截'));
                         btn.prop('disabled', false).text('重试打标');
