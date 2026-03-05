@@ -23,53 +23,56 @@
     position: relative;
 }
 
-/* --- 盲盒福利任务横幅 (极简无痕版) --- */
-.xingxy-reward-banner {
-    background: rgba(255, 122, 0, 0.05);
-    /* 专属金橙福利色底 */
-    border: 1px dashed rgba(255, 122, 0, 0.3);
+/* --- 原生风盲盒任务横幅 (全新高质感自适应版) --- */
+.xingxy-native-banner {
+    display: flex;
+    align-items: center;
+    background: var(--muted-bg, rgba(128,128,128,0.05));
+    border: 1px solid var(--muted-border-color, rgba(128,128,128,0.1));
     border-radius: 8px;
     padding: 12px 14px;
-    margin-bottom: 20px;
+    transition: all 0.3s;
+}
+.xingxy-native-banner:hover {
+    border-color: rgba(255, 107, 21, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 107, 21, 0.08);
+}
+.x-nb-icon {
+    font-size: 26px;
+    margin-right: 14px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.x-nb-content {
+    flex: 1;
+}
+.x-nb-title {
+    margin: 0 0 5px 0 !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    color: var(--main-color, #333) !important;
+    line-height: 1.4 !important;
     display: flex;
-    justify-content: center;
     align-items: center;
 }
-
-.x-reward-text {
-    flex: 1;
-    text-align: center;
+.x-nb-tag {
+    font-size: 10px;
+    background: linear-gradient(135deg, #ff8c00 0%, #ff5e00 100%);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: normal;
 }
-
-.x-reward-text strong {
-    display: block;
-    color: #ff7a00;
-    /* 福利专属主色调 */
-    font-size: 15px;
+.x-nb-desc {
+    margin: 0 !important;
+    font-size: 12px !important;
+    color: var(--muted-color, #888) !important;
+    line-height: 1.5 !important;
+}
+.x-nb-highlight {
+    color: #ff6b15;
     font-weight: 600;
-    margin-bottom: 6px;
-    animation: rewardBounce 2.5s infinite ease-in-out;
-}
-
-.x-reward-text p {
-    color: #f5a623;
-    /* 次级专属色 */
-    font-size: 13px;
-    margin: 0;
-    line-height: 1.4;
-    font-weight: 500;
-}
-
-@keyframes rewardBounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-2px);
-    }
 }
 
 .xingxy-profile-title {

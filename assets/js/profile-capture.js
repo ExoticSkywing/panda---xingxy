@@ -35,21 +35,20 @@ jQuery(document).ready(function ($) {
         let t1 = (data.titles && data.titles.dim1) ? data.titles.dim1 : '1. 说实话，看到谁让你心动过？';
         let t2 = (data.titles && data.titles.dim2) ? data.titles.dim2 : '2. 如果有台时光机，你想穿越回哪儿？';
         let t3 = (data.titles && data.titles.dim3) ? data.titles.dim3 : '3. 回忆一下，第一次充钱给了谁？';
+        // ================= 全新原生风福利横幅 =================
         let rewardBanner = `
-            <div class="xingxy-reward-banner">
-                <div class="x-reward-text">
-                    <strong>🎁 触发隐藏彩蛋：</strong>
-                    <p>专属新人福利盲盒已就绪</p>
-                </div>
+        <div class="xingxy-native-banner" style="margin-bottom: 20px;">
+            <div class="x-nb-icon">🎁</div>
+            <div class="x-nb-content">
+                <h4 class="x-nb-title">专属盲盒福利 <span class="x-nb-tag">彩蛋</span></h4>
+                <p class="x-nb-desc"><span class="x-nb-highlight">填验证码</span> 并完成下方探索即可解锁！</p>
             </div>
+        </div>
         `;
 
         let html = `
         <div class="xingxy-profile-capture-wrap">
             ${rewardBanner}
-            <div class="xingxy-notice" style="background:rgba(255,122,0,0.08); padding:8px 12px; border-radius:6px; font-size:12px; color:#d97706; margin-bottom:12px; border:1px solid rgba(255,122,0,0.2); text-align:center;">
-                <i class="fas fa-info-circle"></i> 提示：<strong>正常填写上面的验证码</strong>，并完成以下选择，即可解锁盲盒！
-            </div>
             <div class="xingxy-profile-steps-container">
         `;
 
@@ -144,6 +143,46 @@ jQuery(document).ready(function ($) {
             <button type="button" class="xingxy-profile-next-btn disabled" disabled>继续探索 <i class="fas fa-arrow-right"></i></button>
         </div>`;
         return html;
+    }
+
+    // ✨ 惊喜彩蛋：庆祝撒花特效 ✨
+    function xingxyPlayConfetti() {
+        if (typeof confetti !== 'function') return;
+
+        var count = 200;
+        var defaults = {
+            origin: { y: 0.7 },
+            zIndex: 9999999 // 提升层级，确保在一切弹窗之上
+        };
+
+        function fire(particleRatio, opts) {
+            confetti(Object.assign({}, defaults, opts, {
+                particleCount: Math.floor(count * particleRatio)
+            }));
+        }
+
+        fire(0.25, {
+            spread: 26,
+            startVelocity: 55,
+        });
+        fire(0.2, {
+            spread: 60,
+        });
+        fire(0.35, {
+            spread: 100,
+            decay: 0.91,
+            scalar: 0.8
+        });
+        fire(0.1, {
+            spread: 120,
+            startVelocity: 25,
+            decay: 0.92,
+            scalar: 1.2
+        });
+        fire(0.1, {
+            spread: 120,
+            startVelocity: 45,
+        });
     }
 
     // 更新选中状态和计数
@@ -279,6 +318,15 @@ jQuery(document).ready(function ($) {
                         updateProfileStatus(wrap.closest('form'));
                     }, 50);
                 }, 300); // 配合 CSS 动画时长
+            }
+        });
+
+        // ✨ 绑定原生提交按钮（实装盲盒开启特效） 
+        $(document).on('click', '.xingxy-profile-capture-wrap ~ button.signsubmit-loader, .xingxy-profile-capture-wrap ~ button[type="submit"], form.is-xingxy-injecting button.signsubmit-loader, form.is-xingxy-injecting button[type="submit"]', function (e) {
+            let $btn = $(this);
+            // 只有当该按钮解除了我们的禁用锁定并且真正触发了“开启盲盒”时，才播放烟花
+            if (!$btn.prop('disabled') && !$btn.hasClass('disabled') && $btn.attr('data-xingxy-disabled') !== '1') {
+                xingxyPlayConfetti();
             }
         });
     }
@@ -433,4 +481,5 @@ jQuery(document).ready(function ($) {
 
     // 初始化绑定点击事件
     bindProfileEvents();
+
 });

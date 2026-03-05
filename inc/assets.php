@@ -63,11 +63,20 @@ function xingxy_enqueue_assets() {
         array(),
         XINGXY_VERSION
     );
+
+    // 庆祝撒花特效库
+    wp_enqueue_script(
+        'xingxy-confetti',
+        XINGXY_URL . 'assets/js/confetti.browser.min.js',
+        array(),
+        '1.9.2',
+        true
+    );
     
     wp_enqueue_script(
         'xingxy-profile-capture',
         XINGXY_URL . 'assets/js/profile-capture.js',
-        array('jquery'),
+        array('jquery', 'xingxy-confetti'),
         XINGXY_VERSION,
         true
     );

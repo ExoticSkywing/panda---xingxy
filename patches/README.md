@@ -226,3 +226,13 @@ git diff HEAD~1 -- inc/functions/shop/
 
 **更新日期**: 2026-03-05
 
+---
+
+## 用户画像前端 UI 重构及盲盒庆祝动画
+
+深度重置了前端绑定弹窗中拦截出的画像填选 UI。剥离硬编码，通过纯原生 CSS 变量让盲盒横幅无缝融入暗色模式；增加彩蛋按钮实测框架，最终绑定 `canvas-confetti` 视觉粒子实现高级的开盲盒洒花特效。提供了全新的 HTML 互动层级文案供后台绑定。
+
+详见 [profile-capture-ui-upgrade.md](./profile-capture-ui-upgrade.md)
+
+**更新日期**: 2026-03-05
+
