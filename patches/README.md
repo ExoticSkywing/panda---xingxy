@@ -245,3 +245,13 @@ git diff HEAD~1 -- inc/functions/shop/
 详见 [oauth-gender-extraction.md](./oauth-gender-extraction.md)
 
 **更新日期**: 2026-03-05
+
+---
+
+## 独立画像弹窗（兜底直注册用户）
+
+通过邮箱直接注册的用户不会触发「绑定邮箱」流程，导致画像问卷从未展示。新增独立弹窗机制：对已登录但无画像数据的用户，自动弹出问卷 modal（复用现有 UI + 盲盒积分 + confetti），通过独立 AJAX 端点提交。后台可配置开关、文案、提醒周期（Cookie 控制）。
+
+详见 [profile-standalone-popup.md](./profile-standalone-popup.md)
+
+**更新日期**: 2026-03-18

@@ -259,6 +259,123 @@ function xingxy_get_oauth_gender($user_id) {
 }
 
 /**
+ * 独立 AJAX 提交端点：接收问卷数据（不依赖邮箱绑定流程）
+ */
+add_action('wp_ajax_xingxy_submit_profile_standalone', 'xingxy_submit_profile_standalone');
+function xingxy_submit_profile_standalone() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error('未登录');
+    }
+
+    if (get_user_meta($user_id, 'xingxy_profile_data', true)) {
+        wp_send_json_error('已完成画像采集');
+    }
+
+    $dim1_str = isset($_POST['profile_dim1']) ? sanitize_text_field($_POST['profile_dim1']) : '';
+    $dim2_str = isset($_POST['profile_dim2']) ? sanitize_text_field($_POST['profile_dim2']) : '';
+    $dim3_str = isset($_POST['profile_dim3']) ? sanitize_text_field($_POST['profile_dim3']) : '';
+
+    if (empty($dim1_str) && empty($dim2_str) && empty($dim3_str)) {
+        wp_send_json_error('请完成问卷');
+    }
+
+    $selections = [
+        'dim1' => array_filter(explode(',', $dim1_str)),
+        'dim2' => array_filter(explode(',', $dim2_str)),
+        'dim3' => array_filter(explode(',', $dim3_str)),
+    ];
+
+    xingxy_calculate_user_profile($user_id, $selections);
+
+    // 盲盒奖励发放（与邮箱绑定流程逻辑一致）
+    if (!empty($selections['dim3'])) {
+        $has_rewarded = get_user_meta($user_id, '_xingxy_welcome_rewarded', true);
+        if (!$has_rewarded && function_exists('zibpay_update_user_points')) {
+            $reward_points = 150;
+            zibpay_update_user_points($user_id, array(
+                'value' => $reward_points,
+                'type'  => '盲盒开启',
+                'desc'  => '🎁 星星球首次探索漫游奖励！(神秘盲盒)',
+            ));
+            update_user_meta($user_id, '_xingxy_welcome_rewarded', true);
+        }
+    }
+
+    wp_send_json_success(array('message' => '画像采集完成，积分已到账！'));
+}
+
+/**
+ * 独立画像弹窗：对未走邮箱绑定流程的用户，在前台弹窗引导完成问卷
+ * 仿照 Zibll zib_bind_reminder_modal() 的 Cookie 周期控制机制
+ */
+add_action('wp_footer', 'xingxy_profile_reminder_modal');
+function xingxy_profile_reminder_modal() {
+    if (!xingxy_pz('profile_popup_enabled', true)) {
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if (!$user_id || is_admin()) {
+        return;
+    }
+
+    // 社交登录用户尚未绑定邮箱 → 走绑定邮箱流程（问卷已注入其中），不弹独立弹窗
+    $user = wp_get_current_user();
+    if (empty($user->user_email)) {
+        return;
+    }
+
+    // 已有画像数据，永不弹
+    if (get_user_meta($user_id, 'xingxy_profile_data', true)) {
+        return;
+    }
+
+    // Cookie 周期内不重复弹
+    if (isset($_COOKIE['xingxy_profile_reminded'])) {
+        return;
+    }
+
+    $popup_text = xingxy_pz('profile_popup_text', '完成下方探索问卷，即可解锁 <b>150 积分盲盒</b> 奖励！');
+    $expires_hours = xingxy_pz('profile_popup_expires', 24);
+    $expires_days = round($expires_hours / 24, 3);
+
+    $modal  = '<div class="modal fade" id="xingxy_profile_popup" tabindex="-1" role="dialog">';
+    $modal .= '<div class="modal-dialog modal-mini" role="document">';
+    $modal .= '<div class="modal-content">';
+    $modal .= '<div class="modal-header">';
+    $modal .= '<button type="button" class="close" data-dismiss="modal" aria-label="关闭"><span aria-hidden="true">&times;</span></button>';
+    $modal .= '</div>';
+    $modal .= '<div class="modal-body">';
+    $modal .= '<div class="box-body nopw-sm">';
+    if ($popup_text) {
+        $modal .= '<div class="mb20 em09 muted-2-color">' . $popup_text . '</div>';
+    }
+    $modal .= '<form class="xingxy-standalone-profile-form" data-action="xingxy_submit_profile_standalone">';
+    // 问卷 HTML 将由 profile-capture.js 动态注入此 form
+    $modal .= '<button type="button" class="but jb-blue btn-block radius xingxy-standalone-submit disabled" disabled>';
+    $modal .= '🎁 开启盲盒';
+    $modal .= '</button>';
+    $modal .= '</form>';
+    $modal .= '</div>';
+    $modal .= '</div>';
+    $modal .= '</div>';
+    $modal .= '</div>';
+    $modal .= '</div>';
+
+    $modal .= '<script type="text/javascript">';
+    $modal .= 'jQuery(function($){setTimeout(function(){';
+    $modal .= '$("#xingxy_profile_popup").modal("show");';
+    if ($expires_days > 0) {
+        $modal .= '$.cookie("xingxy_profile_reminded","1",{path:"/",expires:' . $expires_days . '});';
+    }
+    $modal .= '},1200);});';
+    $modal .= '</script>';
+
+    echo $modal;
+}
+
+/**
  * 在后台用户列表新增【隐形画像】列
  */
 add_filter('manage_users_columns', function($columns) {

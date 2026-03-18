@@ -241,7 +241,10 @@ jQuery(document).ready(function ($) {
             // 如果是最后一步，则同时允许真实的提交按钮解禁。
             let isCurrentStepValid = dim_count >= dim_req_num;
             let nextBtn = wrap.find('.xingxy-profile-next-btn');
-            let submitBtn = context.find('button.signsubmit-loader[type="button"], button[type="submit"]').last();
+            let isStandalone = context.hasClass('xingxy-standalone-profile-form');
+            let submitBtn = isStandalone
+                ? context.find('.xingxy-standalone-submit')
+                : context.find('button.signsubmit-loader[type="button"], button[type="submit"]').last();
 
             if (isCurrentStepValid) {
                 nextBtn.prop('disabled', false).removeClass('disabled').text('继续探索 🚀');
@@ -253,7 +256,7 @@ jQuery(document).ready(function ($) {
                     submitBtn.prop('disabled', false).removeClass('disabled').css({ 'opacity': '1', 'cursor': 'pointer' }).removeAttr('data-xingxy-disabled');
 
                     // 放弃模拟点击，直接劫持真实按钮的视觉，让用户真正点到 Zibll 的原生提交按钮上！
-                    submitBtn.text('🎁 开启盲盒并完成绑定').addClass('btn-primary').show();
+                    submitBtn.text(isStandalone ? '🎁 开启盲盒' : '🎁 开启盲盒并完成绑定').addClass('btn-primary').show();
 
                     // 将这最后一步的引导下一步按钮隐藏，用户只需要直接点击 submitBtn
                     nextBtn.hide();
@@ -328,6 +331,47 @@ jQuery(document).ready(function ($) {
             if (!$btn.prop('disabled') && !$btn.hasClass('disabled') && $btn.attr('data-xingxy-disabled') !== '1') {
                 xingxyPlayConfetti();
             }
+        });
+
+        // ✨ 独立弹窗提交按钮：直接 AJAX 提交问卷数据
+        $(document).on('click', '.xingxy-standalone-submit', function (e) {
+            e.preventDefault();
+            let $btn = $(this);
+            if ($btn.prop('disabled') || $btn.hasClass('disabled')) return;
+
+            // 所有维度必须达标
+            if (selectedIds.dim1.length < reqLimits.dim1 ||
+                selectedIds.dim2.length < reqLimits.dim2 ||
+                selectedIds.dim3.length < reqLimits.dim3) return;
+
+            $btn.prop('disabled', true).text('提交中...');
+
+            $.ajax({
+                url: xingxy_profile.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'xingxy_submit_profile_standalone',
+                    profile_dim1: selectedIds.dim1.join(','),
+                    profile_dim2: selectedIds.dim2.join(','),
+                    profile_dim3: selectedIds.dim3.join(',')
+                },
+                success: function (res) {
+                    if (res.success) {
+                        xingxyPlayConfetti();
+                        if (typeof tb_msg === 'function') tb_msg(res.data.message || '画像采集完成！', 'success');
+                        setTimeout(function () {
+                            $('#xingxy_profile_popup').modal('hide');
+                        }, 1500);
+                    } else {
+                        $btn.prop('disabled', false).text('🎁 开启盲盒');
+                        if (typeof tb_msg === 'function') tb_msg(res.data || '提交失败，请重试', 'error');
+                    }
+                },
+                error: function () {
+                    $btn.prop('disabled', false).text('🎁 开启盲盒');
+                    if (typeof tb_msg === 'function') tb_msg('网络异常，请重试', 'error');
+                }
+            });
         });
     }
 
@@ -478,6 +522,38 @@ jQuery(document).ready(function ($) {
             }
         }
     });
+
+    // ====== 独立画像弹窗注入 ======
+    function injectStandaloneProfile() {
+        let standaloneForm = $('.xingxy-standalone-profile-form');
+        if (standaloneForm.length === 0) return;
+        if (standaloneForm.find('.xingxy-profile-capture-wrap').length > 0) return; // 已注入
+
+        fetchProfileOptions(function (data) {
+            if (reqLimits.dim1 === 0 && reqLimits.dim2 === 0 && reqLimits.dim3 === 0) return;
+            if (standaloneForm.find('.xingxy-profile-capture-wrap').length > 0) return;
+
+            let injectedNode = $(buildProfileHtml(data));
+            let submitBtn = standaloneForm.find('.xingxy-standalone-submit');
+            submitBtn.before(injectedNode);
+            injectedNode.addClass('is-loaded');
+            selectedIds = { dim1: [], dim2: [], dim3: [] };
+
+            // 初始状态：禁用提交按钮
+            submitBtn.prop('disabled', true).addClass('disabled').css({ 'opacity': '0.5', 'cursor': 'not-allowed' }).attr('data-xingxy-disabled', '1');
+            updateProfileStatus(standaloneForm);
+        });
+    }
+
+    // 监听独立弹窗打开
+    $(document).on('shown.bs.modal', '#xingxy_profile_popup', function () {
+        setTimeout(injectStandaloneProfile, 100);
+    });
+
+    // 页面加载时如果弹窗已存在也尝试注入
+    if ($('#xingxy_profile_popup').length > 0) {
+        setTimeout(injectStandaloneProfile, 1500);
+    }
 
     // 初始化绑定点击事件
     bindProfileEvents();
