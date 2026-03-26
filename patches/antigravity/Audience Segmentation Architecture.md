@@ -1,7 +1,7 @@
 # 受众分群生态架构（Audience Segmentation Architecture）
 
-> 日期：2026-03-21
-> 状态：蓝图设计阶段，未进入开发
+> 日期：2026-03-21（初稿）→ 2026-03-24（口令透传方案定稿）
+> 状态：Phase 0 技术方案已锁定，准备进入开发
 > 前置文档：ARCHITECTURE.md、与TG侧融合的生态架构.md、Integrate Bot and Zibll Points.md
 
 ---
@@ -66,19 +66,22 @@ segment 的属性：
 └── auto_rules  自动打标规则（可选）
 ```
 
-### 2.2 标签的来源与隐式追踪
+### 2.2 标签的来源：口令即标签（已定稿 2026-03-24）
 
-标签的分配不再依赖显式的 `ref=` 参数，而是通过一套更安全、隐蔽的机制完成。按优先级排列：
+> **核心洞察**：1yo.cc 的跃迁口令天然就是用户分群标签。管理员为不同社交平台自定义不同口令（如 `shop` 发 Telegram、`xhs` 发小红书、`dy618` 发抖音 618 活动），用户输入口令的瞬间就已经完成了自我分群。星小芽只需在注册时正确感知"这个用户来自哪个口令"，即可打标。
 
-| 途径 | 触发时机 | 机制说明 |
-|------|----------|------|
-| **① 1yo.cc 跃迁口令** | 用户输入特定口令（如 pxkjvip） | 跨浏览器终极追踪，口令本身即代表特定 segment。 |
-| **② 隐式短链追踪** | 用户点击分享短链并注册 | 通过 `/topic/xxx` 伪装短链，服务器端映射出对应的 `_sg` 参数并写入 Cookie。 |
-| **③ 推荐链继承 (树型)** | 无明确入口标签但带有推荐人 ID (`_s`) | 继承推荐人（父节点）的 `_xingxy_segments` 标签。 |
-| **④ 商品购买/任务** | 在星小芽或商城完成特定行为 | 业务逻辑触发自动追加标签。 |
-| **⑤ 管理员手动** | 后台/Center 维护 | 管理员手动赋予或调整标签。 |
+按优先级排列：
+
+| 优先级 | 途径 | 触发时机 | 机制说明 |
+|--------|------|----------|------|
+| **①** | **1yo.cc 口令透传** | 用户输入口令 → 跳转到星小芽 | 口令作为 URL 参数 `_gate` 透传，三层追踪保证跨浏览器不丢失（详见 §3.1.1）。**零代码扩展**——新增口令即新增渠道标签。 |
+| **②** | **推荐链继承 (树型)** | 无明确口令但带有推荐人 ID (`_s`) | 继承推荐人（父节点）的 `_xingxy_segments` 标签（详见 §3.1.3）。 |
+| **③** | **商品购买/任务** | 在星小芽或商城完成特定行为 | 业务逻辑触发自动追加标签。 |
+| **④** | **管理员手动** | 后台/Center 维护 | 管理员手动赋予或调整标签。 |
 
 **`general` 标签**：所有注册用户保底拥有，如果以上所有途径都未匹配，则退化为 `general`。
+
+> **设计决策**：原方案中的"隐式短链追踪"（伪装 `/topic/xxx` + 服务器端映射 + 302 跳转 + WebView 检测）已被废弃。口令透传方案更简单、更精准、更易扩展，且不需要维护短链映射表。
 
 ### 2.3 标签的存储
 
@@ -118,79 +121,181 @@ WordPress wp_usermeta:
 
 ### 3.1 第一层：身份层（标签分配与存储）
 
-#### 3.1.1 隐式追踪与伪装短链（核心机制）
+#### 3.1.1 口令透传三层追踪（核心机制，已定稿 2026-03-24）
 
-为了防止用户手动篡改参数、避免被第三方平台拦截，同时保持链接的"原生感"，我们采用"伪装短链 + Server-side 映射 + 302跳转"的机制：
+> **设计原则**：口令即标签，URL 参数 `_gate` 即信号，三层防丢保证跨浏览器追踪。
+> **废弃说明**：原"伪装短链 + Server-side 映射 + 302 跳转 + WebView 检测"方案过于复杂且维护成本高，已废弃。
 
-```
-管理员生成分享链接 → xingxy.com/topic/a7x9m  (a7x9m 为随机伪装 Token)
-                          │
-用户在外部点击该短链         │
-                          ▼
-           服务器拦截 /topic/a7x9m 请求
-           查询数据库 xingxy_share_tokens 表
-           获取真实参数：post_id=123, _s=admin_id, _sg=biz_a
-                          │
-          ┌───────────────┼───────────────┐
-          │               │               │
-  判断 User-Agent     是否 WebView?     是真浏览器
-          │               │               │
-          ▼               ▼               ▼
-      返回诱导页        拦截并提示      写入 Cookie: _xseg=biz_a, _xref=admin_id
-   "请用浏览器打开"     "请复制链接"      → 302 跳转到真实帖子页 xingxy.com/forum/123/
-```
-
-实现要点：
-- **无感追踪**：用户看到的始终是干净的短链或帖子链接，没有任何如 `?ref=` 或 `?_sg=` 的可见参数。
-- **WebView 防御（第零层与第一层防线）**：
-  - 在星小芽侧：通过 PHP 拦截，如果检测到是在微信/Instagram 等内置浏览器（WebView）中打开，直接返回一个兼具**橱窗展示**（显示帖子摘要）和**浏览器引导**的中间页，阻止带 Cookie 跳转，防止跨浏览器导致的追踪丢失。
-  - 只有在真实浏览器中，才进行 Cookie 写入和 302 跳转。
-
-#### 3.1.2 1yo.cc 跃迁口令追踪（第三层防线）
-
-1yo.cc 作为生态唯一统一入口，其"跃迁口令"是跨越浏览器隔离的终极武器：
+##### 全链路流程
 
 ```
-用户在 1yo.cc 输入口令 "pxkjvip"
-                          │
-             前端 JS 验证口令，获取目标 URL
-                          │
-             ┌────────────┴────────────┐
-             │                         │
-        是 WebView?                是真浏览器
-             │                         │
-             ▼                         ▼
-  展示中间确认态（玻璃拟态 UI）    展示中间确认态，点击【启动跃迁】
-  显示 ⚠️ 提示并仅提供【复制链接】   触发"闪爆"动画，跳转到专属通道 (含参数/短链)
+用户在社交平台看到口令（如 "shop"）
+        │
+        ▼
+  1yo.cc 输入口令 "shop"
+        │
+        ▼
+  JS 验证通过，grantAccess() 跳转
+  目标 URL 自动追加 _gate 参数：
+  window.location.href = target.url + "?_gate=shop"
+        │
+        ▼
+  着陆星小芽  xingxy.manyuzo.com/store?_gate=shop
+        │
+        ├─── 【第一层：PHP Cookie】 template_redirect 优先级 0
+        │    读取 ?_gate=shop → setcookie('_xgate', 'shop', 7天)
+        │
+        ├─── 【第二层：JS replaceState 兜底】 前端 JS
+        │    读 Cookie _xgate → 若当前 URL 无 _gate 参数
+        │    → history.replaceState 静默补入 ?_gate=shop
+        │    → 确保任意页面"用浏览器打开"时 URL 都带 _gate
+        │
+        └─── 【第三层：注册表单隐藏字段】 PHP 注入
+             Zibll 注册表单末尾注入 <input type="hidden" name="_gate" value="shop">
+             → 即使 Cookie 丢失，POST 提交也能带上来源
+        │
+        ▼
+  用户注册（无论在内置浏览器还是系统浏览器）
+        │
+        ▼
+  user_register 钩子（优先级 5）：
+  读取 POST._gate || Cookie._xgate → 写入 user_meta _source_gate = "shop"
+  查询口令→segment 映射表 → 写入 user_meta _xingxy_segments = ["general", "biz_a"]
 ```
 
-**优势**：口令存在用户的脑海中，不依赖任何本地存储。即使用户从 Instagram 切换到 Safari，只要输入正确的口令，系统就能准确将其引导至特定的 segment 通道。
+##### 三层追踪覆盖矩阵
 
-#### 3.1.3 推荐链继承 (树型传播)
+| 场景 | 第一层 Cookie | + 第三层隐藏字段 | + 第二层 JS replaceState |
+|------|:------------:|:---------------:|:-----------------------:|
+| 内置浏览器直接注册 | ✅ | ✅ | ✅ |
+| 落地页即切换到系统浏览器 | ✅ | ✅ | ✅ |
+| 浏览数页后在注册页切换浏览器 | ❌ | ✅ | ✅ |
+| 浏览数页后在任意页切换浏览器 | ❌ | ❌ | ✅ |
 
-如果用户没有通过带有明确 `_sg` 的短链或 1yo.cc 进入，而是点击了普通用户分享的带有 `_s`（推荐人 ID）的链接进入：
+##### 关键实现细节
+
+**1yo.cc 端（改动 1 行）**
+
+文件：`/root/data/repo/HomePage/src/js/main.js` — `grantAccess()` 方法
+
+```javascript
+// 原：window.location.href = target.url;
+// 改：口令作为 _gate 参数透传
+const sep = target.url.includes('?') ? '&' : '?';
+window.location.href = target.url + sep + '_gate=' + encodeURIComponent(code);
+```
+
+口令粒度完全由管理员控制——可以是平台级（`shop`）、活动级（`dy618`）、甚至单帖级（`xhs_post_42`）。新增口令只需在 `LAUNCH_CODES` 对象中加一条，**星小芽端零改动**。
+
+**星小芽端（新增 ~40 行 PHP + ~8 行 JS）**
+
+文件：`xingxy/inc/gate-tracker.php`（新建）
+
+```php
+<?php
+// ===== 第一层：PHP Cookie =====
+add_action('template_redirect', function () {
+    $gate = isset($_GET['_gate']) ? sanitize_text_field($_GET['_gate']) : '';
+    if (empty($gate)) return;
+    setcookie('_xgate', $gate, time() + 7 * 86400, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+    $_COOKIE['_xgate'] = $gate; // 同步当次请求
+}, 0);
+
+// ===== 第二层：JS replaceState 兜底 =====
+add_action('wp_footer', function () {
+    $gate = $_COOKIE['_xgate'] ?? $_GET['_gate'] ?? '';
+    if (empty($gate)) return;
+    ?>
+    <script>
+    (function(){
+        var g = <?php echo json_encode($gate); ?>;
+        if (g && !new URLSearchParams(location.search).has('_gate')) {
+            var u = new URL(location.href);
+            u.searchParams.set('_gate', g);
+            history.replaceState(null, '', u.toString());
+        }
+    })();
+    </script>
+    <?php
+}, 999);
+
+// ===== 第三层：注册表单隐藏字段 =====
+add_action('zib_register_form_end', function () {
+    $gate = $_COOKIE['_xgate'] ?? $_GET['_gate'] ?? '';
+    if ($gate) {
+        echo '<input type="hidden" name="_gate" value="' . esc_attr($gate) . '">';
+    }
+});
+
+// ===== 注册时打标 =====
+add_action('user_register', function ($user_id) {
+    // 优先 POST（隐藏字段），其次 Cookie
+    $gate = isset($_POST['_gate']) ? sanitize_text_field($_POST['_gate']) : '';
+    if (empty($gate)) {
+        $gate = isset($_COOKIE['_xgate']) ? sanitize_text_field($_COOKIE['_xgate']) : '';
+    }
+    if (empty($gate)) return;
+
+    // 1. 记录原始口令（归因溯源）
+    update_user_meta($user_id, '_source_gate', $gate);
+
+    // 2. 口令 → segment 映射（从后台配置读取）
+    $mapping = xingxy_pz('gate_segment_mapping', []);
+    $segment = isset($mapping[$gate]) ? $mapping[$gate] : 'general';
+    $segments = get_user_meta($user_id, '_xingxy_segments', true) ?: ['general'];
+    if (!in_array($segment, $segments)) {
+        $segments[] = $segment;
+    }
+    update_user_meta($user_id, '_xingxy_segments', $segments);
+
+    // 3. 清除追踪 Cookie
+    setcookie('_xgate', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+}, 5);
+```
+
+##### 口令 → Segment 映射配置
+
+在星小芽后台 CSF 面板中维护映射表（`gate_segment_mapping`）：
+
+```
+口令          →  Segment Slug
+─────────────────────────────
+shop          →  biz_a
+pxkjvip       →  biz_a
+yzq           →  biz_b
+xhs           →  biz_b
+dy618         →  campaign_dy618
+douyin        →  biz_c
+（默认）       →  general
+```
+
+这是一个**纯配置表**，不涉及任何代码修改。新增渠道 = 新增一条映射。
+
+#### 3.1.2 推荐链继承（树型传播）
+
+如果用户没有通过 1yo.cc 口令进入，而是点击了普通用户分享的带有 `_s`（推荐人 ID）的推广链接：
 
 ```
 注册钩子 (user_register) 优先级判断：
-1. Cookie 中有 _xseg (隐式短链赋予)? 
-   → 使用该 _xseg
-2. Cookie 中没有 _xseg，但有 _xref (推荐人 ID)? 
-   → 读取推荐人的 _xingxy_segments 
-   → 将该新用户标记为与推荐人相同的 segment (继承)
-3. 都没有? 
+1. 有 _gate（口令透传）?
+   → 使用口令映射的 segment（§3.1.1 已处理）
+2. 没有 _gate，但有 _xref Cookie（推荐人推广码）?
+   → 读取推荐人的 _xingxy_segments
+   → 新用户继承推荐人的 segment（树型传播）
+3. 都没有?
    → 分配默认的 "general"
 ```
 
-这形成了一个**树型传播结构**：管理员（根节点）生成特定群体（如 biz_a）的短链分享给首批用户（第一层）。这批用户注册后被打上 biz_a 标签。当他们使用自己的普通推荐链接继续分享时，通过他们注册的下级用户（第二层）会自动继承 biz_a 标签。
+这形成了一个**树型传播结构**：管理员（根节点）通过 1yo.cc 口令分享给首批用户（第一层），被打上对应标签。当这批用户使用自己的推荐链接继续分享时，下级用户（第二层）自动继承相同标签。
 
-#### 3.1.4 商品购买触发打标
+#### 3.1.3 商品购买触发打标
 
 ```
 用户购买商品 → Zibll 支付成功钩子 → 检查商品 meta 中是否有 segment 配置
 → 有则追加到用户的 _xingxy_segments
 ```
 
-#### 3.1.5 TG 侧触发打标
+#### 3.1.4 TG 侧触发打标
 
 ```
 用户在精灵中执行命令/输入口令 → 精灵调用星小芽 REST API → 追加 segment
@@ -198,7 +303,7 @@ WordPress wp_usermeta:
 
 需要星小芽侧暴露一个受保护的 REST 端点供精灵调用。
 
-#### 3.1.6 管理员手动打标与后台管理
+#### 3.1.5 管理员手动打标与后台管理
 
 - 在星小芽后台提供一套专门的 UI：**管理员分享面板**，允许管理员为特定帖子生成带有自定义 segment 的伪装短链。
 - 在星小芽后台用户列表中，增加 segment 标签编辑列。
@@ -331,24 +436,31 @@ _xingxy_segments 包含 "biz_a"?
 
 ## 四、全局生态数据流
 
-### 4.1 用户完整旅程
+### 4.1 用户完整旅程（已更新 2026-03-24）
 
 ```
-                    ┌─── X/推特 (业务A推广)
-                    ├─── QQ群  (业务A推广)
-  四面八方的流量 ────├─── YouTube (业务B推广)
-                    ├─── 小红书 (业务B推广)
-                    └─── 自然搜索 (无特定业务)
+                    ┌─── X/推特   口令: shop
+                    ├─── QQ群     口令: qqvip
+  四面八方的流量 ────├─── YouTube  口令: yzq
+                    ├─── 小红书   口令: xhs
+                    └─── 抖音618  口令: dy618
                          │
-                         │ 各自的推广链接: ?ref=biz_a / ?ref=biz_b / 无ref
+                         │ 用户在 1yo.cc 输入口令
                          ▼
-                ┌────────────────────┐
-                │      星小芽         │
-                │   统一着陆 + 注册    │
-                │   ref → cookie     │
-                │   注册 → 写入       │
-                │   _xingxy_segments │
-                └────────┬───────────┘
+                ┌────────────────────────┐
+                │       1yo.cc           │
+                │  口令验证 → grantAccess │
+                │  跳转 URL + ?_gate=xxx │
+                └────────┬───────────────┘
+                         │
+                         ▼
+                ┌────────────────────────┐
+                │       星小芽            │
+                │  三层追踪（§3.1.1）      │
+                │  Cookie + JS + 隐藏字段  │
+                │  注册 → _source_gate    │
+                │       → _xingxy_segments│
+                └────────┬───────────────┘
                          │
            ┌─────────────┼─────────────┐
            ▼             ▼             ▼
@@ -376,12 +488,15 @@ _xingxy_segments 包含 "biz_a"?
    [tag: biz_a]               [tag: biz_b]
 ```
 
-### 4.2 标签写入与读取的数据流
+### 4.2 标签写入与读取的数据流（已更新 2026-03-24）
 
 ```
 写入路径（四条独立的写入触发器）：
 
-① 注册来源 ─→ WP user_register hook ─→ wp_usermeta._xingxy_segments
+① 口令透传 ─→ 1yo.cc ?_gate=xxx → Cookie/_POST
+           ─→ WP user_register hook（优先级5）
+           ─→ wp_usermeta._source_gate（原始口令归因）
+           ─→ wp_usermeta._xingxy_segments（映射后的 segment）
 ② 商品购买 ─→ Zibll 支付成功 hook   ─→ wp_usermeta._xingxy_segments
 ③ TG 触发  ─→ 精灵 → WP REST API   ─→ wp_usermeta._xingxy_segments
 ④ 手动打标 ─→ WP 后台 / Center      ─→ wp_usermeta._xingxy_segments
@@ -393,6 +508,10 @@ wp_usermeta._xingxy_segments
     ├─→ 论坛查询: pre_get_posts meta_query（实时，每次页面加载）
     ├─→ 精灵校验: 绑定后读 usermeta（按需，加入频道时）
     └─→ Center: Gateway 从 /userinfo 获取（按需，管理后台查看时）
+
+归因分析额外数据：
+wp_usermeta._source_gate
+    └─→ 后台统计: 按口令分组统计注册量/转化率/消费额
 ```
 
 ---
@@ -465,7 +584,8 @@ Zibll 自带的 VIP/等级体系不需要废弃，而是**重新定位**：
 
 - `_xingxy_segments` 仅通过后端写入（注册钩子、支付钩子、REST API）
 - 前端不暴露任何修改 segment 的接口
-- ref cookie 只用于注册时的一次性读取，注册后 cookie 可删除
+- `_xgate` Cookie 仅用于注册时一次性读取，注册后立即清除
+- 即使用户手动篡改 `_gate` URL 参数或 Cookie，也仅影响注册时的一次性打标，且口令必须存在于后台映射表中才会生效（无效口令退化为 `general`）
 
 ### 7.2 主频道不反向链接子频道
 
@@ -488,19 +608,21 @@ Zibll 自带的 VIP/等级体系不需要废弃，而是**重新定位**：
 
 ## 八、开发路线图（建议分期）
 
-### Phase 0：基础定义（最小可用）
+### Phase 0：口令透传 + 基础分群（最小可用，方案已锁定 2026-03-24）
 
-**目标**：跑通"注册带标签 → 论坛看到不同内容"的最小闭环
+**目标**：跑通“1yo.cc 口令 → 星小芽注册自动打标 → 论坛看到不同内容”的最小闭环
 
-| 序号 | 任务 | 文件/系统 |
-|------|------|-----------|
-| 0.1 | CSF 面板：定义 segment 列表 + ref 映射表 | xingxy/inc/options.php |
-| 0.2 | 注册钩子：ref cookie → _xingxy_segments | xingxy/inc/segment.php (新) |
-| 0.3 | 帖子 meta box：设置可见 segment | xingxy/inc/segment.php |
-| 0.4 | pre_get_posts 过滤：按用户 segment 过滤帖子 | xingxy/inc/segment.php |
-| 0.5 | 后台用户列表：显示 segment 标签列 | xingxy/inc/segment.php |
+| 序号 | 任务 | 文件/系统 | 状态 |
+|------|------|-----------|------|
+| 0.1 | 1yo.cc `grantAccess()` 透传 `_gate` 参数 | HomePage/src/js/main.js | 待开发 |
+| 0.2 | 星小芽端三层追踪（Cookie + JS replaceState + 隐藏字段） | xingxy/inc/gate-tracker.php（新建） | 待开发 |
+| 0.3 | 注册时打标（_source_gate + _xingxy_segments） | xingxy/inc/gate-tracker.php | 待开发 |
+| 0.4 | CSF 面板：口令 → segment 映射配置表 | xingxy/inc/options.php | 待开发 |
+| 0.5 | 帖子 meta box：设置可见 segment | xingxy/inc/segment.php（新建） | 待开发 |
+| 0.6 | pre_get_posts 过滤：按用户 segment 过滤帖子 | xingxy/inc/segment.php | 待开发 |
+| 0.7 | 后台用户列表：显示 segment 标签列 | xingxy/inc/segment.php | 待开发 |
 
-**交付物**：直注册用户按来源自动分群，论坛帖子按群体千人千面。
+**交付物**：管理员发布口令到任意社交平台 → 用户输入口令注册 → 自动打标 → 论坛千人千面。新增渠道零代码，只需后台加一条映射。
 
 ### Phase 1：TG 侧联动
 
@@ -545,13 +667,13 @@ Zibll 自带的 VIP/等级体系不需要废弃，而是**重新定位**：
 
 以下决策需要在开发前确认，本文档暂不锁定：
 
-| # | 决策点 | 选项 | 当前倾向 |
-|---|--------|------|----------|
+| # | 决策点 | 选项 | 状态 |
+|---|--------|------|------|
 | D1 | 目前实际有几个 segment？ | 取决于业务方向数量 | 待定义 |
-| D2 | 帖子不可见时是"完全消失"还是"显示锁定标题"？ | 消失 = 无感知；锁定 = 有引导 | 看业务需要 |
+| D2 | 帖子不可见时是“完全消失”还是“显示锁定标题”？ | 消失 = 无感知；锁定 = 有引导 | 看业务需要 |
 | D3 | 用户是否可以看到自己拥有哪些 segment？ | 透明（个人中心显示） vs 隐式（用户无感知） | 待确认 |
 | D4 | segment 是否有过期机制？ | 永久 vs 有期限 | 建议先做永久，后期按需加过期 |
-| D5 | ref 参数格式约定 | `?ref=biz_a` vs `?ref=invite_123` | 待统一 |
+| ~~D5~~ | ~~参数格式约定~~ | ~~`?ref=biz_a` vs `?ref=invite_123`~~ | **✅ 已锁定**：使用 `?_gate={code}`，code 为 1yo.cc 口令原值，通过后台 CSF 映射表转换为 segment slug |
 
 ---
 
@@ -562,3 +684,5 @@ Zibll 自带的 VIP/等级体系不需要废弃，而是**重新定位**：
 > 用户从哪来，就自动拥有对应的内容权限——论坛只展示他该看的帖子，TG 只让他进他该进的频道，空投机只给他他该拿的资源。没有挡板，没有挫败感，水流自然。
 
 技术上，这套架构建立在已有的 WordPress usermeta + 精灵绑定 + 空投机 tag 系统之上，核心新增量是一个 `_xingxy_segments` meta 字段和围绕它的四条写入路径、三个读取消费方。
+
+> **2026-03-24 更新**：Phase 0 的核心机制"口令透传三层追踪"已定稿（§3.1.1）。1yo.cc 改 1 行 JS，星小芽新建 `gate-tracker.php`（~40 行 PHP + ~8 行 JS），即可实现全平台用户归因。新增渠道只需后台加一条口令→segment 映射，零代码扩展。

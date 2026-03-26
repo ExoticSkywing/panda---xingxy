@@ -255,3 +255,13 @@ git diff HEAD~1 -- inc/functions/shop/
 详见 [profile-standalone-popup.md](./profile-standalone-popup.md)
 
 **更新日期**: 2026-03-18
+
+---
+
+## Zibll 亮点块 4 列布局修复
+
+Zibll 亮点块（`zibllblock/feature`）在前台显示 3+1 列而非 4 列。根因是 `inline-block` 布局的空白间隙容差仅 ~4px，被 footer 延迟加载的 318KB Element UI CSS 触发回流后击穿。通过子主题注入 flexbox 覆盖彻底解决，不修改 Zibll 源码。
+
+详见 [zibll-feature-block-4col-fix.md](./zibll-feature-block-4col-fix.md)
+
+**更新日期**: 2026-03-26

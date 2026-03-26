@@ -117,6 +117,36 @@ function xingxy_enqueue_assets() {
 add_action('wp_enqueue_scripts', 'xingxy_enqueue_assets');
 
 /**
+ * 修复 Zibll 亮点块(feature block) 4列布局
+ * 原因：inline-block 的 HTML 空白间隙 + footer 延迟 CSS 回流导致第4个溢出
+ * 方案：父容器 flexbox，子元素固定 25% 宽度，彻底消除空白间隙和精度问题
+ */
+add_action('wp_enqueue_scripts', function() {
+    wp_add_inline_style('_main', '
+        .wp-posts-content:has(> .wp-block-zibllblock-feature) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+        .wp-posts-content > .wp-block-zibllblock-feature.feature {
+            display: block !important;
+            float: none !important;
+            flex: 0 0 calc(25% - 14px) !important;
+            width: calc(25% - 14px) !important;
+            margin: 5px !important;
+        }
+        .wp-posts-content > :not(.wp-block-zibllblock-feature) {
+            flex: 0 0 100% !important;
+        }
+        @media (max-width: 991px) {
+            .wp-posts-content > .wp-block-zibllblock-feature.feature {
+                flex: 0 0 calc(50% - 14px) !important;
+                width: calc(50% - 14px) !important;
+            }
+        }
+    ');
+}, 99);
+
+/**
  * 判断是否在商城相关页面
  */
 function xingxy_is_shop_page() {
