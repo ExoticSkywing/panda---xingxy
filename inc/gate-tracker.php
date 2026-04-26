@@ -151,6 +151,11 @@ add_action('wp_footer', function () {
                 + ';expires=' + exp
                 + '<?php echo is_ssl() ? ";secure" : ""; ?>'
                 + ';samesite=lax';
+            // 记录 Fragment 渠道点击（不走 /go/ 重定向时补计数）
+            var fd = new FormData();
+            fd.append('action', 'xingxy_fragment_click');
+            fd.append('sk', h);
+            fetch('<?php echo admin_url("admin-ajax.php"); ?>', {method:'POST', body:fd, credentials:'same-origin'});
         }
 
         // === 注册表单隐藏字段注入（兼容 Zibll AJAX 注册） ===
@@ -180,6 +185,25 @@ add_action('wp_footer', function () {
     </script>
     <?php
 }, 999);
+
+// ===================================================================
+// Fragment 渠道点击计数（补充 /go/ 重定向以外的点击统计）
+// ===================================================================
+
+add_action('wp_ajax_nopriv_xingxy_fragment_click', 'xingxy_handle_fragment_click');
+add_action('wp_ajax_xingxy_fragment_click', 'xingxy_handle_fragment_click');
+function xingxy_handle_fragment_click() {
+    $sk = sanitize_text_field($_POST['sk'] ?? '');
+    if (!$sk || !preg_match('/^[A-Za-z0-9]{6,12}$/', $sk)) {
+        wp_send_json_error();
+    }
+    global $wpdb;
+    $table = $wpdb->prefix . 'xingxy_share_links';
+    $wpdb->query($wpdb->prepare(
+        "UPDATE $table SET clicks = clicks + 1 WHERE share_key = %s", $sk
+    ));
+    wp_send_json_success();
+}
 
 // ===================================================================
 // 注册时打标（优先级链：_sk > _gate > _s > general）
