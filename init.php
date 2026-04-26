@@ -43,6 +43,15 @@ require_once XINGXY_PATH . 'inc/options.php';
 // 加载优惠功能扩展
 require_once XINGXY_PATH . 'inc/discount.php';
 
+// 加载分享链接追踪 & 用户分群打标（必须在 referral-tracker.php 之前）
+require_once XINGXY_PATH . 'inc/gate-tracker.php';
+
+// 加载管理员分享链接面板（增强 Zibll 分享模态框）
+require_once XINGXY_PATH . 'inc/share-links.php';
+
+// 加载追踪短链后台管理页面
+require_once XINGXY_PATH . 'inc/admin-share-links.php';
+
 // 加载推广链接伪装追踪模块（必须在 referral.php 之前）
 require_once XINGXY_PATH . 'inc/referral-tracker.php';
 

@@ -30,29 +30,25 @@ function xingxy_render_profile_dashboard() {
     }
 
     // 获取有画像数据的用户列表（按注册时间倒序）
-    // 为了简单高效，先一次性取最新 100 条（如数据量爆炸后续可升级无刷新分页或标准 WP_List_Table 分页）
-    $args = array(
-        'meta_query' => array(
-            'relation' => 'OR',
-            array(
-                'key'     => 'xingxy_profile_data',
-                'compare' => 'EXISTS'
-            ),
-            array(
-                'key'     => '_xingxy_welcome_rewarded',
-                'compare' => 'EXISTS'
-            ),
-            array(
-                'key'     => 'oauth_new',
-                'compare' => 'EXISTS'
-            )
-        ),
-        'number'  => 150, 
-        'orderby' => 'ID',
-        'order'   => 'DESC'
+    // 用单条 SQL 替代多 EXISTS OR 的 meta_query，避免 4 个 LEFT JOIN 导致慢查询
+    global $wpdb;
+    $user_ids = $wpdb->get_col(
+        "SELECT DISTINCT user_id FROM {$wpdb->usermeta}
+         WHERE meta_key IN ('xingxy_profile_data','_xingxy_welcome_rewarded','oauth_new','_xingxy_segments')
+         ORDER BY user_id DESC
+         LIMIT 150"
     );
-    $user_query = new WP_User_Query($args);
-    $users = $user_query->get_results();
+    $users = [];
+    if (!empty($user_ids)) {
+        $args = array(
+            'include' => $user_ids,
+            'number'  => 150,
+            'orderby' => 'ID',
+            'order'   => 'DESC'
+        );
+        $user_query = new WP_User_Query($args);
+        $users = $user_query->get_results();
+    }
 
     ?>
     <div class="wrap">
@@ -72,7 +68,8 @@ function xingxy_render_profile_dashboard() {
                     <th scope="col" class="manage-column" style="width: 10%;">系统推测年龄</th>
                     <th scope="col" class="manage-column" style="width: 12%;">系统推测性别</th>
                     <th scope="col" class="manage-column" style="width: 35%;">原始问卷证据词汇 (打标依据)</th>
-                    <th scope="col" class="manage-column" style="width: 28%;">🚀 人工干预/降临打标</th>
+                    <th scope="col" class="manage-column" style="width: 12%;">🏷️ 分群标签</th>
+                    <th scope="col" class="manage-column" style="width: 20%;">🚀 人工干预/降临打标</th>
                 </tr>
             </thead>
             <tbody>
@@ -204,6 +201,22 @@ function xingxy_render_profile_dashboard() {
                         <td data-title="原始证据">
                             <?php echo $evidence_html; ?>
                         </td>
+                        <td data-title="分群标签">
+                            <?php
+                            $segments = get_user_meta($user->ID, '_xingxy_segments', true);
+                            $source_sk = get_user_meta($user->ID, '_source_sk', true);
+                            if (!empty($segments) && is_array($segments)) {
+                                foreach ($segments as $seg) {
+                                    echo '<span style="display:inline-block;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:500;padding:3px 10px;border-radius:4px;border:1px solid #c7d2fe;margin:2px 4px 2px 0;">' . esc_html($seg) . '</span>';
+                                }
+                                if ($source_sk) {
+                                    echo '<div style="margin-top:5px;font-size:11px;color:#9ca3af;"><span style="background:#f3f4f6;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:10px;">' . esc_html($source_sk) . '</span></div>';
+                                }
+                            } else {
+                                echo '<span style="color:#d1d5db;">—</span>';
+                            }
+                            ?>
+                        </td>
                         <td data-title="干预动作">
                             <div class="x-override-actions" data-uid="<?php echo esc_attr($user->ID); ?>">
                                 <div class="x-status-label" style="margin-bottom: 8px; font-size: 12px;"><?php echo $status_html; ?></div>
@@ -217,7 +230,7 @@ function xingxy_render_profile_dashboard() {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr class="no-items">
-                        <td class="colspanchange" colspan="5">尚未收集到任何用户的问卷或奖励领取记录。</td>
+                        <td class="colspanchange" colspan="6">尚未收集到任何用户的问卷或奖励领取记录。</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -314,4 +327,355 @@ function xingxy_ajax_manual_tag_gender_handler() {
              wp_send_json_error('重写数据库键值对发生故障');
         }
     }
+}
+
+// ===================================================================
+// WP 用户列表：添加「分群标签」列
+// ===================================================================
+
+add_filter('manage_users_columns', function ($columns) {
+    $columns['xingxy_segments'] = '分群标签';
+    return $columns;
+});
+
+add_filter('manage_users_custom_column', function ($output, $column_name, $user_id) {
+    if ($column_name !== 'xingxy_segments') {
+        return $output;
+    }
+    $segments = get_user_meta($user_id, '_xingxy_segments', true) ?: [];
+    $json = esc_attr(json_encode(array_values($segments)));
+    $tags_html = '';
+    if (!empty($segments) && is_array($segments)) {
+        foreach ($segments as $seg) {
+            $tags_html .= '<span style="display:inline-block;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:500;padding:2px 8px;border-radius:4px;border:1px solid #c7d2fe;margin:1px 3px 1px 0;">' . esc_html($seg) . '</span>';
+        }
+    } else {
+        $tags_html = '<span style="color:#d1d5db;">—</span>';
+    }
+    return '<div class="xseg-wrap" data-uid="' . intval($user_id) . '" data-segs="' . $json . '" style="position:relative;">'
+         . '<div class="xseg-display" style="cursor:pointer;min-height:24px;" title="点击编辑">' . $tags_html . '</div>'
+         . '<div class="xseg-editor" style="display:none;position:absolute;z-index:999;left:0;top:100%;background:#fff;border:1px solid #c7d2fe;border-radius:6px;padding:10px;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:220px;">'
+         . '<div class="xseg-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>'
+         . '<div class="xseg-quick" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>'
+         . '<div style="display:flex;gap:4px;align-items:center;">'
+         . '<input type="text" class="xseg-input" placeholder="新标签" style="width:90px;padding:2px 6px;font-size:12px;border:1px solid #d1d5db;border-radius:3px;">'
+         . '<button type="button" class="xseg-save button button-small button-primary" style="font-size:11px;padding:0 8px;height:26px;">保存</button>'
+         . '<button type="button" class="xseg-cancel button button-small" style="font-size:11px;padding:0 8px;height:26px;">取消</button>'
+         . '</div>'
+         . '<div class="xseg-msg" style="font-size:11px;margin-top:3px;"></div>'
+         . '</div>'
+         . '</div>';
+}, 10, 3);
+
+// 用户列表页注入行内编辑 JS + AJAX endpoint
+add_action('admin_footer-users.php', function () {
+    if (!current_user_can('manage_options')) return;
+    $nonce = wp_create_nonce('xingxy_inline_seg');
+
+    // 从数据库查询所有已使用的标签 slug
+    global $wpdb;
+    $all_meta = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->usermeta} WHERE meta_key = '_xingxy_segments' AND meta_value != ''");
+    $known_tags = [];
+    foreach ($all_meta as $val) {
+        $arr = maybe_unserialize($val);
+        if (is_string($arr)) $arr = json_decode($arr, true);
+        if (is_array($arr)) {
+            foreach ($arr as $s) {
+                $s = trim($s);
+                if ($s !== '' && !in_array($s, $known_tags)) $known_tags[] = $s;
+            }
+        }
+    }
+    sort($known_tags);
+    ?>
+    <script>
+    (function(){
+        var nonce = <?php echo json_encode($nonce); ?>;
+        var allKnown = <?php echo json_encode(array_values($known_tags)); ?>;
+
+        function renderTags(editor, segs) {
+            var box = editor.querySelector('.xseg-tags');
+            box.innerHTML = '';
+            segs.forEach(function(s) {
+                var tag = document.createElement('span');
+                tag.style.cssText = 'display:inline-flex;align-items:center;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:500;padding:2px 8px;border-radius:4px;border:1px solid #c7d2fe;';
+                tag.textContent = s + ' ';
+                var rm = document.createElement('a');
+                rm.href = '#'; rm.textContent = '×';
+                rm.style.cssText = 'margin-left:4px;color:#a5b4fc;text-decoration:none;font-weight:bold;';
+                rm.onclick = function(e) { e.preventDefault(); segs.splice(segs.indexOf(s), 1); renderTags(editor, segs); renderQuick(editor, segs); };
+                tag.appendChild(rm);
+                box.appendChild(tag);
+            });
+            if (!segs.length) box.innerHTML = '<span style="color:#9ca3af;font-size:12px;">无标签</span>';
+        }
+
+        function renderQuick(editor, segs) {
+            var qbox = editor.querySelector('.xseg-quick');
+            qbox.innerHTML = '';
+            var available = allKnown.filter(function(s){ return segs.indexOf(s) === -1; });
+            if (!available.length) return;
+            available.forEach(function(s) {
+                var btn = document.createElement('span');
+                btn.textContent = '+ ' + s;
+                btn.style.cssText = 'display:inline-block;cursor:pointer;background:#f0fdf4;color:#16a34a;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;border:1px dashed #86efac;';
+                btn.onmouseenter = function(){ btn.style.background='#dcfce7'; };
+                btn.onmouseleave = function(){ btn.style.background='#f0fdf4'; };
+                btn.onclick = function() {
+                    if (segs.indexOf(s) === -1) { segs.push(s); renderTags(editor, segs); renderQuick(editor, segs); }
+                };
+                qbox.appendChild(btn);
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            var display = e.target.closest('.xseg-display');
+            if (!display) return;
+            var wrap = display.closest('.xseg-wrap');
+            var editor = wrap.querySelector('.xseg-editor');
+            var segs = JSON.parse(wrap.dataset.segs || '[]').slice();
+            display.style.display = 'none';
+            editor.style.display = 'block';
+            editor.querySelector('.xseg-msg').textContent = '';
+            renderTags(editor, segs);
+            renderQuick(editor, segs);
+            var input = editor.querySelector('.xseg-input');
+            input.value = '';
+            input.focus();
+
+            input.onkeydown = function(ev) {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    var v = input.value.trim().replace(/[^a-zA-Z0-9_\-]/g, '');
+                    if (v && segs.indexOf(v) === -1) {
+                        segs.push(v);
+                        if (allKnown.indexOf(v) === -1) allKnown.push(v);
+                        renderTags(editor, segs);
+                        renderQuick(editor, segs);
+                    }
+                    input.value = '';
+                }
+            };
+
+            editor.querySelector('.xseg-cancel').onclick = function() {
+                editor.style.display = 'none';
+                display.style.display = 'block';
+            };
+
+            editor.querySelector('.xseg-save').onclick = function() {
+                var btn = this;
+                btn.disabled = true;
+                btn.textContent = '...';
+                var fd = new FormData();
+                fd.append('action', 'xingxy_inline_save_segments');
+                fd.append('_nonce', nonce);
+                fd.append('user_id', wrap.dataset.uid);
+                fd.append('segments', JSON.stringify(segs));
+                fetch(ajaxurl, { method: 'POST', body: fd, credentials: 'same-origin' })
+                    .then(function(r){ return r.json(); })
+                    .then(function(r){
+                        btn.disabled = false; btn.textContent = '保存';
+                        if (r.success) {
+                            wrap.dataset.segs = JSON.stringify(segs);
+                            var html = '';
+                            segs.forEach(function(s){
+                                html += '<span style="display:inline-block;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:500;padding:2px 8px;border-radius:4px;border:1px solid #c7d2fe;margin:1px 3px 1px 0;">' + s + '</span>';
+                            });
+                            if (!html) html = '<span style="color:#d1d5db;">—</span>';
+                            display.innerHTML = html;
+                            editor.style.display = 'none';
+                            display.style.display = 'block';
+                            var msg = editor.querySelector('.xseg-msg');
+                            msg.style.color = '#22c55e'; msg.textContent = '✓ 已保存';
+                        } else {
+                            var msg = editor.querySelector('.xseg-msg');
+                            msg.style.color = '#ef4444'; msg.textContent = r.data || '保存失败';
+                        }
+                    });
+            };
+        });
+    })();
+    </script>
+    <?php
+});
+
+// AJAX endpoint：行内保存分群标签
+add_action('wp_ajax_xingxy_inline_save_segments', function () {
+    check_ajax_referer('xingxy_inline_seg', '_nonce');
+    if (!current_user_can('manage_options')) wp_send_json_error('权限不足');
+
+    $user_id  = intval($_POST['user_id'] ?? 0);
+    $raw      = sanitize_text_field($_POST['segments'] ?? '[]');
+    $segments = json_decode(stripslashes($raw), true);
+    if (!$user_id || !is_array($segments)) wp_send_json_error('参数错误');
+
+    $segments = array_values(array_unique(array_filter(array_map(function ($s) {
+        return preg_replace('/[^a-zA-Z0-9_\-]/', '', trim($s));
+    }, $segments))));
+
+    update_user_meta($user_id, '_xingxy_segments', $segments);
+    wp_send_json_success();
+});
+
+// ===================================================================
+// 用户列表：按分群标签筛选
+// ===================================================================
+
+add_action('restrict_manage_users', function () {
+    if (!current_user_can('manage_options')) return;
+    global $wpdb;
+    $all_meta = $wpdb->get_col("SELECT DISTINCT meta_value FROM {$wpdb->usermeta} WHERE meta_key = '_xingxy_segments' AND meta_value != ''");
+    $known = [];
+    foreach ($all_meta as $val) {
+        $arr = maybe_unserialize($val);
+        if (is_string($arr)) $arr = json_decode($arr, true);
+        if (is_array($arr)) foreach ($arr as $s) { $s = trim($s); if ($s !== '' && !in_array($s, $known)) $known[] = $s; }
+    }
+    sort($known);
+    $current = sanitize_text_field($_GET['xseg_filter'] ?? '');
+    $no_tag  = isset($_GET['xseg_filter']) && $_GET['xseg_filter'] === '__none__';
+    $base_url = admin_url('users.php');
+    echo '<select onchange="if(this.value){location.href=\'' . esc_url($base_url) . '?xseg_filter=\'+encodeURIComponent(this.value);}else{location.href=\'' . esc_url($base_url) . '\';}" style="float:none;margin-left:6px;">';
+    echo '<option value="">— 按标签筛选 —</option>';
+    echo '<option value="__none__"' . ($no_tag ? ' selected' : '') . '>🚫 无标签用户</option>';
+    foreach ($known as $tag) {
+        echo '<option value="' . esc_attr($tag) . '"' . selected($current, $tag, false) . '>🏷 ' . esc_html($tag) . '</option>';
+    }
+    echo '</select>';
+    if ($current !== '') {
+        echo '<a href="' . esc_url($base_url) . '" class="button button-small" style="margin-left:4px;">清除筛选</a>';
+    }
+});
+
+add_filter('pre_get_users', function ($query) {
+    if (!is_admin() || !current_user_can('manage_options')) return;
+    $filter = sanitize_text_field($_GET['xseg_filter'] ?? '');
+    if ($filter === '') return;
+
+    if ($filter === '__none__') {
+        $meta_query = $query->get('meta_query') ?: [];
+        $meta_query[] = array(
+            'key'     => '_xingxy_segments',
+            'compare' => 'NOT EXISTS'
+        );
+        $query->set('meta_query', $meta_query);
+    } else {
+        global $wpdb;
+        $like = '%"' . $wpdb->esc_like($filter) . '"%';
+        $user_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = '_xingxy_segments' AND meta_value LIKE %s",
+            $like
+        ));
+        if (!empty($user_ids)) {
+            $query->set('include', $user_ids);
+        } else {
+            $query->set('include', [0]);
+        }
+    }
+});
+
+// ===================================================================
+// 用户编辑页面：分群标签编辑器
+// ===================================================================
+
+add_action('edit_user_profile', 'xingxy_render_segment_editor');
+add_action('show_user_profile', 'xingxy_render_segment_editor');
+
+function xingxy_render_segment_editor($user) {
+    if (!current_user_can('manage_options')) return;
+
+    $segments  = get_user_meta($user->ID, '_xingxy_segments', true) ?: [];
+    $source_sk = get_user_meta($user->ID, '_source_sk', true);
+    wp_nonce_field('xingxy_save_segments', '_xingxy_seg_nonce');
+    ?>
+    <h2>🏷️ 分群标签</h2>
+    <table class="form-table">
+        <tr>
+            <th><label>当前标签</label></th>
+            <td>
+                <div id="xingxy-seg-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+                    <?php if (!empty($segments)): ?>
+                        <?php foreach ($segments as $seg): ?>
+                            <span class="xingxy-seg-tag" style="display:inline-flex;align-items:center;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:500;padding:4px 10px;border-radius:4px;border:1px solid #c7d2fe;">
+                                <?php echo esc_html($seg); ?>
+                                <a href="#" class="xingxy-seg-remove" data-seg="<?php echo esc_attr($seg); ?>" style="margin-left:6px;color:#a5b4fc;text-decoration:none;font-weight:bold;font-size:15px;">&times;</a>
+                            </span>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <span style="color:#9ca3af;">暂无标签</span>
+                    <?php endif; ?>
+                </div>
+                <input type="hidden" name="xingxy_segments_json" id="xingxy-segments-json" value="<?php echo esc_attr(json_encode($segments)); ?>">
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="xingxy-seg-input" placeholder="输入标签 slug，回车添加" style="width:220px;" class="regular-text">
+                    <button type="button" id="xingxy-seg-add" class="button">添加</button>
+                </div>
+                <?php if ($source_sk): ?>
+                    <p class="description" style="margin-top:8px;">来源短链：<code><?php echo esc_html($source_sk); ?></code></p>
+                <?php endif; ?>
+            </td>
+        </tr>
+    </table>
+    <script>
+    (function(){
+        var segs = <?php echo json_encode(array_values($segments)); ?>;
+        var listEl = document.getElementById('xingxy-seg-list');
+        var jsonEl = document.getElementById('xingxy-segments-json');
+        var inputEl = document.getElementById('xingxy-seg-input');
+
+        function render() {
+            jsonEl.value = JSON.stringify(segs);
+            listEl.innerHTML = '';
+            if (!segs.length) {
+                listEl.innerHTML = '<span style="color:#9ca3af;">暂无标签</span>';
+                return;
+            }
+            segs.forEach(function(s) {
+                var span = document.createElement('span');
+                span.className = 'xingxy-seg-tag';
+                span.style.cssText = 'display:inline-flex;align-items:center;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:500;padding:4px 10px;border-radius:4px;border:1px solid #c7d2fe;';
+                span.innerHTML = s + ' <a href="#" class="xingxy-seg-remove" style="margin-left:6px;color:#a5b4fc;text-decoration:none;font-weight:bold;font-size:15px;">&times;</a>';
+                span.querySelector('a').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    segs = segs.filter(function(x){ return x !== s; });
+                    render();
+                });
+                listEl.appendChild(span);
+            });
+        }
+
+        function addTag() {
+            var v = inputEl.value.trim().replace(/[^a-zA-Z0-9_\-]/g, '');
+            if (v && segs.indexOf(v) === -1) {
+                segs.push(v);
+                render();
+            }
+            inputEl.value = '';
+        }
+
+        document.getElementById('xingxy-seg-add').addEventListener('click', addTag);
+        inputEl.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+        });
+    })();
+    </script>
+    <?php
+}
+
+add_action('edit_user_profile_update', 'xingxy_save_segment_editor');
+add_action('personal_options_update', 'xingxy_save_segment_editor');
+
+function xingxy_save_segment_editor($user_id) {
+    if (!current_user_can('manage_options')) return;
+    if (!isset($_POST['_xingxy_seg_nonce']) || !wp_verify_nonce($_POST['_xingxy_seg_nonce'], 'xingxy_save_segments')) return;
+
+    $raw = sanitize_text_field($_POST['xingxy_segments_json'] ?? '[]');
+    $segments = json_decode(stripslashes($raw), true);
+    if (!is_array($segments)) $segments = [];
+
+    $segments = array_values(array_unique(array_filter(array_map(function($s) {
+        return preg_replace('/[^a-zA-Z0-9_\-]/', '', trim($s));
+    }, $segments))));
+
+    update_user_meta($user_id, '_xingxy_segments', $segments);
 }

@@ -265,3 +265,13 @@ Zibll 亮点块（`zibllblock/feature`）在前台显示 3+1 列而非 4 列。�
 详见 [zibll-feature-block-4col-fix.md](./zibll-feature-block-4col-fix.md)
 
 **更新日期**: 2026-03-26
+
+---
+
+## 用户分群标签系统（Audience Segmentation）
+
+实现完整的用户分群标签基础设施：追踪短链生成（管理员分享面板配置标签/次数/有效期）、三层混淆追踪（PHP 短链重定向 + JS Fragment 桥接 + 注册隐藏字段）、注册时自动打标（优先级链：`_sk > _gate > _s > general`）、追踪短链后台管理页（列表/行内编辑/批量清理）、用户列表标签列（行内编辑浮层 + 快选按钮 + 按标签筛选）、用户画像面板集成、时区统一修复。
+
+详见 [audience-segmentation.md](./audience-segmentation.md)
+
+**更新日期**: 2026-04-26

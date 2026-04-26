@@ -29,6 +29,9 @@ xingxy/
 │   ├── action-cardpass.php     # 卡密导入/列表/编辑/删除 AJAX 处理
 │   ├── shipping-guard.php      # 卡密发货守护（库存校验/部分发货/自动补发）
 │   ├── user-products.php       # 用户中心商品管理
+│   ├── share-links.php         # 追踪短链（建表/管理员面板/AJAX）
+│   ├── gate-tracker.php        # 分群追踪核心（短链重定向/Cookie/注册打标）
+│   ├── admin-share-links.php   # 追踪短链后台管理页
 │   ├── assets.php              # 前端资源加载
 │   ├── console-cleaner.php     # 控制台净化
 │   └── discount.php            # 数量限制功能
@@ -63,6 +66,7 @@ xingxy/
 - [x] 商品编辑体验优化（底部固定操作栏 / 已发布商品免审核 / 预览按钮 / 按钮 Loading 修复）
 - [x] TG Bot 引流卡片（积分页赛博风注入 + 玻璃质感按钮 + 后台 URL 配置）
 - [x] TG Bot 积分互通（站点积分查询 / 兑换 / 个人信息，依赖 zibll-oauth REST 端点）
+- [x] 用户分群标签系统（追踪短链 / 三层混淆追踪 / 注册自动打标 / 后台管理 / 行内编辑 / 标签筛选）
 
 ## 主题更新后恢复
 
