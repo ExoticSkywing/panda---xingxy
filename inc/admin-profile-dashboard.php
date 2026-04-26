@@ -446,7 +446,7 @@ add_action('admin_footer-users.php', function () {
             input.onkeydown = function(ev) {
                 if (ev.key === 'Enter') {
                     ev.preventDefault();
-                    var v = input.value.trim().replace(/[^a-zA-Z0-9_\-]/g, '');
+                    var v = input.value.trim().replace(/[^a-zA-Z0-9_\->]/g, '');
                     if (v && segs.indexOf(v) === -1) {
                         segs.push(v);
                         if (allKnown.indexOf(v) === -1) allKnown.push(v);
@@ -510,7 +510,7 @@ add_action('wp_ajax_xingxy_inline_save_segments', function () {
     if (!$user_id || !is_array($segments)) wp_send_json_error('参数错误');
 
     $segments = array_values(array_unique(array_filter(array_map(function ($s) {
-        return preg_replace('/[^a-zA-Z0-9_\-]/', '', trim($s));
+        return preg_replace('/[^a-zA-Z0-9_\->]/', '', trim($s));
     }, $segments))));
 
     update_user_meta($user_id, '_xingxy_segments', $segments);
@@ -645,7 +645,7 @@ function xingxy_render_segment_editor($user) {
         }
 
         function addTag() {
-            var v = inputEl.value.trim().replace(/[^a-zA-Z0-9_\-]/g, '');
+            var v = inputEl.value.trim().replace(/[^a-zA-Z0-9_\->]/g, '');
             if (v && segs.indexOf(v) === -1) {
                 segs.push(v);
                 render();
@@ -674,7 +674,7 @@ function xingxy_save_segment_editor($user_id) {
     if (!is_array($segments)) $segments = [];
 
     $segments = array_values(array_unique(array_filter(array_map(function($s) {
-        return preg_replace('/[^a-zA-Z0-9_\-]/', '', trim($s));
+        return preg_replace('/[^a-zA-Z0-9_\->]/', '', trim($s));
     }, $segments))));
 
     update_user_meta($user_id, '_xingxy_segments', $segments);

@@ -232,7 +232,7 @@ add_action('user_register', function ($user_id) {
     //     }
     // }
 
-    // ③ 推荐链继承：继承推荐人的标签
+    // ③ 推荐链继承：继承推荐人的标签（带 >ref 子标签标记）
     if (!$tagged) {
         $ref_code = isset($_COOKIE['_xref']) ? sanitize_text_field($_COOKIE['_xref']) : '';
         if ($ref_code && function_exists('xingxy_decode_ref_code')) {
@@ -242,10 +242,15 @@ add_action('user_register', function ($user_id) {
                 if (is_array($referrer_segments)) {
                     foreach ($referrer_segments as $seg) {
                         if ($seg !== 'general') {
-                            xingxy_add_segment($user_id, $seg);
+                            // 去掉父标签可能已有的 >ref 后缀，取根标签
+                            $root_seg = preg_replace('/>ref$/', '', $seg);
+                            xingxy_add_segment($user_id, $root_seg . '>ref');
                             $tagged = true;
                         }
                     }
+                }
+                if ($tagged) {
+                    update_user_meta($user_id, '_source_ref', $referrer_id);
                 }
             }
         }

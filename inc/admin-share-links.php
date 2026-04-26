@@ -210,8 +210,9 @@ function xingxy_render_share_links_page() {
                     <th style="width:90px;">短链 Key</th>
                     <th style="width:90px;">标签</th>
                     <th>目标内容</th>
-                    <th style="width:70px;">点击</th>
+                    <th style="width:60px;">点击</th>
                     <th style="width:90px;">使用/上限</th>
+                    <th style="width:70px;">转化率</th>
                     <th style="width:130px;">过期时间</th>
                     <th style="width:80px;">状态</th>
                     <th style="width:130px;">创建时间</th>
@@ -220,7 +221,7 @@ function xingxy_render_share_links_page() {
             </thead>
             <tbody>
                 <?php if (empty($links)): ?>
-                    <tr><td colspan="10" style="text-align:center;padding:30px;color:#999;">暂无数据</td></tr>
+                    <tr><td colspan="11" style="text-align:center;padding:30px;color:#999;">暂无数据</td></tr>
                 <?php else: ?>
                     <?php foreach ($links as $link):
                         $is_expired   = $link->expires_at && strtotime($link->expires_at) < current_time('timestamp');
@@ -287,6 +288,19 @@ function xingxy_render_share_links_page() {
                                    style="width:45px;font-size:12px;padding:2px 4px;border:1px solid transparent;background:transparent;border-radius:4px;text-align:center;"
                                    onfocus="this.style.borderColor='#3b82f6';this.style.background='#fff';"
                                    onblur="this.style.borderColor='transparent';this.style.background='transparent';">
+                        </td>
+                        <td>
+                            <?php
+                            $clicks = intval($link->clicks);
+                            $used   = intval($link->used_count);
+                            if ($clicks > 0) {
+                                $rate = round($used / $clicks * 100, 1);
+                                $color = $rate >= 20 ? '#22c55e' : ($rate >= 5 ? '#f59e0b' : '#ef4444');
+                                echo '<span style="font-weight:600;color:' . $color . ';">' . $rate . '%</span>';
+                            } else {
+                                echo '<span style="color:#d1d5db;">—</span>';
+                            }
+                            ?>
                         </td>
                         <td>
                             <input type="text" class="xsl-expires" value="<?php echo $link->expires_at ? esc_attr($link->expires_at) : ''; ?>"
