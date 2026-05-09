@@ -163,10 +163,30 @@ function xingxy_capture_profile_on_bind($user_id, $captcha_val, $email) {
 
                     // 防羊毛党：打上死锁戳子，永不能再领
                     update_user_meta($user_id, '_xingxy_welcome_rewarded', true);
+
+                    // 设置 cookie 供前端揭晓（Zibll 绑定成功后会 reload，transient/AJAX 来不及）
+                    setcookie('xingxy_reward', strval($reward_points), time() + 120, '/', '', is_ssl(), false);
                 }
             }
         }
     }
+}
+
+/**
+ * AJAX 接口：查询并消费待展示的盲盒奖励（邮箱绑定流程用）
+ */
+add_action('wp_ajax_xingxy_check_reward', 'xingxy_check_pending_reward');
+function xingxy_check_pending_reward() {
+    $user_id = get_current_user_id();
+    if (!$user_id) wp_send_json_error();
+
+    $key = 'xingxy_reward_pending_' . $user_id;
+    $reward = get_transient($key);
+    if ($reward) {
+        delete_transient($key);
+        wp_send_json_success(array('reward' => intval($reward)));
+    }
+    wp_send_json_success(array('reward' => 0));
 }
 
 /**
@@ -299,10 +319,11 @@ function xingxy_submit_profile_standalone() {
                 'desc'  => '🎁 星星球首次探索漫游奖励！(神秘盲盒)',
             ));
             update_user_meta($user_id, '_xingxy_welcome_rewarded', true);
+            wp_send_json_success(array('reward' => $reward_points));
         }
     }
 
-    wp_send_json_success(array('message' => '画像采集完成，积分已到账！'));
+    wp_send_json_success(array('message' => '画像采集完成'));
 }
 
 /**

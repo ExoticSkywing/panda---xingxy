@@ -145,6 +145,66 @@ jQuery(document).ready(function ($) {
         return html;
     }
 
+    // ✨ 盲盒揭晓 UI ✨
+    function showRewardReveal(points) {
+        if (!points || points <= 0) return;
+
+        // 移除已有的揭晓弹窗
+        $('.xingxy-reward-overlay').remove();
+
+        var overlay = $(`
+            <div class="xingxy-reward-overlay">
+                <div class="xingxy-reward-box">
+                    <div class="xrb-glow"></div>
+                    <div class="xrb-gift">🎁</div>
+                    <div class="xrb-title">盲盒开启成功！</div>
+                    <div class="xrb-points">
+                        <span class="xrb-num">+${points}</span>
+                        <span class="xrb-unit">金币</span>
+                    </div>
+                    <div class="xrb-desc">星星球首次探索漫游奖励已入账</div>
+                    <button class="xrb-close">收下奖励</button>
+                </div>
+            </div>
+        `);
+
+        $('body').append(overlay);
+
+        // 动画入场
+        setTimeout(function () {
+            overlay.addClass('is-visible');
+            xingxyPlayConfetti();
+        }, 50);
+
+        // 点击关闭
+        overlay.on('click', '.xrb-close', function () {
+            overlay.removeClass('is-visible');
+            setTimeout(function () { overlay.remove(); }, 300);
+        });
+
+        // 8秒后自动关闭
+        setTimeout(function () {
+            if (overlay.length && overlay.hasClass('is-visible')) {
+                overlay.removeClass('is-visible');
+                setTimeout(function () { overlay.remove(); }, 300);
+            }
+        }, 8000);
+    }
+
+    // 查询待展示的奖励（邮箱绑定流程用）
+    function checkPendingReward() {
+        $.ajax({
+            url: xingxy_profile.ajaxurl,
+            type: 'POST',
+            data: { action: 'xingxy_check_reward' },
+            success: function (res) {
+                if (res.success && res.data && res.data.reward > 0) {
+                    showRewardReveal(res.data.reward);
+                }
+            }
+        });
+    }
+
     // ✨ 惊喜彩蛋：庆祝撒花特效 ✨
     function xingxyPlayConfetti() {
         if (typeof confetti !== 'function') return;
@@ -357,11 +417,13 @@ jQuery(document).ready(function ($) {
                 },
                 success: function (res) {
                     if (res.success) {
-                        xingxyPlayConfetti();
-                        if (typeof tb_msg === 'function') tb_msg(res.data.message || '画像采集完成！', 'success');
-                        setTimeout(function () {
-                            $('#xingxy_profile_popup').modal('hide');
-                        }, 1500);
+                        $('#xingxy_profile_popup').modal('hide');
+                        if (res.data && res.data.reward > 0) {
+                            showRewardReveal(res.data.reward);
+                        } else {
+                            xingxyPlayConfetti();
+                            if (typeof tb_msg === 'function') tb_msg('画像采集完成', 'success');
+                        }
                     } else {
                         $btn.prop('disabled', false).text('🎁 开启盲盒');
                         if (typeof tb_msg === 'function') tb_msg(res.data || '提交失败，请重试', 'error');
@@ -439,6 +501,20 @@ jQuery(document).ready(function ($) {
             }
         });
     }
+
+    // 页面加载后检查 cookie 中的待揭晓奖励（Zibll 绑定成功后会 reload，只能用 cookie 传递）
+    (function checkRewardCookie() {
+        var match = document.cookie.match(/(?:^|;\s*)xingxy_reward=(\d+)/);
+        if (match && parseInt(match[1]) > 0) {
+            var points = parseInt(match[1]);
+            // 立即清除 cookie
+            document.cookie = 'xingxy_reward=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+            // 延迟一点让页面渲染完成再弹
+            setTimeout(function () {
+                showRewardReveal(points);
+            }, 600);
+        }
+    })();
 
     // 当验证码按钮被点击或者文本发生变化时 (用 setInterval 监控 DOM 变化)
     // Zibll 开始倒计时

@@ -434,3 +434,147 @@
         transform: translateY(0);
     }
 }
+
+/* ====== 盲盒奖励揭晓弹窗 ====== */
+.xingxy-reward-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.4s ease;
+    pointer-events: none;
+}
+
+.xingxy-reward-overlay.is-visible {
+    background: rgba(0, 0, 0, 0.55);
+    pointer-events: auto;
+}
+
+.xingxy-reward-box {
+    position: relative;
+    width: 320px;
+    padding: 40px 30px 30px;
+    background: linear-gradient(145deg, #fff 0%, #fef9f0 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(255, 180, 50, 0.15);
+    text-align: center;
+    transform: scale(0.5) translateY(40px);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+.is-visible .xingxy-reward-box {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+.xrb-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 200, 50, 0.12) 0%, transparent 60%);
+    animation: xrb-rotate 6s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes xrb-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.xrb-gift {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 12px;
+    animation: xrb-bounce 0.6s ease 0.5s both;
+}
+
+@keyframes xrb-bounce {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.xrb-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.xrb-points {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.xrb-num {
+    font-size: 48px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ff8c00, #ff4500);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    animation: xrb-count-in 0.8s ease 0.7s both;
+}
+
+@keyframes xrb-count-in {
+    0% { transform: scale(0.3); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.xrb-unit {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ff6b00;
+}
+
+.xrb-desc {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 24px;
+}
+
+.xrb-close {
+    display: inline-block;
+    padding: 10px 40px;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #ff8c00, #ff5722);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(255, 87, 34, 0.35);
+}
+
+.xrb-close:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 87, 34, 0.45);
+}
+
+.xrb-close:active {
+    transform: translateY(0);
+}
+
+/* 暗色模式适配 */
+.dark-theme .xingxy-reward-box,
+[data-theme="dark"] .xingxy-reward-box {
+    background: linear-gradient(145deg, #2a2a2a 0%, #1e1e1e 100%);
+}
+
+.dark-theme .xrb-title,
+[data-theme="dark"] .xrb-title {
+    color: #eee;
+}

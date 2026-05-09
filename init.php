@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 }
 
 // 模块版本
-define('XINGXY_VERSION', '1.0.0');
+define('XINGXY_VERSION', '1.1.1');
 
 // 模块目录路径
 define('XINGXY_PATH', dirname(__FILE__) . '/');
@@ -94,3 +94,6 @@ require_once XINGXY_PATH . 'inc/admin-profile-dashboard.php';
 
 // === 星盟：发货拦截（方案B：部分发货 + 补发通知） ===
 require_once XINGXY_PATH . 'inc/shipping-guard.php';
+
+// === BBS 星域分群标签查看限制 ===
+require_once XINGXY_PATH . 'inc/bbs-segment-access.php';

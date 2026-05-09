@@ -275,3 +275,13 @@ Zibll 亮点块（`zibllblock/feature`）在前台显示 3+1 列而非 4 列。�
 详见 [audience-segmentation.md](./audience-segmentation.md)
 
 **更新日期**: 2026-04-26
+
+---
+
+## 盲盒奖励揭晓 & 编辑器 beforeunload 修复 & BBS 标签权限优化
+
+三合一补丁：(1) 实现盲盒奖励揭晓全屏弹窗（cookie 传递 + 弹性动画 + confetti），解决 Zibll reload 导致 JS 来不及展示奖励的问题；(2) 修复星讯发布后误弹"未保存更改"弹窗（responseURL 比较逻辑错误）；(3) BBS 标签权限改为仅 `allow_view=roles` 时生效，与 VIP/等级互为 OR 关系。
+
+详见 [reward-reveal-and-editor-fix.md](./reward-reveal-and-editor-fix.md)
+
+**更新日期**: 2026-05-08
