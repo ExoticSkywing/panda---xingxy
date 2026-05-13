@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 }
 
 // 模块版本
-define('XINGXY_VERSION', '1.1.1');
+define('XINGXY_VERSION', '1.2.0');
 
 // 模块目录路径
 define('XINGXY_PATH', dirname(__FILE__) . '/');
@@ -97,3 +97,6 @@ require_once XINGXY_PATH . 'inc/shipping-guard.php';
 
 // === BBS 星域分群标签查看限制 ===
 require_once XINGXY_PATH . 'inc/bbs-segment-access.php';
+
+// === BBS 帖子级分群标签访问控制 ===
+require_once XINGXY_PATH . 'inc/bbs-post-segment-access.php';

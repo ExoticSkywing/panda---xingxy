@@ -285,3 +285,13 @@ Zibll 亮点块（`zibllblock/feature`）在前台显示 3+1 列而非 4 列。�
 详见 [reward-reveal-and-editor-fix.md](./reward-reveal-and-editor-fix.md)
 
 **更新日期**: 2026-05-08
+
+---
+
+## BBS 帖子标签访问限制（Post Segment Access Control）
+
+为论坛帖子实现两层标签访问限制：帖子级（整篇限制，通过侧边栏/弹窗/后台 CSF 设置）和内容级（`[hidecontent type="segtag" preset="N"]` 钩子模式，TinyMCE 编辑器原生集成）。三个编辑入口共用统一保存函数确保双 key 同步。帖子级与内容级互斥：帖子已设整篇限制时编辑器阻止插入内容级 shortcode。
+
+详见 [bbs-post-segment-access.md](./bbs-post-segment-access.md)
+
+**更新日期**: 2026-05-13

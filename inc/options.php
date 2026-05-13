@@ -12,6 +12,29 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * CSF select 回调：获取系统中所有已存在的用户分群标签
+ */
+function xingxy_get_all_segment_options() {
+    global $wpdb;
+    $raw = $wpdb->get_col(
+        "SELECT DISTINCT meta_value FROM {$wpdb->usermeta}
+         WHERE meta_key = '_xingxy_segments' AND meta_value != '' AND meta_value != 'a:0:{}'"
+    );
+    $tags = [];
+    foreach ($raw as $v) {
+        $arr = maybe_unserialize($v);
+        if (is_array($arr)) {
+            foreach ($arr as $t) {
+                $t = trim($t);
+                if ($t !== '') $tags[$t] = $t;
+            }
+        }
+    }
+    ksort($tags);
+    return $tags;
+}
+
+/**
  * 注册 Xingxy 配置面板
  * 在 Zibll 主题加载完成后执行，确保 CSF 框架可用
  */
@@ -339,6 +362,59 @@ add_action('zib_require_end', function () {
                         'default' => 'neutral',
                     ),
                 ),
+            ),
+        ),
+    ));
+
+    // ==================== 帖子标签权限 ====================
+    CSF::createSection('xingxy_options', array(
+        'id'    => 'post_segment_settings',
+        'title' => '帖子标签权限',
+        'icon'  => 'fas fa-lock',
+        'fields' => array(
+            array(
+                'type'    => 'notice',
+                'style'   => 'info',
+                'content' => '配置帖子级别的标签访问预设模板。发帖时只需选一个预设，系统自动将对应标签写入帖子权限。<br>用户必须拥有匹配标签才能查看帖子内容（标题始终可见，作为橱窗预览）。',
+            ),
+            array(
+                'id'     => 'post_segment_presets',
+                'type'   => 'group',
+                'title'  => '标签预设模板',
+                'desc'   => '每个模板包含名称和对应的标签组。发帖时从预设中选择即可。',
+                'button_title' => '添加预设',
+                'fields' => array(
+                    array(
+                        'id'    => 'name',
+                        'type'  => 'text',
+                        'title' => '预设名称',
+                        'desc'  => '发帖时显示的名称，如「韩娱女团」',
+                    ),
+                    array(
+                        'id'       => 'segments',
+                        'type'     => 'select',
+                        'title'    => '标签 slug',
+                        'desc'     => '从系统中已有的用户标签中选择（可多选）',
+                        'multiple' => true,
+                        'chosen'   => true,
+                        'options'  => 'xingxy_get_all_segment_options',
+                        'placeholder' => '请选择标签…',
+                    ),
+                    array(
+                        'id'    => 'icon',
+                        'type'  => 'text',
+                        'title' => '图标 (可选)',
+                        'desc'  => 'FontAwesome 类名或 emoji，如: 🇰🇷 或 fas fa-music',
+                        'default' => '🏷️',
+                    ),
+                ),
+            ),
+            array(
+                'id'      => 'post_segment_denial_text',
+                'type'    => 'text',
+                'title'   => '无权限提示文案',
+                'default' => '该内容仅对特定用户开放，暂无查看权限',
+                'desc'    => '用户无标签权限时看到的提示信息',
             ),
         ),
     ));

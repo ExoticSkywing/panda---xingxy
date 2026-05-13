@@ -32,10 +32,12 @@ xingxy/
 │   ├── share-links.php         # 追踪短链（建表/管理员面板/AJAX）
 │   ├── gate-tracker.php        # 分群追踪核心（短链重定向/Cookie/注册打标）
 │   ├── admin-share-links.php   # 追踪短链后台管理页
+│   ├── bbs-post-segment-access.php # BBS 帖子标签访问限制（帖子级+内容级）
 │   ├── assets.php              # 前端资源加载
 │   ├── console-cleaner.php     # 控制台净化
 │   └── discount.php            # 数量限制功能
 ├── assets/                     # 前端资源（JS/CSS）
+│   └── js/tinymce-segtag.js    # TinyMCE 标签限制编辑器插件
 ├── custom-design/              # 自定义设计
 ├── pages/                      # 页面模板
 ├── patches/                    # 补丁文档
@@ -67,6 +69,7 @@ xingxy/
 - [x] TG Bot 引流卡片（积分页赛博风注入 + 玻璃质感按钮 + 后台 URL 配置）
 - [x] TG Bot 积分互通（站点积分查询 / 兑换 / 个人信息，依赖 zibll-oauth REST 端点）
 - [x] 用户分群标签系统（追踪短链 / 三层混淆追踪 / 注册自动打标 / 后台管理 / 行内编辑 / 标签筛选）
+- [x] BBS 帖子标签访问限制（帖子级整篇限制 / 内容级钩子模式 / 三入口同步 / TinyMCE 原生集成 / 互斥规则）
 
 ## 主题更新后恢复
 

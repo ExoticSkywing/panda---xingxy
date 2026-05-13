@@ -224,6 +224,10 @@ function xingxy_partial_shipping($order, $auto_delivery, $order_meta_data, $avai
     $order_meta_data['backlog'] = $backlog;
     zibpay::update_meta($order['id'], 'order_data', $order_meta_data);
 
+    // 确保 shipping_time meta 存在（空值即可），否则后台物流列表按 shipping_time 排序时
+    // INNER JOIN 会排除缺少此 meta 的订单，导致"待发货"计数与列表不一致
+    zib_shop_update_order_shipping_time($order['id']);
+
     // 注册到全局补发队列（用于导入卡密时自动检索）
     xingxy_register_pending_backlog($order['id'], $card_pass_key, $remaining);
 
