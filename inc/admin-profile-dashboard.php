@@ -499,6 +499,86 @@ add_action('admin_footer-users.php', function () {
     <?php
 });
 
+// ===================================================================
+// WP 用户列表：添加「TG 绑定」列
+// ===================================================================
+
+add_filter('manage_users_columns', function ($columns) {
+    $columns['xingxy_tg_bind'] = 'TG 绑定';
+    return $columns;
+});
+
+add_filter('manage_users_custom_column', function ($output, $column_name, $user_id) {
+    if ($column_name !== 'xingxy_tg_bind') return $output;
+
+    $tg_uid     = get_user_meta($user_id, '_xingxy_telegram_uid', true);
+    if (empty($tg_uid)) {
+        return '<span style="color:#ccc;">—</span>';
+    }
+
+    $tg_uname   = get_user_meta($user_id, '_xingxy_telegram_username', true);
+    $tg_display = get_user_meta($user_id, '_xingxy_telegram_display_name', true);
+    $tg_bound   = get_user_meta($user_id, '_xingxy_telegram_bound_at', true);
+
+    // 主显示名：优先 @username（可点击跳转私聊）> display_name > UID
+    if ($tg_uname) {
+        $primary = '<a href="https://t.me/' . esc_attr($tg_uname) . '" target="_blank" style="color:#6366f1;text-decoration:none;font-weight:600;" title="在 Telegram 中私聊">@' . esc_html($tg_uname) . '</a>';
+    } else {
+        $primary = '<span style="font-weight:600;color:#1e293b;">' . esc_html($tg_display ?: $tg_uid) . '</span>';
+    }
+    // 副显示：如果有 username 且有 display_name，显示 display_name
+    $secondary = ($tg_uname && $tg_display) ? $tg_display : '';
+
+    $html  = '<div style="max-width:120px;line-height:1.6;">';
+    $html .= '<div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' . esc_attr($tg_uname ? '@' . $tg_uname : ($tg_display ?: $tg_uid)) . '">' . $primary . '</div>';
+    if ($secondary) {
+        $html .= '<div style="font-size:11px;color:#64748b;">' . esc_html($secondary) . '</div>';
+    }
+    // UID 小字
+    if ($tg_uname || $tg_display) {
+        $html .= '<div style="font-size:10px;color:#94a3b8;font-family:monospace;">' . esc_html($tg_uid) . '</div>';
+    }
+    // 绑定日期（只取日期部分）
+    if ($tg_bound) {
+        $date_only = substr($tg_bound, 0, 10);
+        $html .= '<div style="font-size:10px;color:#cbd5e1;">' . esc_html($date_only) . '</div>';
+    }
+    $html .= '</div>';
+    return $html;
+}, 10, 3);
+
+// 用户列表筛选：TG 绑定状态
+add_action('restrict_manage_users', function () {
+    if (!current_user_can('manage_options')) return;
+    $current = sanitize_text_field($_GET['xingxy_tg_filter'] ?? '');
+    $base_url = admin_url('users.php');
+    echo '<select onchange="if(this.value){location.href=\'' . esc_url($base_url) . '?xingxy_tg_filter=\'+this.value;}else{location.href=\'' . esc_url($base_url) . '\';}" style="float:none;margin-left:6px;">';
+    echo '<option value="">— TG 绑定 —</option>';
+    echo '<option value="bound"' . selected($current, 'bound', false) . '>✅ 已绑定</option>';
+    echo '<option value="unbound"' . selected($current, 'unbound', false) . '>❌ 未绑定</option>';
+    echo '</select>';
+}, 20);
+
+add_filter('pre_get_users', function ($query) {
+    if (!is_admin() || !current_user_can('manage_options')) return;
+    $filter = sanitize_text_field($_GET['xingxy_tg_filter'] ?? '');
+    if ($filter === '') return;
+
+    $meta_query = $query->get('meta_query') ?: [];
+    if ($filter === 'bound') {
+        $meta_query[] = array(
+            'key'     => '_xingxy_telegram_uid',
+            'compare' => 'EXISTS',
+        );
+    } elseif ($filter === 'unbound') {
+        $meta_query[] = array(
+            'key'     => '_xingxy_telegram_uid',
+            'compare' => 'NOT EXISTS',
+        );
+    }
+    $query->set('meta_query', $meta_query);
+}, 20);
+
 // AJAX endpoint：行内保存分群标签
 add_action('wp_ajax_xingxy_inline_save_segments', function () {
     check_ajax_referer('xingxy_inline_seg', '_nonce');

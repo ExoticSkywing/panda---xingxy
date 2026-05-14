@@ -295,3 +295,13 @@ Zibll 亮点块（`zibllblock/feature`）在前台显示 3+1 列而非 4 列。�
 详见 [bbs-post-segment-access.md](./bbs-post-segment-access.md)
 
 **更新日期**: 2026-05-13
+
+---
+
+## TG 绑定信息集成（TG Bind Integration）
+
+将 Telegram 绑定信息（uid/username/display_name/bound_at）完整回写 WP usermeta，后台用户列表新增「TG 绑定」列（可点击 @username 跳转私聊、绑定状态筛选）。实现 `/unbind` 双模式命令：普通用户申请解绑 → 管理员审批；管理员 `/unbind <tg_uid>` 直接解绑。涉及 xingxy 子主题、zibll-oauth-main 插件、tgbot-verify 精灵三个仓库。
+
+详见 [tg-bind-integration.md](./tg-bind-integration.md)
+
+**更新日期**: 2026-05-13
