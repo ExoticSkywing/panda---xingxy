@@ -298,6 +298,16 @@ Zibll 亮点块（`zibllblock/feature`）在前台显示 3+1 列而非 4 列。�
 
 ---
 
+## 后台管理面板 UX 增强
+
+增强精灵后台管理面板的用户列表和卡密管理交互：用户列表外露邀请人列（可点击 @username 跳转 TG 私聊）、用户详情展示可点击的站点用户名（跳转 WP 前台个人主页）、卡密一键复制、解绑清零积分、积分负数调整签名修复。涉及 zibll-oauth 插件、tgbot-verify 精灵、vue-vben-admin 前端三个仓库。
+
+详见 [admin-panel-ux-enhancements.md](./admin-panel-ux-enhancements.md)
+
+**更新日期**: 2026-05-15
+
+---
+
 ## TG 绑定信息集成（TG Bind Integration）
 
 将 Telegram 绑定信息（uid/username/display_name/bound_at）完整回写 WP usermeta，后台用户列表新增「TG 绑定」列（可点击 @username 跳转私聊、绑定状态筛选）。实现 `/unbind` 双模式命令：普通用户申请解绑 → 管理员审批；管理员 `/unbind <tg_uid>` 直接解绑。涉及 xingxy 子主题、zibll-oauth-main 插件、tgbot-verify 精灵三个仓库。
