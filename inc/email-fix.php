@@ -151,3 +151,21 @@ function xingxy_fixed_mail_payment_order($values) {
         }
     }
 }
+
+/**
+ * 适配 Postal / 第三方平台 SMTP 用户名与发件人邮箱不一致的场景
+ * 保持子比原生后台填写合法的发件人邮箱，在实际发信时将登录凭据替换为 Postal 用户名
+ */
+add_action('phpmailer_init', 'xingxy_postal_smtp_credentials', 99);
+function xingxy_postal_smtp_credentials($phpmailer) {
+    if (empty($phpmailer->Host)) {
+        return;
+    }
+    // 仅在匹配当前配置的主机时进行精准适配
+    if (strpos($phpmailer->Host, 'sidecloud.cc') !== false) {
+        $phpmailer->Username = 'islamjarataniya-gmail-com/nebuluxe';
+        if (strtolower($phpmailer->SMTPSecure) === 'starttls') {
+            $phpmailer->SMTPSecure = 'tls';
+        }
+    }
+}
