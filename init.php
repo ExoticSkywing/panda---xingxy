@@ -58,6 +58,9 @@ require_once XINGXY_PATH . 'inc/referral-tracker.php';
 // 加载邀请注册送积分功能
 require_once XINGXY_PATH . 'inc/referral.php';
 
+// 加载注册安全风控与邮箱清洗模块
+require_once XINGXY_PATH . 'inc/registration-guard.php';
+
 // 加载资源（CSS/JS）
 require_once XINGXY_PATH . 'inc/assets.php';
 
@@ -100,3 +103,6 @@ require_once XINGXY_PATH . 'inc/bbs-segment-access.php';
 
 // === BBS 帖子级分群标签访问控制 ===
 require_once XINGXY_PATH . 'inc/bbs-post-segment-access.php';
+
+// 生态身份只读接口：由站点外私有配置显式启用
+require_once XINGXY_PATH . 'inc/ecosystem/bootstrap.php';

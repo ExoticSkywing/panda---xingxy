@@ -154,6 +154,54 @@ add_action('zib_require_end', function () {
         ),
     ));
     
+    // ==================== 注册风控设置 ====================
+    CSF::createSection('xingxy_options', array(
+        'id'    => 'registration_guard_settings',
+        'title' => '注册安全风控',
+        'icon'  => 'fas fa-fw fa-shield',
+        'fields' => array(
+            array(
+                'type'    => 'heading',
+                'content' => '唯一自然人防刷与邮箱清洗',
+            ),
+            array(
+                'type'    => 'notice',
+                'style'   => 'info',
+                'content' => '此功能用于唯一确定一个自然人用户，防止黑产利用临时邮箱、域名邮箱批量生成虚假垃圾账号，或利用 Gmail 别名（点号与加号标签）无限刷取邀请注册奖励。',
+            ),
+            array(
+                'id'      => 'enable_strict_email_filter',
+                'type'    => 'switcher',
+                'title'   => '启用严格邮箱白名单',
+                'desc'    => '开启后，仅允许白名单中的主流官方邮箱域名注册，其余域名一律拦截拒绝',
+                'default' => false,
+            ),
+            array(
+                'id'         => 'allowed_email_domains',
+                'type'       => 'textarea',
+                'title'      => '允许注册的邮箱域名白名单',
+                'subtitle'   => '每行一个，不区分大小写，支持如 qq.com、gmail.com 等',
+                'desc'       => '默认推荐：<br><code>qq.com<br>vip.qq.com<br>foxmail.com<br>gmail.com<br>googlemail.com</code>',
+                'default'    => "qq.com
+vip.qq.com
+foxmail.com
+gmail.com
+googlemail.com",
+                'dependency' => array('enable_strict_email_filter', '==', 'true'),
+                'attributes' => array('rows' => 5),
+            ),
+            array(
+                'id'         => 'enable_gmail_alias_guard',
+                'type'       => 'switcher',
+                'title'      => '拦截 Gmail 别名小号（防多账号刷分）',
+                'subtitle'   => '自动过滤 Gmail 点号(.)并截断加号标签(+tag)，确保 1 个 Google 邮箱只能注册 1 个站点账号',
+                'desc'       => '例如 <code>user.name+1@gmail.com</code> 会被规范化识别为主账号 <code>username@gmail.com</code>，若主账号已被注册则自动拒绝重复小号',
+                'default'    => true,
+                'dependency' => array('enable_strict_email_filter', '==', 'true'),
+            ),
+        ),
+    ));
+
     // ==================== 画像采集（小芽精灵） ====================
     CSF::createSection('xingxy_options', array(
         'id'    => 'profile_capture_settings',

@@ -122,6 +122,65 @@ function xingxy_calculate_user_profile($user_id, $selections) {
 }
 
 /**
+ * 保存首次画像并尝试领取迎新奖励；已有画像只恢复奖励，不覆盖问卷。
+ *
+ * @return int|false 150 为已确认到账，0 为无需奖励，false 为可重试的存储/发奖失败。
+ */
+function xingxy_process_profile_welcome_reward($user_id, $selections = null) {
+    $user_id = (int)$user_id;
+    if ($user_id <= 0) return false;
+
+    $profile = get_user_meta($user_id, 'xingxy_profile_data', true);
+    $has_rewarded = get_user_meta($user_id, '_xingxy_welcome_rewarded', true);
+    $pending_key = '_xingxy_welcome_reward_pending';
+    $pending_terms = array('version' => 1, 'user_id' => $user_id, 'amount' => 150);
+
+    if (!$profile && is_array($selections)) {
+        if (!$has_rewarded && !empty($selections['dim3'])) {
+            // 先持久化本次新画像的领取意图；历史画像不能据此补发。
+            $pending = get_user_meta($user_id, $pending_key, true);
+            if ($pending !== $pending_terms) {
+                if ($pending !== '' || !add_user_meta($user_id, $pending_key, $pending_terms, true)) {
+                    return false;
+                }
+            }
+            if (get_user_meta($user_id, $pending_key, true) !== $pending_terms) return false;
+        }
+
+        $calculated_profile = xingxy_calculate_user_profile($user_id, $selections);
+        $profile = get_user_meta($user_id, 'xingxy_profile_data', true);
+        if (!$profile || $profile !== $calculated_profile) return false;
+    }
+
+    if ($has_rewarded || get_user_meta($user_id, $pending_key, true) !== $pending_terms) return 0;
+    // 重试只能使用已保存画像的有效终点选项，不能使用请求中的新答案。
+    if (!is_array($profile) || !isset($profile['raw_split']['dim3'])
+        || !is_array($profile['raw_split']['dim3']) || !array_filter($profile['raw_split']['dim3'], function($value) {
+            return is_string($value) && trim($value) !== '';
+        })) {
+        return 0;
+    }
+    if (!function_exists('zibpay_update_user_points')) return false;
+
+    $reward_points = 150;
+    $result = zibpay_update_user_points($user_id, array(
+        'value' => $reward_points,
+        'type' => '盲盒开启',
+        'desc' => '🎁 星星球首次探索漫游奖励！(神秘盲盒)',
+        'event_namespace' => 'site.welcome.profile',
+        'event_id' => 'welcome-profile-' . $user_id,
+    ));
+    if ($result !== true) return false;
+
+    // 意图保留以恢复到账后丢失的展示标记；重复事件由积分账本去重。
+    if (update_user_meta($user_id, '_xingxy_welcome_rewarded', true) === false
+        && !get_user_meta($user_id, '_xingxy_welcome_rewarded', true)) {
+        return false;
+    }
+    return $reward_points;
+}
+
+/**
  * 监听用户绑定邮箱动作，进行画像运算并存储
  */
 add_action('zib_user_bind_email', 'xingxy_capture_profile_on_bind', 10, 3);
@@ -133,42 +192,20 @@ function xingxy_capture_profile_on_bind($user_id, $captcha_val, $email) {
     $dim2_str = isset($_POST['profile_dim2']) ? sanitize_text_field($_POST['profile_dim2']) : '';
     $dim3_str = isset($_POST['profile_dim3']) ? sanitize_text_field($_POST['profile_dim3']) : '';
 
+    $selections = null;
     if (!empty($dim1_str) || !empty($dim2_str) || !empty($dim3_str)) {
         $selections = [
             'dim1' => array_filter(explode(',', $dim1_str)),
             'dim2' => array_filter(explode(',', $dim2_str)),
             'dim3' => array_filter(explode(',', $dim3_str))
         ];
-        
-        // 传递给核心算法处理
-        xingxy_calculate_user_profile($user_id, $selections);
+    }
 
-        // --- 开始盲盒奖励发放机制 ---
-        if (!empty($selections['dim3'])) { // 只认填满了整套问卷到达终点的人
-            // 防刷判定点：当前用户是否已领取过迎新盲盒
-            $has_rewarded = get_user_meta($user_id, '_xingxy_welcome_rewarded', true);
-            if (!$has_rewarded) {
-                // 确保依赖函数可用
-                if (function_exists('zibpay_update_user_points')) {
-                    $reward_points = 150; // 你定的积分总额，盲盒直接发放固定额也可改随机数 rand(100, 200)
-
-                    $points_data = array(
-                        'value' => $reward_points, // 加分
-                        'type' => '盲盒开启', // 账单类型
-                        'desc' => '🎁 星星球首次探索漫游奖励！(神秘盲盒)', // 明细备注，消除打标签顾虑
-                    );
-
-                    // 调用原生接口发放金币
-                    zibpay_update_user_points($user_id, $points_data);
-
-                    // 防羊毛党：打上死锁戳子，永不能再领
-                    update_user_meta($user_id, '_xingxy_welcome_rewarded', true);
-
-                    // 设置 cookie 供前端揭晓（Zibll 绑定成功后会 reload，transient/AJAX 来不及）
-                    setcookie('xingxy_reward', strval($reward_points), time() + 120, '/', '', is_ssl(), false);
-                }
-            }
-        }
+    $reward_points = xingxy_process_profile_welcome_reward($user_id, $selections);
+    if ($reward_points === false) return false;
+    if ($reward_points > 0) {
+        // 设置 cookie 供前端揭晓（Zibll 绑定成功后会 reload，transient/AJAX 来不及）
+        setcookie('xingxy_reward', strval($reward_points), time() + 120, '/', '', is_ssl(), false);
     }
 }
 
@@ -288,41 +325,34 @@ function xingxy_submit_profile_standalone() {
         wp_send_json_error('未登录');
     }
 
-    if (get_user_meta($user_id, 'xingxy_profile_data', true)) {
+    $has_profile = get_user_meta($user_id, 'xingxy_profile_data', true);
+    $selections = null;
+    if (!$has_profile) {
+        $dim1_str = isset($_POST['profile_dim1']) ? sanitize_text_field($_POST['profile_dim1']) : '';
+        $dim2_str = isset($_POST['profile_dim2']) ? sanitize_text_field($_POST['profile_dim2']) : '';
+        $dim3_str = isset($_POST['profile_dim3']) ? sanitize_text_field($_POST['profile_dim3']) : '';
+
+        if (empty($dim1_str) && empty($dim2_str) && empty($dim3_str)) {
+            wp_send_json_error('请完成问卷');
+        }
+
+        $selections = [
+            'dim1' => array_filter(explode(',', $dim1_str)),
+            'dim2' => array_filter(explode(',', $dim2_str)),
+            'dim3' => array_filter(explode(',', $dim3_str)),
+        ];
+    }
+
+    $reward_points = xingxy_process_profile_welcome_reward($user_id, $selections);
+    if ($reward_points === false) {
+        wp_send_json_error('奖励发放暂不可用，请稍后重试');
+    }
+    if ($reward_points > 0) {
+        wp_send_json_success(array('reward' => $reward_points));
+    }
+    if ($has_profile) {
         wp_send_json_error('已完成画像采集');
     }
-
-    $dim1_str = isset($_POST['profile_dim1']) ? sanitize_text_field($_POST['profile_dim1']) : '';
-    $dim2_str = isset($_POST['profile_dim2']) ? sanitize_text_field($_POST['profile_dim2']) : '';
-    $dim3_str = isset($_POST['profile_dim3']) ? sanitize_text_field($_POST['profile_dim3']) : '';
-
-    if (empty($dim1_str) && empty($dim2_str) && empty($dim3_str)) {
-        wp_send_json_error('请完成问卷');
-    }
-
-    $selections = [
-        'dim1' => array_filter(explode(',', $dim1_str)),
-        'dim2' => array_filter(explode(',', $dim2_str)),
-        'dim3' => array_filter(explode(',', $dim3_str)),
-    ];
-
-    xingxy_calculate_user_profile($user_id, $selections);
-
-    // 盲盒奖励发放（与邮箱绑定流程逻辑一致）
-    if (!empty($selections['dim3'])) {
-        $has_rewarded = get_user_meta($user_id, '_xingxy_welcome_rewarded', true);
-        if (!$has_rewarded && function_exists('zibpay_update_user_points')) {
-            $reward_points = 150;
-            zibpay_update_user_points($user_id, array(
-                'value' => $reward_points,
-                'type'  => '盲盒开启',
-                'desc'  => '🎁 星星球首次探索漫游奖励！(神秘盲盒)',
-            ));
-            update_user_meta($user_id, '_xingxy_welcome_rewarded', true);
-            wp_send_json_success(array('reward' => $reward_points));
-        }
-    }
-
     wp_send_json_success(array('message' => '画像采集完成'));
 }
 
